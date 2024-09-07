@@ -1,0 +1,13 @@
+<resources>
+    <string name="wrong_password_err_text">Wrong password</string>
+    <string name="not_equals_passwords_err_text">Passwords not equals</string>
+    <string name="empty_password_text">Password is empty</string>
+    <string name="empty_check_password_text">Please, enter password again in this field</string>
+    <string name="password_enter_helper_text">Please, enter the password</string>
+    <string name="check_password_helper_text">Please, enter the password again</string>
+    <string name="enter_text">Enter</string>
+    <string name="create_password_text">Create and enter</string>
+    <string name="permission_warning_title">Application requires permission for work</string>
+    <string name="permission_warning_subtitle">To read and create files.</string>
+    <string name="permission_btn_text">Grant</string>
+</resources>
