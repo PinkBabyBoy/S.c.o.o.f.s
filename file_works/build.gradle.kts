@@ -44,6 +44,4 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
 
     implementation(project(":core"))
-    implementation(project(":cryptography"))
-    implementation(project(":providers:external_data"))
 }

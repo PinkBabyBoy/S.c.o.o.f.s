@@ -1,6 +1,8 @@
 package ru.barinov.protected_enter
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,6 +39,7 @@ import ru.barinov.ui_ext.InformationalBlock
 import ru.barinov.ui_ext.InformationalBlockType
 import ru.barinov.ui_ext.RegisterLifecycleCallbacks
 import ru.barinov.ui_ext.SingleEventEffect
+import ru.barinov.ui_ext.enterScreenBackground
 
 @Composable
 internal fun EnterScreen(
@@ -53,7 +57,7 @@ internal fun EnterScreen(
             PermissionRequestManager.PermissionLauncherBuilder(context).build(
                 Permission.MANAGE_FILES
             ) { granted ->
-                if(granted) {
+                if (granted) {
                     enterScreenEvent(EnterScreenEvent.PermissionGranted)
                 }
             }
@@ -69,7 +73,11 @@ internal fun EnterScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(enterScreenBackground)
+    ) {
         Box {
             AnimatedLogo(
                 Modifier
@@ -96,6 +104,27 @@ internal fun EnterScreen(
                 )
             }
         )
+        if (state.type == Stage.Enter) {
+            val alertDialogVisible = remember {
+                mutableStateOf(false)
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Forgot your password",
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .clickable { alertDialogVisible.value = true }
+            )
+            if (alertDialogVisible.value) {
+                PasswordResetAlertDialog(
+                    onConfirmed = {
+                        enterScreenEvent(EnterScreenEvent.ResetConfirmed)
+                        alertDialogVisible.value = false
+                    },
+                    dismiss = { alertDialogVisible.value = false }
+                )
+            }
+        }
         if (state.type == Stage.Create) {
             OutlinedTextField(
                 value = confirm.value.toString(),
@@ -130,7 +159,9 @@ internal fun EnterScreen(
             }
         } else {
             InformationalBlock(
-                modifier = Modifier.padding(top = 84.dp).align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .padding(top = 84.dp)
+                    .align(Alignment.CenterHorizontally),
                 type = InformationalBlockType.INFO,
                 text = stringResource(id = R.string.permission_warning_title)
             ) {

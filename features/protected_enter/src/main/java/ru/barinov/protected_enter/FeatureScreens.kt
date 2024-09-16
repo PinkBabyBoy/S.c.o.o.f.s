@@ -17,7 +17,7 @@ fun NavGraphBuilder.enterScreen(
     composable(route = EnterScreenRoute.ENTER_SCREEN.name) {
         val vm: EnterScreenViewModel = koinViewModel()
         EnterScreen(
-            state = vm.viewState.collectAsState().value,
+            state = vm.uiState.collectAsState().value,
             sideEffects = vm.sideEffects,
             enterScreenEvent = vm::handleEvent,
             rebase = { navController.navigate(Routes.MAIN.name) },

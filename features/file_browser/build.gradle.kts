@@ -39,7 +39,9 @@ android {
 }
 
 dependencies {
-
+    implementation("androidx.paging:paging-compose:3.3.2")
+    implementation("androidx.paging:paging-runtime-ktx:3.3.2")
+    implementation(libs.libaums)
     implementation(libs.androidx.ui)
     implementation(libs.compose.appcompanist)
     implementation(libs.androidx.ui.graphics)
@@ -54,6 +56,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(project(":features:protected_enter:routes"))
+    implementation(project(":providers:external_data"))
+    implementation(project(":providers:internal_data"))
+    implementation(project(":cryptography"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -28,8 +28,9 @@ internal class KeyMemoryCacheImpl: KeyMemoryCache {
 
 
     override fun initKeyStore(iStream: InputStream, pass: CharArray){
-        this.pass = pass
         keyStore.load(iStream, pass)
+        this.pass = pass
+        _isLoaded.value = true
     }
 
     override fun getPrivateKey(): PrivateKey? =
@@ -68,5 +69,6 @@ internal class KeyMemoryCacheImpl: KeyMemoryCache {
         cache.privateKeyCache = null
         pass = null
         keyStore = KeyStore.getInstance("BKS")
+        _isLoaded.value = false
     }
 }

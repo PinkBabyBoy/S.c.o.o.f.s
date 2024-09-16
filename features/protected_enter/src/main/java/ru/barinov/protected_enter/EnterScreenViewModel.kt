@@ -1,12 +1,10 @@
 package ru.barinov.protected_enter
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -32,19 +30,27 @@ internal class EnterScreenViewModel(
     private val _sideEffects = Channel<SideEffects>(capacity = Channel.BUFFERED)
     val sideEffects = _sideEffects.receiveAsFlow()
 
-    private val _viewState = MutableStateFlow(reconstructUiState())
-    val viewState = _viewState.asStateFlow()
+    private val _uiState = MutableStateFlow(reconstructUiState())
+    val uiState = _uiState.asStateFlow()
 
     fun handleEvent(event: EnterScreenEvent) {
         when (event) {
             is EnterScreenEvent.NewInput -> newUserInput(event.type, event.input)
             EnterScreenEvent.SubmitClicked -> submit()
             EnterScreenEvent.PermissionGranted
-            -> _viewState.value = _viewState.value.onPermissionGiven(
+            -> _uiState.value = _uiState.value.onPermissionGiven(
                     hasPassword = passwordStorage.hasPasswordSet(),
                     hasRequiredPermission = permissionChecker.hasPermissionToRead()
                 )
+
+            EnterScreenEvent.ResetConfirmed -> resetPassword()
         }
+    }
+
+    private fun resetPassword() {
+        cleaner.clearStoredData()
+        passwordStorage.clear()
+        _uiState.value = reconstructUiState()
     }
 
     private fun reconstructUiState() =
@@ -80,7 +86,6 @@ internal class EnterScreenViewModel(
         val hash = hashCreator.createHash(password!!)
         passwordStorage.store(hash, PType.REAL)
         viewModelScope.launch {
-            delay(1000)
             _sideEffects.send(SideEffects.EnterGranted)
         }
     }
@@ -183,5 +188,6 @@ internal sealed interface EnterScreenEvent {
 
     data object PermissionGranted : EnterScreenEvent
 
+    data object ResetConfirmed : EnterScreenEvent
 
 }

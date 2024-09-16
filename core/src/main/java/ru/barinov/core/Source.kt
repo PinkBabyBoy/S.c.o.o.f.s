@@ -1,5 +1,5 @@
 package ru.barinov.core
 
 enum class Source{
-    INTERNAL, MASS_STORAGE
+    INTERNAL, MASS_STORAGE;
 }

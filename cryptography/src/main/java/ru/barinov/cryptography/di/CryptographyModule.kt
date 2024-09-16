@@ -6,6 +6,8 @@ import ru.barinov.cryptography.Decryptor
 import ru.barinov.cryptography.DecryptorImpl
 import ru.barinov.cryptography.Encryptor
 import ru.barinov.cryptography.EncryptorImpl
+import ru.barinov.cryptography.KeyManager
+import ru.barinov.cryptography.KeyManagerImpl
 import ru.barinov.cryptography.KeyMemoryCache
 import ru.barinov.cryptography.KeyMemoryCacheImpl
 import ru.barinov.cryptography.factories.CipherFactoryImpl
@@ -46,4 +48,12 @@ val cryptographyModule = module{
     factory {
         CipherStreamsFactoryImpl(get())
     } bind CipherStreamsFactory::class
+
+
+    single {
+        KeyManagerImpl(
+            keyCache = get(),
+            readFileWorker = get(),
+        )
+    } bind KeyManager::class
 }

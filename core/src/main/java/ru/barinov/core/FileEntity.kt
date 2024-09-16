@@ -1,24 +1,25 @@
 package ru.barinov.core
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Log
 import me.jahnen.libaums.core.fs.UsbFile
+import me.jahnen.libaums.core.fs.UsbFileInputStream
 import java.io.File
+import java.io.InputStream
 import java.util.UUID
+
 
 //Вынести в домейн
 
 @JvmInline
-value class Filename(val value: String) {
-
-    companion object{
-        fun empty() = Filepath(String())
-    }
-}
+value class Filename(val value: String)
 
 @JvmInline
 value class Filepath(val value: String) {
 
-    companion object{
-        fun empty() = Filepath(String())
+    companion object {
+        fun root(name: String) = Filepath(name)
     }
 }
 
@@ -36,8 +37,8 @@ sealed class FileEntity(
 
     abstract fun innerFiles(): List<FileEntity>
 
-    class MassStorageFile(
-        val attachedOrigin: UsbFile
+    class MassStorageFile internal constructor(
+        val attachedOrigin: UsbFile,
     ) : FileEntity(
         UUID.randomUUID(),
         FileSize(attachedOrigin.length),
@@ -51,9 +52,8 @@ sealed class FileEntity(
             attachedOrigin.listFiles().map { it.toFileEntity() }
     }
 
-    class InternalFile(
-        val attachedOrigin: File,
-        val isInternalFile: Boolean = false
+    class InternalFile internal constructor(
+        val attachedOrigin: File
     ) : FileEntity(
         UUID.randomUUID(),
         FileSize(attachedOrigin.length()),
@@ -69,9 +69,27 @@ sealed class FileEntity(
 
 }
 
+sealed interface FileFormatType {
+
+    class Image(val bitmapPreview: Bitmap) : FileFormatType
+
+    class Other(val isBigFile: Boolean) : FileFormatType
+}
+
 fun File.toFileEntity(): FileEntity.InternalFile =
     FileEntity.InternalFile(this)
 
 
 fun UsbFile.toFileEntity(): FileEntity.MassStorageFile =
     FileEntity.MassStorageFile(this)
+
+fun FileEntity.inputStream(): InputStream {
+    if (isDir) error("This is folder!")
+    return when(this){
+        is FileEntity.InternalFile -> attachedOrigin.inputStream()
+        is FileEntity.MassStorageFile -> UsbFileInputStream(attachedOrigin)
+    }
+}
+
+
+

@@ -47,8 +47,10 @@ dependencies {
     implementation(project(":usb_connection"))
     implementation(project(":providers:external_data"))
     implementation(project(":permission_manager"))
-    implementation(project(":file_works"))
     implementation(project(":providers:internal_data"))
     implementation(project(":transaction_manager"))
+    implementation(project(":features:file_browser"))
+    implementation(project(":file_works:read_worker"))
+    implementation(project(":file_works:write_worker"))
 
 }

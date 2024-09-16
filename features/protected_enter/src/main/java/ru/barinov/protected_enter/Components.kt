@@ -76,8 +76,7 @@ fun AnimatedLogo(modifier: Modifier) {
         Image(
             painter = painterResource(id = ru.barinov.core.R.drawable.anonimus),
             contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
+            modifier = Modifier.align(Alignment.TopCenter)
         )
     }
 }

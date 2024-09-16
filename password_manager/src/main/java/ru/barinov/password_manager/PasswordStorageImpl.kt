@@ -59,6 +59,15 @@ internal class PasswordStorageImpl(
 
     @Synchronized
     override fun hasPasswordSet(): Boolean = keyStore.containsAlias(KEYSTORE_ALIAS) && !storage.tPass.isNullOrEmpty()
+
+    override fun clear() {
+        runCatching {
+            keyStore.deleteEntry(KEYSTORE_ALIAS)
+            storage.tPass = null
+            storage.fPass = null
+        }
+
+    }
 }
 
 enum class PType {
@@ -72,4 +81,6 @@ interface PasswordStorage {
     fun readHash(pType: PType): ByteArray?
 
     fun hasPasswordSet(): Boolean
+
+    fun clear()
 }

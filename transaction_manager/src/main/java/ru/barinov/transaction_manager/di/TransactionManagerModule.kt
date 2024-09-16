@@ -6,26 +6,24 @@ import org.koin.dsl.module
 import ru.barinov.transaction_manager.AppFolderProvider
 import ru.barinov.transaction_manager.Cleaner
 import ru.barinov.transaction_manager.GetCurrentContainerUseCase
-import ru.barinov.transaction_manager.KeyManager
-import ru.barinov.transaction_manager.TransactionManager
-import ru.barinov.transaction_manager.TransactionManagerImpl
+import ru.barinov.cryptography.KeyManager
+import ru.barinov.transaction_manager.FileWriter
+import ru.barinov.transaction_manager.FileWriterImpl
 import java.io.File
 
-val transactionManagerModule = module {
+val fileWriterModule = module {
 
     factory {
         GetCurrentContainerUseCase(androidContext())
     }
 
     factory {
-        TransactionManagerImpl(
-            readFileWorker = get(),
+        FileWriterImpl(
             getCurrentContainerUseCase = get(),
             writeFieWorker = get(),
-            keyCache = get(),
             appFolderProvider = get()
         )
-    } binds (arrayOf(TransactionManager::class, KeyManager::class, Cleaner::class))
+    } binds (arrayOf(FileWriter::class, Cleaner::class))
 
     factory {
         AppFolderProvider{

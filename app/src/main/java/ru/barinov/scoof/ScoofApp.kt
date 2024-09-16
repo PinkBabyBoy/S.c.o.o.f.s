@@ -8,6 +8,7 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.koinApplication
 import ru.barinov.component_initializer.CryptographyInitializer
 import ru.barinov.component_initializer.EnterScreenInitializer
+import ru.barinov.component_initializer.FileObserverInitializer
 import ru.barinov.component_initializer.FileWorksInitializer
 import ru.barinov.component_initializer.InternalStorageInitializer
 import ru.barinov.component_initializer.MsdProviderInitializer
@@ -38,6 +39,7 @@ class ScoofApp: Application() {
             initializeComponent(FileWorksInitializer::class.java)
             initializeComponent(InternalStorageInitializer::class.java)
             initializeComponent(TransactionManagerInitializer::class.java)
+            initializeComponent(FileObserverInitializer::class.java)
         }
     }
 }

@@ -1,10 +1,10 @@
 package ru.barinov.file_works
 
 import ru.barinov.core.FileEntity
-import ru.barinov.filework.getBytes
+import ru.barinov.core.getBytes
 import java.lang.IllegalArgumentException
 
-internal object IndexCreator {
+object IndexCreator {
 
 //    const val TAG_SIZE = 128
 

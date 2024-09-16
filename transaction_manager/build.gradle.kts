@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(project(":file_works:write_worker"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
 
