@@ -17,9 +17,9 @@ interface KeyMemoryCache {
 
     fun getPublicKey(): PublicKey?
 
-    fun storePair(pair: KeyPair, pass: CharArray, readOnlyAfterWork: Boolean)
+//    fun storePair(pair: KeyPair, pass: CharArray, readOnlyAfterWork: Boolean)
 
-    fun commit(oStream: OutputStream, pass: CharArray)
+//    fun commit(oStream: OutputStream, pass: CharArray)
 
     fun unbind()
 }

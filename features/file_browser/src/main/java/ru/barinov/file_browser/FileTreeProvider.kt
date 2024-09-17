@@ -57,6 +57,12 @@ class FileTreeProvider(
         return path to !stack.hasBackFolder()
     }
 
+    fun getCurrentFolder(source: Source): FileEntity {
+        val stack =
+            if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
+        return if(stack.isNotEmpty()) stack.peek() else rootProvider.getRootFile(source)!!
+    }
+
     fun getCurrentList(source: Source): List<FileEntity>? =
         if (source == Source.INTERNAL) innerFiles.value else massStorageFiles.value
 
@@ -71,6 +77,14 @@ class FileTreeProvider(
             Source.INTERNAL -> openInternalFolder(uuid)
             Source.MASS_STORAGE -> openMassStorageFolder(uuid)
         }
+    }
+
+    fun update(source: Source) {
+        when(source){
+            Source.INTERNAL -> _innerFiles.value = getCurrentFolder(source).innerFiles()
+            Source.MASS_STORAGE -> _massStorageFiles.value = getCurrentFolder(source).innerFiles()
+        }
+
     }
 
     private fun onBack(source: Source, folder: FileEntity) {

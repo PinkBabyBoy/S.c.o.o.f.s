@@ -39,6 +39,7 @@ import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
+import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.ui_ext.BottomSheetPolicy
 import ru.barinov.ui_ext.SingleEventEffect
@@ -59,6 +60,7 @@ fun FileBrowserScreen(
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
             CanGoBack -> navController.navigateUp()
+            is ShowInfo -> TODO()
         }
     }
 
@@ -108,6 +110,7 @@ fun FileBrowserScreen(
             isSelectionEnabled = true,
             onEvent = { onEvent(it) },
             actions = buildActions(state, onEvent),
+//            isPageEmpty = state.isPageEmpty
             isPageEmpty = false
         )
     }

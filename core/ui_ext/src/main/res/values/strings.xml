@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="key_load_fail">Key load failed</string>
+    <string name="key_loaded">Key loaded</string>
+    <string name="keystore_create_success">Keystore created</string>
+    <string name="keystore_create_fail">Keystore create failed</string>
+    <string name="password_enter_helper_text">Please, enter the password</string>
+    <string name="empty_password_text">Password is empty</string>
+    <string name="empty_keystore_name">Name is empty</string>
+    <string name="keystore_name_hint">Please, enter key store name</string>
+</resources>

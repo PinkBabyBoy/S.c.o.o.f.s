@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,7 +71,7 @@ class FileObserverViewModel(
                 pagingSourceFactory = {
                     FilesPagingSource(it)
                 }
-            ).flow.combine(selectedCache.cacheFlow) { files, selected ->
+            ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selected ->
                 fileToUiModelMapper(files, selected, true)
             }
         }

@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.sideEffects
 
+import androidx.annotation.StringRes
 import ru.barinov.core.Filename
 import java.util.UUID
 
@@ -17,8 +18,9 @@ sealed interface KeySelectorSideEffect: SideEffect {
         val name: Filename,
         val uuid: UUID
     ): KeySelectorSideEffect
-
-    data object KeyLoadFail: KeySelectorSideEffect
 }
+
+class ShowInfo(@StringRes val text: Int): KeySelectorSideEffect, FileBrowserSideEffect
+
 
 data object CanGoBack: FileBrowserSideEffect, KeySelectorSideEffect

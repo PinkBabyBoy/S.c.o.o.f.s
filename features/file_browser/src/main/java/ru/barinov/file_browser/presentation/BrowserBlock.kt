@@ -36,12 +36,12 @@ import ru.barinov.ui_ext.fileBrowserBackground
 @Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T : FieObserverEvent> BrowserBlock(
+inline fun <reified T : FieObserverEvent> BrowserBlock(
     files: Flow<PagingData<FileUiModel>>,
     currentFolderName: String,
     paddingBottom: Dp,
     isSelectionEnabled: Boolean,
-    onEvent: (T) -> Unit,
+    crossinline onEvent: (T) -> Unit,
     isPageEmpty: Boolean,
     actions: Set<@Composable (RowScope) -> Unit> = emptySet()
 ) {
@@ -71,11 +71,12 @@ fun <T : FieObserverEvent> BrowserBlock(
                 items(folderFiles.itemCount) { index ->
                     val fileModel = folderFiles[index]
                     if(fileModel != null) {
-                        FileItem<FileBrowserEvent>(
+                        FileItem<T>(
                             file = fileModel,
                             selectionMode = selectionMode.value && isSelectionEnabled,
                             toggleSelection = { selectionMode.value = !selectionMode.value },
-                            onEvent = { onEvent(it as T) })
+                            selectionAvailable = isSelectionEnabled,
+                            onEvent = { onEvent(it) })
                     } else LoaderPlaceholder()
                 }
             }

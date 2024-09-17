@@ -7,6 +7,7 @@ import ru.barinov.external_data.GetMSDFileSystemUseCase
 import ru.barinov.file_works.IndexCreator
 import java.io.BufferedInputStream
 import java.io.FileInputStream
+import java.io.InputStream
 import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
@@ -41,20 +42,17 @@ internal class ReadFileWorkerImpl(
         return ByteBuffer.wrap(buffer).getInt()
     }
 
-    override fun readRawKey(fileEntity: FileEntity): ByteArray =
+    override fun readKeyStore(fileEntity: FileEntity): InputStream =
        when(fileEntity){
            is FileEntity.InternalFile -> readKeyFromInternalStorage(fileEntity)
            is FileEntity.MassStorageFile -> readKeyFromMSD(fileEntity)
        }
 
-    private fun readKeyFromMSD(fileEntity: FileEntity.MassStorageFile): ByteArray =
-        UsbFileStreamFactory.createBufferedInputStream(fileEntity.attachedOrigin, getMSDFileSystemUseCase()!!).use {
-            if(it.available() > KEY_FILE_LIMIT_SIZE) throw Exception()
-            it.readBytes()
-        }
+    private fun readKeyFromMSD(fileEntity: FileEntity.MassStorageFile): InputStream =
+        UsbFileStreamFactory.createBufferedInputStream(fileEntity.attachedOrigin, getMSDFileSystemUseCase()!!)
 
-    private fun readKeyFromInternalStorage(fileEntity:FileEntity.InternalFile): ByteArray {
+    private fun readKeyFromInternalStorage(fileEntity:FileEntity.InternalFile): InputStream {
         if(fileEntity.attachedOrigin.length() > KEY_FILE_LIMIT_SIZE) throw Exception()
-        return fileEntity.attachedOrigin.readBytes()
+        return fileEntity.attachedOrigin.inputStream()
     }
 }

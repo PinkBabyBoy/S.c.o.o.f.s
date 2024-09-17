@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -87,12 +88,11 @@ fun FileBrowserAppBar(
 ) {
     val title = @Composable { Text(text = folderName, Modifier.padding(start = 16.dp), fontSize = 14.sp) }
     val navigationIcon = @Composable {
-        Image(
+        Icon(
             painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
             contentDescription = null,
             modifier = Modifier
                 .clickable { onNavigateUpClicked() }
-                .size(32.dp)
                 .padding(start = 12.dp)
         )
     }

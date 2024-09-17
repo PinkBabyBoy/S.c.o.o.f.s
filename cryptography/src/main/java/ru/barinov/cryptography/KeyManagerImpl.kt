@@ -32,8 +32,8 @@ internal class KeyManagerImpl(
         serviceCoroutine.launchCatching(
             block = {
                 mutex.withLock {
-                    val bytes = readFileWorker.readRawKey(keyFile)
-                    keyCache.initKeyStore(bytes.inputStream(), password)
+                    val input = readFileWorker.readKeyStore(keyFile)
+                    keyCache.initKeyStore(input, password)
                 }
             },
             onSuccess = {

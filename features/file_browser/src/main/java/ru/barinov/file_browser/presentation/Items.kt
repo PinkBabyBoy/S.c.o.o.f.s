@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.presentation
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -46,6 +47,7 @@ import java.util.UUID
 inline fun <reified T : FieObserverEvent> FileItem(
     file: FileUiModel,
     selectionMode: Boolean,
+    selectionAvailable: Boolean,
     crossinline toggleSelection: () -> Unit,
     crossinline onEvent: (T) -> Unit
 ) {
@@ -70,7 +72,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
                 interactionSource = interactSource.value,
                 indication = rememberRipple(),
                 onLongClick = {
-                    if (T::class is FileBrowserEvent) {
+                    if (selectionAvailable) {
                         onEvent(FileBrowserEvent.OnSelectionModeToggled(!selectionMode) as T)
                         toggleSelection()
                     }
@@ -140,6 +142,6 @@ fun FileItemPreview() {
                 mutableStateOf(FileType.Unconfirmed)
             }
         ),
-        true, {}, {},
+        true, false, {}, {},
     )
 }

@@ -1,9 +1,11 @@
 package ru.barinov.file_browser
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +31,11 @@ import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
+import ru.barinov.file_browser.sideEffects.ShowInfo
+import ru.barinov.file_browser.sideEffects.SideEffect
 import ru.barinov.file_browser.states.KeyPickerUiState
+import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
+import ru.barinov.ui_ext.R
 import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -37,7 +43,8 @@ class KeySelectorViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     fileTreeProvider: FileTreeProvider,
     private val fileToUiModelMapper: FileToUiModelMapper,
-    private val keyManager: KeyManager
+    private val keyManager: KeyManager,
+    private val createKeyStoreUseCase: CreateKeyStoreUseCase
 ) : FileWalkViewModel<KeySelectorSideEffect>(fileTreeProvider, getMSDAttachStateProvider, true) {
 
 
@@ -65,7 +72,7 @@ class KeySelectorViewModel(
                 pagingSourceFactory = {
                     FilesPagingSource(it)
                 }
-            ).flow.map { fileToUiModelMapper(it, hashSetOf(), false) } to it.isNullOrEmpty()
+            ).flow.cachedIn(viewModelScope).map { fileToUiModelMapper(it, hashSetOf(), false) } to it.isNullOrEmpty()
         }
 
 
@@ -110,13 +117,39 @@ class KeySelectorViewModel(
             -> keyManager.loadKey(
                 keyFile = fileTreeProvider.getFileByUUID(event.uuid, sourceType.value),
                 password = event.password,
-                onSuccess = {},
+                onSuccess = {
+                    viewModelScope.launch {
+                        _sideEffects.send(ShowInfo(R.string.key_loaded))
+                    }
+                },
                 onError = {
                     viewModelScope.launch {
-                        _sideEffects.send(KeySelectorSideEffect.KeyLoadFail)
+                        _sideEffects.send(ShowInfo(R.string.key_load_fail))
                     }
                 }
             )
+
+            is KeySelectorEvent.CreateKeyStoreConfirmed -> {
+                viewModelScope.launch(Dispatchers.Default) {
+                    val folder = fileTreeProvider.getCurrentFolder(sourceType.value)
+                    createKeyStoreUseCase(
+                        folder = folder,
+                        password = event.password,
+                        name = event.name,
+                        loadInstantly = event.loadInstantly
+                    ).fold(
+                        onSuccess = {
+                            fileTreeProvider.update(sourceType.value)
+                            _sideEffects.send(ShowInfo(R.string.keystore_create_success))
+                        },
+                        onFailure = {
+                            _sideEffects.send(ShowInfo(R.string.keystore_create_fail))
+                        }
+                    )
+                }
+            }
+
+            KeySelectorEvent.UnbindKey -> unbindKey()
         }
     }
 

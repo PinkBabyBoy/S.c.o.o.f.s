@@ -14,6 +14,8 @@ import ru.barinov.cryptography.factories.CipherFactoryImpl
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.factories.CipherStreamsFactory
 import ru.barinov.cryptography.factories.CipherStreamsFactoryImpl
+import ru.barinov.cryptography.factories.KeyStoreFactory
+import ru.barinov.cryptography.factories.KeyStoreFactoryImpl
 import ru.barinov.cryptography.keygens.AsymmetricKeyGenerator
 import ru.barinov.cryptography.keygens.AsymmetricKeyGeneratorImpl
 import ru.barinov.cryptography.keygens.SecretKeyGenerator
@@ -56,4 +58,8 @@ val cryptographyModule = module{
             readFileWorker = get(),
         )
     } bind KeyManager::class
+
+    single {
+        KeyStoreFactoryImpl(get())
+    } bind KeyStoreFactory::class
 }

@@ -14,6 +14,7 @@ import ru.barinov.file_browser.KeySelectorViewModel
 import ru.barinov.file_browser.RootProvider
 import ru.barinov.file_browser.RootProviderImpl
 import ru.barinov.file_browser.SelectedCache
+import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 
 
 val fileObserverModule = module {
@@ -57,12 +58,17 @@ val fileObserverModule = module {
         )
     }
 
+    factory {
+        CreateKeyStoreUseCase(get(), get())
+    }
+
     viewModel {
         KeySelectorViewModel(
             getMSDAttachStateProvider = get(),
             fileTreeProvider = get(),
             fileToUiModelMapper = get(),
-            keyManager = get()
+            keyManager = get(),
+            createKeyStoreUseCase = get()
         )
     }
 }

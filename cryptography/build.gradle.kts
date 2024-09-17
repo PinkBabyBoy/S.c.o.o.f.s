@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.67")
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.androidx.core.ktx)

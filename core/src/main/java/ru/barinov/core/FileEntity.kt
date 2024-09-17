@@ -5,8 +5,10 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import me.jahnen.libaums.core.fs.UsbFile
 import me.jahnen.libaums.core.fs.UsbFileInputStream
+import me.jahnen.libaums.core.fs.UsbFileOutputStream
 import java.io.File
 import java.io.InputStream
+import java.io.OutputStream
 import java.util.UUID
 
 
@@ -88,6 +90,14 @@ fun FileEntity.inputStream(): InputStream {
     return when(this){
         is FileEntity.InternalFile -> attachedOrigin.inputStream()
         is FileEntity.MassStorageFile -> UsbFileInputStream(attachedOrigin)
+    }
+}
+
+fun FileEntity.outputStream(): OutputStream {
+    if (isDir) error("This is folder!")
+    return when(this){
+        is FileEntity.InternalFile -> attachedOrigin.outputStream()
+        is FileEntity.MassStorageFile -> UsbFileOutputStream(attachedOrigin)
     }
 }
 

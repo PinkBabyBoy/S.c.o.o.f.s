@@ -20,6 +20,8 @@ data class KeyPickerUiState(
     val isPageEmpty: Boolean
 ) {
 
+    val isKeyLoaded = type == Type.LOADED
+
     enum class Type {
         LOADED, UNLOADED, IDLE
     }

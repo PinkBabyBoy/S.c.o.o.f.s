@@ -6,7 +6,7 @@ import ru.barinov.core.toFileEntity
 import ru.barinov.external_data.MSDRootProvider
 import ru.barinov.internal_data.InternalStorageProvider
 
-class RootProviderImpl(
+internal class RootProviderImpl(
     private val massStorageProvider: MSDRootProvider,
     private val internalStorageProvider: InternalStorageProvider
 ) : RootProvider {

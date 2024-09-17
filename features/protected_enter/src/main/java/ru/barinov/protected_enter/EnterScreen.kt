@@ -37,6 +37,7 @@ import ru.barinov.permission_manager.PermissionRequestManager
 import ru.barinov.routes.EnterScreenRoute
 import ru.barinov.ui_ext.InformationalBlock
 import ru.barinov.ui_ext.InformationalBlockType
+import ru.barinov.ui_ext.PasswordTextField
 import ru.barinov.ui_ext.RegisterLifecycleCallbacks
 import ru.barinov.ui_ext.SingleEventEffect
 import ru.barinov.ui_ext.enterScreenBackground
@@ -49,8 +50,6 @@ internal fun EnterScreen(
     rebase: () -> Unit
 ) {
     val context = LocalContext.current
-    val pass: MutableState<CharSequence> = remember { mutableStateOf("") }
-    val confirm: MutableState<CharSequence> = remember { mutableStateOf("") }
     val permissionManager = remember { PermissionRequestManager() }.apply {
         register(
             Permission.MANAGE_FILES,
@@ -87,22 +86,15 @@ internal fun EnterScreen(
             )
         }
 
-        OutlinedTextField(
-            value = pass.value.toString(),
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            onValueChange = {
-                pass.value = it
-                enterScreenEvent(EnterScreenEvent.NewInput(InputType.PASSWORD, it))
-            }, modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(top = 84.dp),
-            supportingText = {
+        PasswordTextField(
+            onValueChanged = { enterScreenEvent(EnterScreenEvent.NewInput(InputType.PASSWORD, it)) },
+            supportText = {
                 SupportText(
                     errors = state.errors.filter { it != ErrorType.CHECK_EMPTY && it != ErrorType.CREATE_NOT_EQUALS },
-                    hint = R.string.password_enter_helper_text
+                    hint = ru.barinov.ui_ext.R.string.password_enter_helper_text
                 )
-            }
+            },
+            modifier =  Modifier.align(Alignment.CenterHorizontally).padding(top = 84.dp)
         )
         if (state.type == Stage.Enter) {
             val alertDialogVisible = remember {
@@ -126,22 +118,15 @@ internal fun EnterScreen(
             }
         }
         if (state.type == Stage.Create) {
-            OutlinedTextField(
-                value = confirm.value.toString(),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                onValueChange = {
-                    confirm.value = it
-                    enterScreenEvent(EnterScreenEvent.NewInput(InputType.CONFIRMATION, it))
-                }, modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 64.dp),
-                supportingText = {
+            PasswordTextField(
+                onValueChanged = { enterScreenEvent(EnterScreenEvent.NewInput(InputType.CONFIRMATION, it)) },
+                supportText = {
                     SupportText(
                         errors = state.errors.filter { it == ErrorType.CHECK_EMPTY || it == ErrorType.CREATE_NOT_EQUALS },
                         hint = R.string.check_password_helper_text
                     )
-                }
+                },
+                modifier =  Modifier.align(Alignment.CenterHorizontally).padding(top = 64.dp)
             )
         } else {
             Spacer(modifier = Modifier.height(128.dp))
@@ -181,10 +166,10 @@ private fun SupportText(errors: List<ErrorType>, @StringRes hint: Int) {
         return
     }
     val text = when (errors.first()) {
-        ErrorType.READ_HASH_ERROR -> R.string.empty_password_text
+        ErrorType.READ_HASH_ERROR -> ru.barinov.ui_ext.R.string.empty_password_text
         ErrorType.WRONG_PASSWORD -> R.string.wrong_password_err_text
         ErrorType.CREATE_NOT_EQUALS -> R.string.not_equals_passwords_err_text
-        ErrorType.PASSWORD_EMPTY -> R.string.empty_password_text
+        ErrorType.PASSWORD_EMPTY -> ru.barinov.ui_ext.R.string.empty_password_text
         ErrorType.CHECK_EMPTY -> R.string.empty_check_password_text
     }.let { stringResource(id = it) }
     Text(text = text, color = MaterialTheme.colorScheme.error)
