@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import ru.barinov.core.FileEntity
 import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
@@ -57,15 +59,15 @@ class FileObserverViewModel(
             .combine(sourceType, ::SourceState)
 
         val files = sourceState.flatMapLatest { sourceData ->
-            if (sourceData.currentSource == Source.INTERNAL)
-                fileTreeProvider.innerFiles
-            else
+            if (sourceData.currentSource == Source.MASS_STORAGE && sourceData.isMsdAttached)
                 fileTreeProvider.massStorageFiles
+            else
+                fileTreeProvider.innerFiles
         }.map {
             Pager(
                 config = PagingConfig(
                     pageSize = PAGE_SIZE,
-                    enablePlaceholders = false,
+                    enablePlaceholders = true,
                     initialLoadSize = PAGE_SIZE
                 ),
                 pagingSourceFactory = {
@@ -81,24 +83,23 @@ class FileObserverViewModel(
                     val (sourceData, page, isKeyLoaded) = it
                     val (name, isRoot) =
                         fileTreeProvider.getCurrentFolderInfo(sourceData.currentSource)
-                val hasSelected = selectedCache.cacheFlow.value.isNotEmpty()
                     RawUiModel(
                         files = page,
                         currentFolderName = name,
                         sourceState = sourceData,
-                        hasSelected = hasSelected,
                         isInRoot = isRoot,
                         isKeyLoaded = isKeyLoaded
                     )
                 }
+                .combine(selectedCache.cacheFlow.map { it.isNotEmpty() }.stateIn(viewModelScope), ::Pair)
                 .catch { }
                 .collectLatest {
-                    val (filesList, folderName, sourceData, hasSelected, isInRoot, isKeyLoaded) = it
+                    val (filesList, folderName, sourceData, isInRoot, isKeyLoaded) = it.first
                     _uiState.value = FileBrowserUiState.reconstruct(
                         files = filesList,
                         folderName = folderName,
                         sourceState = sourceData,
-                        hasSelected = hasSelected,
+                        hasSelected = it.second,
                         isInRoot = isInRoot,
                         isKeyLoaded = isKeyLoaded
                     )
@@ -118,6 +119,19 @@ class FileObserverViewModel(
             OnBackPressed -> goBack()
             FileBrowserEvent.AddSelection -> askTransactionWithSelected()
             SourceChanged -> changeSource()
+            FileBrowserEvent.Delete -> deleteSelected()
+        }
+    }
+
+    private fun deleteSelected() {
+        viewModelScope.launch(Dispatchers.Default) {
+            selectedCache.getCache().values.forEach {
+                when (it) {
+                    is FileEntity.InternalFile -> it.attachedOrigin.delete()
+                    is FileEntity.MassStorageFile -> it.attachedOrigin.delete()
+                }
+            }
+            fileTreeProvider.update(sourceType.value)
         }
     }
 
@@ -200,7 +214,6 @@ private data class RawUiModel(
     val files: Flow<PagingData<FileUiModel>>,
     val currentFolderName: Filepath,
     val sourceState: SourceState,
-    val hasSelected: Boolean,
     val isInRoot: Boolean,
     val isKeyLoaded: Boolean,
 )

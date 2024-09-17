@@ -15,14 +15,9 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.PublicKey
 
-//Remake to keystore loader
 internal class KeyMemoryCacheImpl: KeyMemoryCache {
 
     private var keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
-
-    private var cache =  object {
-        var privateKeyCache: PrivateKey? = null
-    }
 
     private var pass: CharArray? = null
 
@@ -71,9 +66,8 @@ internal class KeyMemoryCacheImpl: KeyMemoryCache {
 //    }
 
     override fun unbind() {
-        cache.privateKeyCache = null
         pass = null
-        keyStore = KeyStore.getInstance("BKS")
+        keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
         _isLoaded.value = false
     }
 }

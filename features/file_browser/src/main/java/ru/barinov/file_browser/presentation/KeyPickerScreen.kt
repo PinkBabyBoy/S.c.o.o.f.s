@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
@@ -51,9 +53,6 @@ fun KeySelector(
     navController: NavController,
     snackbarHostState: SnackbarHostState
 ) {
-    BackHandler {
-        onEvent(OnBackPressed)
-    }
     val keyLoadBsState = remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
     val localCoroutine = rememberCoroutineScope()
     val context = LocalContext.current
@@ -109,6 +108,7 @@ fun KeySelector(
             isSelectionEnabled = false,
             onEvent = { onEvent(it) },
             isPageEmpty = state.isPageEmpty,
+            isInRoot = state.isInRoot,
             actions = setOf {
                 Image(
                     painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),

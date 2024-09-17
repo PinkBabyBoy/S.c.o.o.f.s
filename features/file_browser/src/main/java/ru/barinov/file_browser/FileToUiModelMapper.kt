@@ -1,7 +1,9 @@
 package ru.barinov.file_browser
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
@@ -19,17 +21,21 @@ class FileToUiModelMapper(
     private val fileRecogniser: FileRecogniser
 ) {
 
+    private val savedStates = mutableMapOf<UUID, MutableState<FileType>>()
+
     operator fun invoke(
         files: PagingData<FileEntity>,
         selected: HashSet<UUID>,
         recognizerOn: Boolean
     ):  PagingData<FileUiModel> {
         return files.map {
-            val typeState = mutableStateOf<FileType>(FileType.Unconfirmed)
-            if(recognizerOn) {
+            val hasSavedState = savedStates.containsKey(it.uuid)
+            if(recognizerOn && !hasSavedState) {
+                val typeState = mutableStateOf<FileType>(FileType.Unconfirmed)
+                savedStates[it.uuid] = typeState
                 fileRecogniser(it, typeState)
             }
-            mapFile(it, selected, typeState)
+            mapFile(it, selected, savedStates[it.uuid] ?: mutableStateOf(FileType.Unconfirmed))
         }
     }
 

@@ -16,9 +16,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,11 +31,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.flow.Flow
 import ru.barinov.core.Source
+import ru.barinov.file_browser.R
 import ru.barinov.file_browser.args.ConfirmBottomSheetArgs
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnBackPressed
@@ -53,15 +58,24 @@ fun FileBrowserScreen(
     onEvent: (FileBrowserEvent) -> Unit,
     snackbarHostState: SnackbarHostState
 ) {
-    BackHandler {
-        onEvent(OnBackPressed)
-    }
-    val confirmBsExpanded = remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
+    val confirmBsExpanded =
+        remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
+    val deleteDialogVisible = remember { mutableStateOf(false) }
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
             CanGoBack -> navController.navigateUp()
             is ShowInfo -> TODO()
         }
+    }
+
+    if (deleteDialogVisible.value) {
+        DeleteSelectedAlertDialog(
+            dismiss = { deleteDialogVisible.value = false },
+            onConfirmed = {
+                onEvent(FileBrowserEvent.Delete)
+                deleteDialogVisible.value = false
+            }
+        )
     }
 
     if (!state.isKeyLoaded) {
@@ -109,20 +123,22 @@ fun FileBrowserScreen(
             paddingBottom = scaffoldPaddingValues.calculateBottomPadding(),
             isSelectionEnabled = true,
             onEvent = { onEvent(it) },
-            actions = buildActions(state, onEvent),
+            actions = buildActions(state, onEvent, deleteDialogVisible),
 //            isPageEmpty = state.isPageEmpty
+            isInRoot = state.isInRoot,
             isPageEmpty = false
         )
     }
 
-    ((confirmBsExpanded.value as? BottomSheetPolicy.Expanded<*>)?.args as? ConfirmBottomSheetArgs)?.let{
+    ((confirmBsExpanded.value as? BottomSheetPolicy.Expanded<*>)?.args as? ConfirmBottomSheetArgs)?.let {
 
     }
 }
 
 private fun buildActions(
     state: FileBrowserUiState,
-    onEvent: (FileBrowserEvent) -> Unit
+    onEvent: (FileBrowserEvent) -> Unit,
+    deleteDialogVisible: MutableState<Boolean>
 ): Set<@Composable (RowScope) -> Unit> = buildSet {
     if (state.hasSelected) {
         add {
@@ -133,9 +149,22 @@ private fun buildActions(
                     .clickable {
                         onEvent(FileBrowserEvent.AddSelection)
                     }
-                    .size(32.dp)
+                    .size(42.dp)
                     .padding(end = 16.dp),
-                colorFilter = ColorFilter.tint(Color.White)
+                colorFilter = ColorFilter.tint(Color.Black)
+            )
+        }
+        add {
+            Image(
+                painter = painterResource(id = ru.barinov.ui_ext.R.drawable.baseline_delete_outline_24),
+                contentDescription = null,
+                modifier = Modifier
+                    .clickable {
+                        deleteDialogVisible.value = true
+                    }
+                    .size(42.dp)
+                    .padding(end = 16.dp),
+                colorFilter = ColorFilter.tint(Color.Black)
             )
         }
     }
@@ -155,9 +184,32 @@ private fun buildActions(
                     .size(32.dp)
                     .padding(end = 16.dp),
                 colorFilter = if (state.sourceState.currentSource == Source.INTERNAL)
-                    ColorFilter.tint(Color.White)
+                    ColorFilter.tint(Color.Black)
                 else null
             )
         }
     }
+}
+
+@Composable
+fun DeleteSelectedAlertDialog(dismiss: () -> Unit, onConfirmed: () -> Unit) {
+    AlertDialog(
+        title = {
+            Text(text = "Delete selected?")
+        },
+        text = {
+            Text(text = "All selected files will be removed")
+        },
+        onDismissRequest = { dismiss() },
+        dismissButton = {
+            Button(onClick = dismiss) {
+                Text(text = stringResource(id = android.R.string.cancel))
+            }
+        },
+        confirmButton = {
+            Button(onClick = onConfirmed) {
+                Text(text = stringResource(id = android.R.string.ok))
+            }
+        }
+    )
 }

@@ -1,6 +1,9 @@
 package ru.barinov.file_browser.presentation
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.RowScope
@@ -84,17 +87,20 @@ fun FileBrowserAppBar(
     folderName: String,
     topAppBarScrollBehavior: TopAppBarScrollBehavior,
     onNavigateUpClicked: () -> Unit,
+    showArrow: Boolean,
     actions: Set<@Composable (RowScope) -> Unit> = emptySet()
 ) {
     val title = @Composable { Text(text = folderName, Modifier.padding(start = 16.dp), fontSize = 14.sp) }
     val navigationIcon = @Composable {
-        Icon(
-            painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
-            contentDescription = null,
-            modifier = Modifier
-                .clickable { onNavigateUpClicked() }
-                .padding(start = 12.dp)
-        )
+        AnimatedVisibility(showArrow, enter = scaleIn(), exit = scaleOut()) {
+            Icon(
+                painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
+                contentDescription = null,
+                modifier = Modifier
+                    .clickable { onNavigateUpClicked() }
+                    .padding(start = 12.dp)
+            )
+        }
     }
     TopAppBar(
         title = { title() },

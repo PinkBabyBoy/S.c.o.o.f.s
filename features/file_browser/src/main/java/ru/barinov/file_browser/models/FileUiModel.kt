@@ -20,7 +20,7 @@ import java.io.InputStream
 import java.util.UUID
 
 @Stable
-class FileUiModel(
+data class FileUiModel(
     val uuid: UUID,
     val filePath: String,
     val type: Source,

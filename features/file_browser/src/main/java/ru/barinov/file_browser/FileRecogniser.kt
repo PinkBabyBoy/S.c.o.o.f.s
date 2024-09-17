@@ -39,11 +39,12 @@ class FileRecogniser {
     }
 }
 
-private fun InputStream.getBitMapPreview(): Bitmap? =
+private fun InputStream.getBitMapPreview(): Bitmap? = runCatching {
     BitmapFactory.decodeStream(this)?.let { Bitmap.createScaledBitmap(it, 42, 42, true) }
+}.getOrNull()
 
-private fun InputStream.isImage(): Boolean {
+private fun InputStream.isImage(): Boolean = runCatching {
     val bitmapOptions = BitmapFactory.Options().also { it.inJustDecodeBounds = true }
     BitmapFactory.decodeStream(this, null, bitmapOptions)
     return (bitmapOptions.outWidth != -1 && bitmapOptions.outHeight != -1).also { close() }
-}
+}.getOrNull() ?: false

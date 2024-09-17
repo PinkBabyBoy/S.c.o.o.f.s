@@ -47,10 +47,13 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.startup)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(project(":component_initializer"))
     implementation(project(":navhost"))
+    implementation(project(":usb_connection"))
+    implementation(project(":providers:external_data"))
 }

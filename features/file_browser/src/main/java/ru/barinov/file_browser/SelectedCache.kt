@@ -30,6 +30,8 @@ class SelectedCache {
         return selectedCache.toMap()
     }
 
+    fun getSelected(): HashSet<UUID> = selectedCache.values.mapTo(HashSet()) { it.uuid }
+
     fun hasSelected(uuid: UUID) = selectedCache.hasKey(uuid)
 }
 

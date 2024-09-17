@@ -11,6 +11,8 @@ sealed interface FileBrowserEvent : FieObserverEvent {
 
     data object AddSelection : FileBrowserEvent
 
+    data object Delete : FileBrowserEvent
+
 }
 
 sealed interface KeySelectorEvent : FieObserverEvent {

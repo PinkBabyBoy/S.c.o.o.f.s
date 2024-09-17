@@ -37,8 +37,6 @@ class FileTreeProvider(
 
     val innerFiles = _innerFiles.asStateFlow()
 
-    //   private val _massStorageFiles: MutableStateFlow<List<FileEntity>?> =
-//        MutableStateFlow(rootProvider.getRootFile(Source.MASS_STORAGE)?.innerFiles())
     private val _massStorageFiles: MutableStateFlow<List<FileEntity>?> =
         massStorageEventBus.massStorageState.map {
             when (it) {

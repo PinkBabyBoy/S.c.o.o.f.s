@@ -1,6 +1,7 @@
 package ru.barinov.file_browser.presentation
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,10 +44,15 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
     isSelectionEnabled: Boolean,
     crossinline onEvent: (T) -> Unit,
     isPageEmpty: Boolean,
+    isInRoot: Boolean,
     actions: Set<@Composable (RowScope) -> Unit> = emptySet()
 ) {
     val selectionMode = remember { mutableStateOf(false) }
     val folderFiles = files.collectAsLazyPagingItems()
+    BackHandler {
+        if(selectionMode.value) selectionMode.value = false
+        else onEvent(OnBackPressed as T)
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -58,7 +64,8 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
                 folderName = currentFolderName,
                 topAppBarScrollBehavior = scrollBehavior,
                 onNavigateUpClicked = { onEvent(OnBackPressed as T) },
-                actions = actions
+                actions = actions,
+                showArrow = !isInRoot
             )
             LazyColumn(
                 modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
@@ -89,7 +96,10 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
 
 @Composable
 fun LoaderPlaceholder(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().height(48.dp)) {
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(48.dp)) {
         CircularProgressIndicator(modifier= Modifier.fillMaxSize())
     }
 }

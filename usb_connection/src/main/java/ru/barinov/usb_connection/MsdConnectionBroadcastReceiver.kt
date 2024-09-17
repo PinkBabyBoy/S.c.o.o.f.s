@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
 import kotlinx.coroutines.CoroutineScope
@@ -27,7 +28,7 @@ import ru.barinov.external_data.MassStorageState
 import java.io.IOException
 
 class MsdConnectionBroadcastReceiver(
-    private val context: Context
+    private val appContext: Context
 ) : BroadcastReceiver(), MSDRootProvider, MSDFileSystemProvider, MassStorageEventBus {
 
     private var currentConnection: Pair<FileSystem, UsbMassStorageDevice>? = null
@@ -36,20 +37,23 @@ class MsdConnectionBroadcastReceiver(
         MutableStateFlow<MassStorageState>(MassStorageState.Detached)
 
     override val massStorageState = _massStorageState.asStateFlow()
-    private val usbManager = context.getSystemService(UsbManager::class.java)
+    private val usbManager = appContext.getSystemService(UsbManager::class.java)
 
     private val coroutineScope = CoroutineScope(Job() + Dispatchers.IO)
 
     init {
         ContextCompat.registerReceiver(
-            context, this, IntentFilter().apply {
+            appContext, this, IntentFilter().apply {
                 addAction(ACTION_USB_PERMISSION)
                 addAction(ACTION_USB_STATE)
+                addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+                addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED)
+
             },
             RECEIVER_NOT_EXPORTED
         )
         coroutineScope.launch {
-            UsbMassStorageDevice.getMassStorageDevices(context).firstOrNull()?.let { device ->
+            UsbMassStorageDevice.getMassStorageDevices(appContext).firstOrNull()?.let { device ->
                 if (usbManager.hasPermission(device.usbDevice)) {
                     initDevice(device.usbDevice)
                 } else {
@@ -71,8 +75,8 @@ class MsdConnectionBroadcastReceiver(
         coroutineScope.launch {
             when (intent.action) {
                 ACTION_USB_STATE -> {
-                    if (!intent.getBooleanExtra(USB_STATE_KEY, true) &&
-                        hasMassStorageAttached()
+                    if ((intent.hasExtra(USB_CONNECT_KEY) && !intent.getBooleanExtra(USB_CONNECT_KEY, true)) &&
+                        !hasMassStorageAttached()
                     ) {
                         _massStorageState.emit(MassStorageState.Detached)
                         close()
@@ -109,7 +113,8 @@ class MsdConnectionBroadcastReceiver(
                             intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
                         }
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        device?.let { initDevice(it) }
+                        device?.let {
+                            initDevice(it) }
                     } else {
 
                     }
@@ -121,9 +126,11 @@ class MsdConnectionBroadcastReceiver(
     }
 
     private fun hasMassStorageAttached() =
-        UsbMassStorageDevice.getMassStorageDevices(context).isEmpty()
+        UsbMassStorageDevice.getMassStorageDevices(appContext).isNotEmpty()
 
     private fun close() {
+        Log.e("@@@", "Closing dev")
+        _massStorageState.value = MassStorageState.Detached
         currentConnection?.second?.close()
         currentConnection = null
     }
@@ -136,9 +143,9 @@ class MsdConnectionBroadcastReceiver(
         } else {
             val permissionIntent =
                 PendingIntent.getBroadcast(
-                    context,
+                    appContext,
                     0,
-                    Intent(ACTION_USB_PERMISSION).setPackage(context.packageName),
+                    Intent(ACTION_USB_PERMISSION).setPackage(appContext.packageName),
                     PendingIntent.FLAG_MUTABLE
                 )
             usbManager.requestPermission(device, permissionIntent)
@@ -146,17 +153,15 @@ class MsdConnectionBroadcastReceiver(
     }
 
     private suspend fun initDevice(device: UsbDevice) = runCatching {
-        UsbMassStorageDevice.getMassStorageDevices(context).find {
+        UsbMassStorageDevice.getMassStorageDevices(appContext).find {
             it.usbDevice.deviceId == device.deviceId
-        }?.let { massStorage ->
+        }!!.let { massStorage ->
             massStorage.init()
             massStorage.partitions.firstOrNull()!!.fileSystem to massStorage
         }
     }.fold(
         onSuccess = { initializedDevice ->
-            if (initializedDevice == null) throw MassStorageNotRecognizedException()
             currentConnection = initializedDevice
-            initializedDevice.first.rootDirectory
             _massStorageState.emit(MassStorageState.Ready(initializedDevice.first))
         },
         onFailure = {
@@ -178,6 +183,7 @@ class MsdConnectionBroadcastReceiver(
         const val ACTION_USB_PERMISSION = "ru.barinov.safestore.USB_PERMISSION"
         const val ACTION_USB_STATE = "android.hardware.usb.action.USB_STATE"
         const val USB_STATE_KEY = "connect_state"
+        const val USB_CONNECT_KEY = "connected"
     }
 
 }

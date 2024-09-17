@@ -43,15 +43,17 @@ sealed class FileEntity(
         val attachedOrigin: UsbFile,
     ) : FileEntity(
         UUID.randomUUID(),
-        FileSize(attachedOrigin.length),
+        FileSize(if(!attachedOrigin.isDirectory) attachedOrigin.length else 0L),
         attachedOrigin.isDirectory,
         Filename(attachedOrigin.name),
         Filepath(attachedOrigin.absolutePath),
         attachedOrigin.parent?.toFileEntity()
     ) {
 
-        override fun innerFiles(): List<MassStorageFile> =
+        override fun innerFiles(): List<MassStorageFile> = runCatching {
             attachedOrigin.listFiles().map { it.toFileEntity() }
+        }.getOrNull().orEmpty()
+
     }
 
     class InternalFile internal constructor(
