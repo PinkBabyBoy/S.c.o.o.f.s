@@ -73,12 +73,12 @@ sealed class FileEntity(
 
 }
 
-sealed interface FileFormatType {
-
-    class Image(val bitmapPreview: Bitmap) : FileFormatType
-
-    class Other(val isBigFile: Boolean) : FileFormatType
-}
+//sealed interface FileFormatType {
+//
+//    class Image(val bitmapPreview: Bitmap) : FileFormatType
+//
+//    class Other(val isBigFile: Boolean) : FileFormatType
+//}
 
 fun File.toFileEntity(): FileEntity.InternalFile =
     FileEntity.InternalFile(this)

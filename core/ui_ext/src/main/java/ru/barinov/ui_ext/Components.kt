@@ -1,6 +1,7 @@
 package ru.barinov.ui_ext
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -8,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -32,9 +34,10 @@ fun InformationalBlock(
     type: InformationalBlockType,
     text: String,
     modifier: Modifier = Modifier,
-    onBlockClicked: () -> Unit
+    onBlockClicked: () -> Unit,
+    onIconClicked: () -> Unit
 ) {
-    val iconRes = when(type) {
+    val iconRes = when (type) {
         InformationalBlockType.INFO -> R.drawable.info
         InformationalBlockType.WARNING -> R.drawable.warning
         InformationalBlockType.ERROR -> R.drawable.warning
@@ -42,11 +45,13 @@ fun InformationalBlock(
     Box(modifier) {
         ElevatedCard(onClick = onBlockClicked) {
             Row(Modifier.padding(vertical = 8.dp, horizontal = 16.dp)) {
-                Image(
+                Icon(
                     painter = painterResource(id = iconRes),
                     contentDescription = null,
-                    modifier = Modifier.padding(end = 12.dp),
-                    colorFilter = ColorFilter.tint(info)
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .clickable { onIconClicked() },
+                    tint = info
                 )
                 Text(text = text, fontSize = 14.sp, maxLines = 1)
             }
@@ -65,7 +70,13 @@ enum class InformationalBlockType {
 @Preview(showBackground = true)
 private fun InformationalBlockPreview() {
     MaterialTheme {
-        InformationalBlock(InformationalBlockType.INFO, "Application requres permission for work", Modifier, {})
+        InformationalBlock(
+            type = InformationalBlockType.INFO,
+            text = "Application requires permission for work",
+            modifier = Modifier,
+            onBlockClicked = {},
+            onIconClicked = {}
+        )
     }
 }
 
@@ -74,7 +85,7 @@ fun PasswordTextField(
     onValueChanged: (String) -> Unit,
     supportText: @Composable () -> Unit,
     modifier: Modifier
-){
+) {
     val enteredPass = remember {
         mutableStateOf("")
     }

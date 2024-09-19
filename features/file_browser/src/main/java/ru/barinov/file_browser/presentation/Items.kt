@@ -52,6 +52,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
     crossinline onEvent: (T) -> Unit
 ) {
     val interactSource = remember { mutableStateOf(MutableInteractionSource()) }
+    val isSelected = remember { mutableStateOf(file.isSelected) }
     Card(
         colors = CardDefaults.cardColors(
             containerColor = fileItemColor
@@ -73,11 +74,14 @@ inline fun <reified T : FieObserverEvent> FileItem(
                 indication = rememberRipple(),
                 onLongClick = {
                     if (selectionAvailable) {
-                        onEvent(FileBrowserEvent.OnSelectionModeToggled(!selectionMode) as T)
+//                        onEvent(FileBrowserEvent.OnSelectionModeToggled(!selectionMode) as T)
                         toggleSelection()
                     }
                 },
-                onClick = { onEvent(OnFileClicked(file.uuid, selectionMode) as T) }
+                onClick = {
+                    isSelected.value = !isSelected.value
+                    onEvent(OnFileClicked(file.uuid, selectionMode) as T)
+                }
             )
     ) {
         Row(
@@ -114,7 +118,12 @@ inline fun <reified T : FieObserverEvent> FileItem(
                     .padding(end = 12.dp)
             ) {
                 AnimatedVisibility(visible = selectionMode) {
-                    Checkbox(checked = file.isSelected, onCheckedChange = {})
+                    Checkbox(
+                        checked = isSelected.value,
+                        onCheckedChange = {
+                            isSelected.value = !isSelected.value
+                            onEvent(OnFileClicked(file.uuid, selectionMode) as T)
+                        })
                 }
             }
 

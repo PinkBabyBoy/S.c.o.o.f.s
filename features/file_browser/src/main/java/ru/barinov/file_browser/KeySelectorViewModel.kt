@@ -72,7 +72,9 @@ class KeySelectorViewModel(
                 pagingSourceFactory = {
                     FilesPagingSource(it)
                 }
-            ).flow.cachedIn(viewModelScope).map { fileToUiModelMapper(it, hashSetOf(), false) } to it.isNullOrEmpty()
+            ).flow.cachedIn(viewModelScope).map {
+                fileToUiModelMapper(it, hashSetOf(), false)
+            } to it.isNullOrEmpty()
         }
 
 

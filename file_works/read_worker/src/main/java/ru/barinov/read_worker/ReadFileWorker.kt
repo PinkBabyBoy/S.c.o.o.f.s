@@ -8,5 +8,5 @@ interface ReadFileWorker {
 
     fun readIndexes(file: FileEntity.InternalFile): Result<List<FileIndex>>
 
-    fun readKeyStore(fileEntity: FileEntity): InputStream
+    fun getInputStream(fileEntity: FileEntity): InputStream
 }

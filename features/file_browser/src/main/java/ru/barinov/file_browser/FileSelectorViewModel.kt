@@ -47,7 +47,6 @@ class FileObserverViewModel(
 
     private var attemptsToOpenFile = 0
 
-
     private val _uiState: MutableStateFlow<FileBrowserUiState> =
         MutableStateFlow(FileBrowserUiState.idle())
     val uiState = _uiState.asStateFlow()
@@ -73,9 +72,9 @@ class FileObserverViewModel(
                 pagingSourceFactory = {
                     FilesPagingSource(it)
                 }
-            ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selected ->
-                fileToUiModelMapper(files, selected, true)
-            }
+            ).flow.cachedIn(viewModelScope).map{ files ->
+                fileToUiModelMapper(files, selectedCache.getSelected(), true)
+            } to it.isNullOrEmpty()
         }
 
         viewModelScope.launch(Dispatchers.Default) {
@@ -83,25 +82,28 @@ class FileObserverViewModel(
                     val (sourceData, page, isKeyLoaded) = it
                     val (name, isRoot) =
                         fileTreeProvider.getCurrentFolderInfo(sourceData.currentSource)
+                val (folderFiles, isPageEmpty) = page
                     RawUiModel(
-                        files = page,
+                        files = folderFiles,
                         currentFolderName = name,
                         sourceState = sourceData,
                         isInRoot = isRoot,
-                        isKeyLoaded = isKeyLoaded
+                        isKeyLoaded = isKeyLoaded,
+                        isPageEmpty = isPageEmpty
                     )
                 }
                 .combine(selectedCache.cacheFlow.map { it.isNotEmpty() }.stateIn(viewModelScope), ::Pair)
                 .catch { }
                 .collectLatest {
-                    val (filesList, folderName, sourceData, isInRoot, isKeyLoaded) = it.first
+                    val (filesList, folderName, sourceData, isInRoot, isKeyLoaded, isPageEmpty) = it.first
                     _uiState.value = FileBrowserUiState.reconstruct(
                         files = filesList,
                         folderName = folderName,
                         sourceState = sourceData,
                         hasSelected = it.second,
                         isInRoot = isInRoot,
-                        isKeyLoaded = isKeyLoaded
+                        isKeyLoaded = isKeyLoaded,
+                        isPageEmpty = isPageEmpty
                     )
                 }
         }
@@ -216,6 +218,7 @@ private data class RawUiModel(
     val sourceState: SourceState,
     val isInRoot: Boolean,
     val isKeyLoaded: Boolean,
+    val isPageEmpty: Boolean
 )
 
 //sealed interface FileObserverUiCommand {

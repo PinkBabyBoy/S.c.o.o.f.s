@@ -1,18 +1,26 @@
 package ru.barinov.protected_enter
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -23,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,10 +46,15 @@ import ru.barinov.permission_manager.PermissionRequestManager
 import ru.barinov.routes.EnterScreenRoute
 import ru.barinov.ui_ext.InformationalBlock
 import ru.barinov.ui_ext.InformationalBlockType
+import ru.barinov.ui_ext.Keyboard
 import ru.barinov.ui_ext.PasswordTextField
 import ru.barinov.ui_ext.RegisterLifecycleCallbacks
 import ru.barinov.ui_ext.SingleEventEffect
+import ru.barinov.ui_ext.bottomNavGreen
 import ru.barinov.ui_ext.enterScreenBackground
+import ru.barinov.ui_ext.keyboardAsState
+import ru.barinov.ui_ext.lightGreen
+import ru.barinov.ui_ext.mainGreen
 
 @Composable
 internal fun EnterScreen(
@@ -72,18 +86,30 @@ internal fun EnterScreen(
         }
     }
 
+    val isPermissionInfoBsVisible = remember { mutableStateOf(false) }
+    val kbState = keyboardAsState()
+
     Column(
         Modifier
             .fillMaxSize()
             .background(enterScreenBackground)
+            .imePadding()
+            .verticalScroll(rememberScrollState())
     ) {
-        Box {
-            AnimatedLogo(
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .padding(top = 128.dp)
-            )
+        AnimatedVisibility(visible = kbState.value == Keyboard.Closed) {
+            Box {
+                AnimatedLogo(
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .padding(top = 128.dp)
+                    
+                )
+            }
+        }
+
+        if(kbState.value == Keyboard.Opened) {
+            Spacer(modifier = Modifier.height(64.dp))
         }
 
         PasswordTextField(
@@ -94,7 +120,9 @@ internal fun EnterScreen(
                     hint = ru.barinov.ui_ext.R.string.password_enter_helper_text
                 )
             },
-            modifier =  Modifier.align(Alignment.CenterHorizontally).padding(top = 84.dp)
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 84.dp)
         )
         if (state.type == Stage.Enter) {
             val alertDialogVisible = remember {
@@ -126,18 +154,23 @@ internal fun EnterScreen(
                         hint = R.string.check_password_helper_text
                     )
                 },
-                modifier =  Modifier.align(Alignment.CenterHorizontally).padding(top = 64.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 64.dp)
             )
         } else {
-            Spacer(modifier = Modifier.height(128.dp))
+            Spacer(modifier = Modifier.height(68.dp))
         }
 
         if (state.hasPermission) {
             ElevatedButton(
+                colors = ButtonDefaults.buttonColors().copy(
+                    containerColor = mainGreen
+                ),
                 onClick = { enterScreenEvent(EnterScreenEvent.SubmitClicked) },
-                Modifier
+                modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(top = 84.dp)
+                    .padding(top = if (kbState.value == Keyboard.Closed) 84.dp else 42.dp)
                     .defaultMinSize(minWidth = 228.dp)
             ) {
                 Text(text = stringResource(id = R.string.enter_text), fontSize = 22.sp)
@@ -148,15 +181,17 @@ internal fun EnterScreen(
                     .padding(top = 84.dp)
                     .align(Alignment.CenterHorizontally),
                 type = InformationalBlockType.INFO,
-                text = stringResource(id = R.string.permission_warning_title)
-            ) {
-                permissionManager.launch(Permission.MANAGE_FILES)
+                text = stringResource(id = R.string.permission_warning_title),
+                onBlockClicked = { permissionManager.launch(Permission.MANAGE_FILES) },
+                onIconClicked = { isPermissionInfoBsVisible.value = true }
+            )
+            if(isPermissionInfoBsVisible.value) {
+                PermissionInfoBottomSheet {
+                    isPermissionInfoBsVisible.value = false
+                }
             }
         }
-
     }
-
-
 }
 
 @Composable

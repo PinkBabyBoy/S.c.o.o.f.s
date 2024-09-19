@@ -41,6 +41,7 @@ class FileToUiModelMapper(
 
     private fun mapFile(file: FileEntity, selected: HashSet<UUID>, typeState: MutableState<FileType>): FileUiModel =
         file.run {
+            val isSelected = uuid in selected
             FileUiModel(
                 uuid = uuid,
                 filePath = file.path.value.trimFilePath(),
@@ -51,7 +52,7 @@ class FileToUiModelMapper(
                 size = size,
                 displayAbleSize = size.value.bytesToMbSting(),
                 placeholderRes = fetchPlaceholderRes(isDir),
-                isSelected = uuid in selected,
+                isSelected = isSelected,
                 fileType = typeState
             )
         }

@@ -1,6 +1,10 @@
 package ru.barinov.file_browser.presentation
 
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -8,6 +12,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +27,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.internal.enableLiveLiterals
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,15 +36,15 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.flow.Flow
 import ru.barinov.core.Source
 import ru.barinov.file_browser.R
-import ru.barinov.file_browser.args.ConfirmBottomSheetArgs
+
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.SourceChanged
@@ -48,6 +54,7 @@ import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.ui_ext.BottomSheetPolicy
 import ru.barinov.ui_ext.SingleEventEffect
+import ru.barinov.ui_ext.getActivity
 
 @Composable
 fun FileBrowserScreen(
@@ -79,7 +86,7 @@ fun FileBrowserScreen(
     }
 
     if (!state.isKeyLoaded) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center)
@@ -124,15 +131,14 @@ fun FileBrowserScreen(
             isSelectionEnabled = true,
             onEvent = { onEvent(it) },
             actions = buildActions(state, onEvent, deleteDialogVisible),
-//            isPageEmpty = state.isPageEmpty
-            isInRoot = state.isInRoot,
-            isPageEmpty = false
+            isPageEmpty = state.isPageEmpty,
+            isInRoot = state.isInRoot
         )
     }
 
-    ((confirmBsExpanded.value as? BottomSheetPolicy.Expanded<*>)?.args as? ConfirmBottomSheetArgs)?.let {
-
-    }
+//    ((confirmBsExpanded.value as? BottomSheetPolicy.Expanded<*>)?.args as? ConfirmBottomSheetArgs)?.let {
+//
+//    }
 }
 
 private fun buildActions(

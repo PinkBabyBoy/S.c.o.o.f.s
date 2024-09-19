@@ -41,6 +41,7 @@ android {
 dependencies {
     implementation("androidx.paging:paging-compose:3.3.2")
     implementation("androidx.paging:paging-runtime-ktx:3.3.2")
+//    implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
     implementation(libs.libaums)
     implementation(libs.androidx.ui)
     implementation(libs.compose.appcompanist)
@@ -56,9 +57,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(project(":features:protected_enter:routes"))
-    implementation(project(":providers:external_data"))
-    implementation(project(":providers:internal_data"))
-    implementation(project(":cryptography"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,6 +64,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(project(":core"))
+    implementation(project(":providers:external_data"))
+    implementation(project(":providers:internal_data"))
+    implementation(project(":cryptography"))
     implementation(project(":permission_manager"))
     implementation(project(":transaction_manager"))
     implementation(project(":core:ui_ext"))

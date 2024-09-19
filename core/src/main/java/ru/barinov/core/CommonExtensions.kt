@@ -73,7 +73,7 @@ internal fun Float.toMinDisplayable(): Float {
 fun String.trimFilePath(): String {
     val segments = split('/').filter { it.isNotEmpty() }
     return when {
-        segments.size < 3 -> this
+        segments.size < 3 -> this.trimFileName(12)
         else
         -> "${segments.first().trimFileName(12)}${File.separator}...${File.separator}${segments.last().trimFileName(12)}"
     }

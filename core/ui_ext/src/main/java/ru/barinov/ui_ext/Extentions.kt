@@ -3,28 +3,29 @@ package ru.barinov.ui_ext
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.Settings
-import android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-import android.util.Log
+import android.graphics.Rect
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.Flow
 
+typealias ColorPair = Pair<Int, Int>
 
 @Composable
 fun <T : Any> SingleEventEffect(
@@ -83,4 +84,71 @@ fun RegisterLifecycleCallbacks(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+}
+
+@Composable
+fun DecorStyle(
+    statusBar: ColorPair,
+    navigationBar: ColorPair
+){
+    val context = LocalContext.current as ComponentActivity
+    val (statusBarLight, statusBarDark) = statusBar
+    val (navigationBarLight, navigationBarDark) = navigationBar
+    val isDarkMode = isSystemInDarkTheme()
+    DisposableEffect(isDarkMode) {
+        context.enableEdgeToEdge(
+            statusBarStyle = if (!isDarkMode) {
+                SystemBarStyle.light(
+                    statusBarLight,
+                    statusBarDark
+                )
+            } else {
+                SystemBarStyle.dark(
+                    statusBarDark
+                )
+            },
+            navigationBarStyle = if(!isDarkMode){
+                SystemBarStyle.light(
+                    navigationBarLight,
+                    navigationBarDark
+                )
+            } else {
+                SystemBarStyle.dark(navigationBarDark)
+            }
+        )
+
+        onDispose {
+            context.enableEdgeToEdge()
+        }
+    }
+}
+
+@Composable
+fun keyboardAsState(): State<Keyboard> {
+    val keyboardState = remember { mutableStateOf(Keyboard.Closed) }
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val onGlobalListener = ViewTreeObserver.OnGlobalLayoutListener {
+            val rect = Rect()
+            view.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = view.rootView.height
+            val keypadHeight = screenHeight - rect.bottom
+            keyboardState.value = if (keypadHeight > screenHeight * 0.15) {
+                Keyboard.Opened
+            } else {
+                Keyboard.Closed
+            }
+        }
+        view.viewTreeObserver.addOnGlobalLayoutListener(onGlobalListener)
+
+        onDispose {
+            view.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalListener)
+        }
+    }
+
+    return keyboardState
+}
+
+enum class Keyboard {
+    Opened, Closed
 }

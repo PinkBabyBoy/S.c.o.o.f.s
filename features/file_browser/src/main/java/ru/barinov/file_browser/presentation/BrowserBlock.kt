@@ -1,8 +1,12 @@
 package ru.barinov.file_browser.presentation
 
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,12 +21,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
@@ -32,9 +38,11 @@ import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.models.FileUiModel
+import ru.barinov.ui_ext.ColorPair
+import ru.barinov.ui_ext.DecorStyle
+import ru.barinov.ui_ext.bottomNavGreen
 import ru.barinov.ui_ext.fileBrowserBackground
 
-@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 inline fun <reified T : FieObserverEvent> BrowserBlock(
@@ -50,20 +58,26 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
     val selectionMode = remember { mutableStateOf(false) }
     val folderFiles = files.collectAsLazyPagingItems()
     BackHandler {
-        if(selectionMode.value) selectionMode.value = false
-        else onEvent(OnBackPressed as T)
+        if (selectionMode.value) {
+            selectionMode.value = false
+        } else onEvent(OnBackPressed as T)
     }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(fileBrowserBackground)
+                .background(Color(0xFFFCFFFD))
         ) {
             val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
             FileBrowserAppBar(
                 folderName = currentFolderName,
                 topAppBarScrollBehavior = scrollBehavior,
-                onNavigateUpClicked = { onEvent(OnBackPressed as T) },
+                onNavigateUpClicked = {
+                    if (selectionMode.value) {
+                        selectionMode.value = false
+//                        onEvent(FileBrowserEvent.OnSelectionModeToggled(false) as T)
+                    } else onEvent(OnBackPressed as T)
+                },
                 actions = actions,
                 showArrow = !isInRoot
             )
@@ -77,7 +91,7 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
             ) {
                 items(folderFiles.itemCount) { index ->
                     val fileModel = folderFiles[index]
-                    if(fileModel != null) {
+                    if (fileModel != null) {
                         FileItem<T>(
                             file = fileModel,
                             selectionMode = selectionMode.value && isSelectionEnabled,
@@ -99,7 +113,8 @@ fun LoaderPlaceholder(modifier: Modifier = Modifier) {
     Box(
         modifier
             .fillMaxWidth()
-            .height(48.dp)) {
-        CircularProgressIndicator(modifier= Modifier.fillMaxSize())
+            .height(48.dp)
+    ) {
+        CircularProgressIndicator(modifier = Modifier.fillMaxSize())
     }
 }

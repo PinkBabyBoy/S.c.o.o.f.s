@@ -18,6 +18,7 @@ data class FileBrowserUiState internal constructor(
     val sourceState: SourceState,
     val hasSelected: Boolean,
     val isInRoot: Boolean,
+    val isPageEmpty: Boolean
 ) {
     val isKeyLoaded = type == Type.LOADED
 
@@ -33,6 +34,7 @@ data class FileBrowserUiState internal constructor(
             hasSelected: Boolean,
             isInRoot: Boolean,
             isKeyLoaded: Boolean,
+            isPageEmpty: Boolean
         ) = FileBrowserUiState(
             type = if(isKeyLoaded) Type.LOADED else Type.KEY_NOT_LOADED,
             files = files,
@@ -40,6 +42,7 @@ data class FileBrowserUiState internal constructor(
             sourceState = sourceState,
             hasSelected = hasSelected,
             isInRoot = isInRoot,
+            isPageEmpty = isPageEmpty
         )
 
         fun idle(): FileBrowserUiState =
@@ -49,7 +52,8 @@ data class FileBrowserUiState internal constructor(
                 currentFolderName = String(),
                 sourceState = SourceState(false, Source.INTERNAL),
                 hasSelected = false,
-                isInRoot = true
+                isInRoot = true,
+                true
             )
     }
 }

@@ -1,16 +1,10 @@
 package ru.barinov.cryptography
 
-import android.util.Log
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import ru.barinov.cryptography.factories.PrKeyAllias
 import ru.barinov.cryptography.factories.PubKeyAllias
 import java.io.InputStream
-import java.io.OutputStream
-import java.security.KeyPair
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.PublicKey
@@ -25,9 +19,11 @@ internal class KeyMemoryCacheImpl: KeyMemoryCache {
     override val isLoaded = _isLoaded.asStateFlow()
 
 
-    override fun initKeyStore(iStream: InputStream, pass: CharArray){
+    override fun initKeyStore(iStream: InputStream, pass: CharArray) {
         iStream.use {
             keyStore.load(it, pass)
+            //To check password
+            keyStore.getKey(PubKeyAllias, pass)
             this.pass = pass
             _isLoaded.value = true
         }

@@ -8,4 +8,15 @@
     <string name="empty_password_text">Password is empty</string>
     <string name="empty_keystore_name">Name is empty</string>
     <string name="keystore_name_hint">Please, enter key store name</string>
+    <string name="permission_static_text">
+        S.c.o.o.f.s requires permission to view and manage files,
+        application does not use send any of your data by internet,
+        the only use of internet is to send bug or crash reports.
+        The source code of the application is in open source.
+    </string>
+    <string name="usb_static_text">
+        S.c.o.o.f.s can store keys or copy data from mass storage devices with FAT32 file system.
+        For proper work strongly recommended to use simple usb type-c adapters with 1 to 1 connection,
+        and do not use USB hubs.
+    </string>
 </resources>

@@ -42,7 +42,7 @@ internal class ReadFileWorkerImpl(
         return ByteBuffer.wrap(buffer).getInt()
     }
 
-    override fun readKeyStore(fileEntity: FileEntity): InputStream =
+    override fun getInputStream(fileEntity: FileEntity): InputStream =
        when(fileEntity){
            is FileEntity.InternalFile -> readKeyFromInternalStorage(fileEntity)
            is FileEntity.MassStorageFile -> readKeyFromMSD(fileEntity)

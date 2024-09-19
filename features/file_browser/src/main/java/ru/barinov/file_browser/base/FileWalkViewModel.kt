@@ -8,7 +8,6 @@ import ru.barinov.core.Source
 import ru.barinov.external_data.MassStorageState
 import ru.barinov.file_browser.FileTreeProvider
 import ru.barinov.file_browser.GetMSDAttachStateProvider
-import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.sideEffects.SideEffect
 
 abstract class FileWalkViewModel<S: SideEffect>(
@@ -27,7 +26,7 @@ abstract class FileWalkViewModel<S: SideEffect>(
     )
 
     protected fun goBack(onAllowed: suspend () -> Unit) {
-        fileTreeProvider.exit(sourceType.value, onAllowed)
+        fileTreeProvider.goBack(sourceType.value, onAllowed)
     }
 }
 

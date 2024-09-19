@@ -15,6 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ru.barinov.core.R
+import ru.barinov.ui_ext.ColorPair
+import ru.barinov.ui_ext.DecorStyle
 import ru.barinov.ui_ext.getActivity
 
 @Composable
@@ -32,6 +34,10 @@ fun FileBrowserHomeScreen(mainController: NavController) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = { BrowserBottomNavBar(navController = localNavController) },
     ) {
+        DecorStyle(
+            ColorPair((0xFFFCFFFD).toInt(), (0xFFFCFFFD).toInt()),
+            ColorPair((0xFF92D3B0).toInt(), (0xFF92D3B0).toInt()),
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()

@@ -1,5 +1,6 @@
 package ru.barinov.file_browser
 
+import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import ru.barinov.core.FileEntity
 import java.util.UUID
@@ -19,7 +20,7 @@ class SelectedCache {
         cacheFlow.value = selectedCache.values.mapTo(HashSet()) { it.uuid }
     }
 
-    fun removeAll(){
+    fun removeAll() {
         selectedCache.clear()
         cacheFlow.value = hashSetOf()
     }

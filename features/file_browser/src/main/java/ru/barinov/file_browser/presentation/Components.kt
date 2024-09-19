@@ -18,8 +18,12 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -28,7 +32,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavBackStackEntry
@@ -36,10 +42,11 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import ru.barinov.ui_ext.bottomNavGreen
 
 private val fileBrowserTopLevelScreens = setOf(
-    TopLevelScreen(FileBrowserRout.CONTAINERS, "KOnt", ru.barinov.core.R.drawable.baseline_storage_24),
-    TopLevelScreen(FileBrowserRout.FILE_PICKER, "File", ru.barinov.core.R.drawable.baseline_sd_storage_24),
+    TopLevelScreen(FileBrowserRout.CONTAINERS, "Containers", ru.barinov.core.R.drawable.baseline_storage_24),
+    TopLevelScreen(FileBrowserRout.FILE_PICKER, "Files", ru.barinov.core.R.drawable.baseline_sd_storage_24),
     TopLevelScreen(FileBrowserRout.KEY_PICKER, "Key", ru.barinov.core.R.drawable.baseline_key_24)
 )
 
@@ -49,20 +56,25 @@ fun BrowserBottomNavBar(
 ) {
     val currentEntry = navController.currentBackStackEntryAsState().value
     NavigationBar(
-        Modifier
-            .windowInsetsPadding(
-                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-            )
-            .padding(horizontal = 12.dp)
-            .height(64.dp)
-            .clip(RoundedCornerShape(18.dp, 18.dp, 0.dp, 0.dp))
+        containerColor = bottomNavGreen,
+          modifier = Modifier
+              .windowInsetsPadding(
+                  WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+              )
+              .padding(horizontal = 12.dp)
+              .height(64.dp)
+              .clip(RoundedCornerShape(18.dp, 18.dp, 0.dp, 0.dp))
     ) {
         fileBrowserTopLevelScreens.forEach { destination ->
             val selected = currentEntry.isSelected(destination.rout)
             NavigationBarItem(
+                colors = NavigationBarItemDefaults.colors().copy(
+                    selectedTextColor = Color(0xFFE4E4E4),
+                    selectedIndicatorColor = Color(0xFFE4E4E4)
+                ),
                 alwaysShowLabel = selected,
                 selected = selected,
-                icon = { NavigationIcon(destination.iconImgDrawable) },
+                icon = { NavigationIcon(destination.iconImgDrawable, selected) },
                 label = { NavigationItemLabel(destination) },
                 onClick = {
                     if (!selected) {
@@ -132,6 +144,10 @@ private fun NavigationItemLabel(destination: TopLevelScreen) {
 }
 
 @Composable
-private fun NavigationIcon(@DrawableRes resId: Int) {
-    Image(painter = painterResource(id = resId), contentDescription = null, Modifier.size(16.dp))
+private fun NavigationIcon(@DrawableRes resId: Int, selected: Boolean) {
+    Icon(
+        painter = painterResource(id = resId),
+        contentDescription = null,
+        Modifier.size(18.dp),
+        tint = if(!selected) Color(0xFF525252) else LocalContentColor.current)
 }

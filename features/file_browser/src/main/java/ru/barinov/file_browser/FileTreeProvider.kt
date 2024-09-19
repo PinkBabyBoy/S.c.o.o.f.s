@@ -1,5 +1,6 @@
 package ru.barinov.file_browser
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,37 +29,33 @@ class FileTreeProvider(
 ) : Closeable {
 
     private val localCoroutine = CoroutineScope(Job() + Dispatchers.IO)
+    private val internalRoot = rootProvider.getRootFile(Source.INTERNAL)
+    private val msdRoot = rootProvider.getRootFile(Source.MASS_STORAGE)
 
-    private val innerFolderBackStack = Stack<FileEntity>()
-    private val massStorageFolderBackStack = Stack<FileEntity>()
+    private val innerFolderBackStack = Stack<Map<FileEntity, List<FileEntity>>>()
+    private val massStorageFolderBackStack = Stack<Map<FileEntity, List<FileEntity>>>()
 
     private val _innerFiles: MutableStateFlow<List<FileEntity>?> =
-        MutableStateFlow(rootProvider.getRootFile(Source.INTERNAL)?.innerFiles())
+        MutableStateFlow(internalRoot?.innerFiles())
 
     val innerFiles = _innerFiles.asStateFlow()
 
     private val _massStorageFiles: MutableStateFlow<List<FileEntity>?> =
-        massStorageEventBus.massStorageState.map {
-            when (it) {
-                MassStorageState.Detached -> null
-                is MassStorageState.Ready -> it.msdFileSystem.rootDirectory.toFileEntity()
-                    .innerFiles()
-            }
-        }.mutableStateIn(localCoroutine, null)
+        MutableStateFlow(msdRoot?.innerFiles())
 
     val massStorageFiles = _massStorageFiles.asStateFlow()
 
     fun getCurrentFolderInfo(source: Source): Pair<Filepath, Boolean> {
         val stack =
             if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
-        val path = if(stack.isNotEmpty()) stack.peek().path else Filepath.root("Root")
+        val path = if(stack.isNotEmpty()) stack.peek().keys.first().path else Filepath.root("Root")
         return path to !stack.hasBackFolder()
     }
 
     fun getCurrentFolder(source: Source): FileEntity {
         val stack =
             if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
-        return if(stack.isNotEmpty()) stack.peek() else rootProvider.getRootFile(source)!!
+        return if(stack.isNotEmpty()) stack.peek().keys.first() else rootProvider.getRootFile(source)!!
     }
 
     fun getCurrentList(source: Source): List<FileEntity>? =
@@ -78,6 +75,7 @@ class FileTreeProvider(
     }
 
     fun update(source: Source) {
+        //FIXME(update is not correct)
         when(source){
             Source.INTERNAL -> _innerFiles.value = getCurrentFolder(source).innerFiles()
             Source.MASS_STORAGE -> _massStorageFiles.value = getCurrentFolder(source).innerFiles()
@@ -85,19 +83,19 @@ class FileTreeProvider(
 
     }
 
-    private fun onBack(source: Source, folder: FileEntity) {
+    private fun onBack(source: Source, folder: FileEntity, folderFiles: List<FileEntity>) {
         when (source) {
-            Source.INTERNAL -> _innerFiles.value = folder.innerFiles()
-            Source.MASS_STORAGE -> _massStorageFiles.value = folder.innerFiles()
+            Source.INTERNAL -> _innerFiles.value = folderFiles
+            Source.MASS_STORAGE -> _massStorageFiles.value = folderFiles
         }
     }
 
     private fun openMassStorageFolder(fileUUID: UUID) {
-        val file = massStorageFiles.getFileByUUID(fileUUID)
-        if (file == null || !file.isDir) error("Can't open file")
-        innerFolderBackStack.add(file)
+        val folder = massStorageFiles.getFileByUUID(fileUUID)
+        if (folder == null || !folder.isDir) error("Can't open file")
+        massStorageFolderBackStack.add(mapOf(folder to massStorageFiles.value!!))
         localCoroutine.launch {
-            _massStorageFiles.emit(file.innerFiles())
+            _massStorageFiles.emit(folder.innerFiles())
         }
 
     }
@@ -105,27 +103,28 @@ class FileTreeProvider(
     private fun openInternalFolder(fileUUID: UUID) {
         val folder = innerFiles.getFileByUUID(fileUUID)
         if (folder == null || !folder.isDir) error("Can't open file")
-        innerFolderBackStack.add(folder)
+        innerFolderBackStack.add(mapOf(folder to innerFiles.value!!))
         localCoroutine.launch {
             _innerFiles.emit(folder.innerFiles())
         }
     }
 
-    fun exit(source: Source, onEmptyStack: suspend () -> Unit) {
+    fun goBack(source: Source, onEmptyStack: suspend () -> Unit) {
         val stack =
             if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
         if (stack.hasBackFolder()) {
-            val lastFolder = stack.pop()
-            onBack(source, lastFolder.parent!!)
+            val last = stack.pop()
+            val lastFolder = last.keys.first()
+            onBack(source, lastFolder.parent!!, last[lastFolder]!!)
         } else {
-            localCoroutine.launch {
-                onEmptyStack()
-            }
+            localCoroutine.launch { onEmptyStack() }
         }
     }
 
     override fun close() {
         localCoroutine.cancel()
+        innerFolderBackStack.clear()
+        massStorageFolderBackStack.clear()
     }
 
 
@@ -134,7 +133,8 @@ class FileTreeProvider(
 fun StateFlow<List<FileEntity>?>.getFileByUUID(fileUUID: UUID): FileEntity? {
     val currentFiles = value
     if (currentFiles.isNullOrEmpty()) return null
-    return currentFiles.find { it.uuid == fileUUID }
+    return currentFiles.find { it.uuid == fileUUID } //hashset
 }
 
-fun Stack<FileEntity>.hasBackFolder(): Boolean = isNotEmpty() && peek()?.parent != null
+fun Stack<Map<FileEntity, List<FileEntity>>>.hasBackFolder(): Boolean =
+    isNotEmpty() && peek()?.keys?.first()?.parent != null
