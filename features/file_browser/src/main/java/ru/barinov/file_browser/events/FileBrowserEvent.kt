@@ -1,8 +1,7 @@
 package ru.barinov.file_browser.events
 
 import ru.barinov.core.FileId
-import ru.barinov.core.Source
-import java.util.UUID
+import ru.barinov.file_browser.presentation.Sort
 
 interface FieObserverEvent
 
@@ -12,8 +11,9 @@ sealed interface FileBrowserEvent : FieObserverEvent {
 
     data object AddSelection : FileBrowserEvent
 
-    data object Delete : FileBrowserEvent
+    data object DeleteSelected : FileBrowserEvent
 
+    class SortSelected(val type: Sort.Type) : FileBrowserEvent
 }
 
 sealed interface KeySelectorEvent : FieObserverEvent {

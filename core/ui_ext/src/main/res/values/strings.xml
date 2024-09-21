@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="sort_new_first">New first</string>
+    <string name="sort_old_first">Old first</string>
+    <string name="sort_big_first">By size</string>
+    <string name="sort_small_first">By size</string>
+    <string name="sort_default">Default</string>
+    <string name="containers_label">Containers</string>
+    <string name="files_label">Files</string>
+    <string name="key_label">Key</string>
     <string name="key_load_fail">Key load failed</string>
     <string name="key_loaded">Key loaded</string>
     <string name="keystore_create_success">Keystore created</string>

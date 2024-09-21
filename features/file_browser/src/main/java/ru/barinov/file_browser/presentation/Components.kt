@@ -4,9 +4,10 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.height
@@ -14,43 +15,83 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import ru.barinov.file_browser.R
+import ru.barinov.file_browser.events.FieObserverEvent
+import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.ui_ext.bottomNavGreen
 
 private val fileBrowserTopLevelScreens = setOf(
-    TopLevelScreen(FileBrowserRout.CONTAINERS, "Containers", ru.barinov.core.R.drawable.baseline_storage_24),
-    TopLevelScreen(FileBrowserRout.FILE_PICKER, "Files", ru.barinov.core.R.drawable.baseline_sd_storage_24),
-    TopLevelScreen(FileBrowserRout.KEY_PICKER, "Key", ru.barinov.core.R.drawable.baseline_key_24)
+    TopLevelScreen(
+        FileBrowserRout.CONTAINERS,
+        ru.barinov.ui_ext.R.string.containers_label,
+        ru.barinov.core.R.drawable.baseline_storage_24
+    ),
+    TopLevelScreen(
+        FileBrowserRout.FILE_PICKER,
+        ru.barinov.ui_ext.R.string.files_label,
+        ru.barinov.core.R.drawable.baseline_sd_storage_24
+    ),
+    TopLevelScreen(
+        FileBrowserRout.KEY_PICKER,
+        ru.barinov.ui_ext.R.string.key_label,
+        ru.barinov.core.R.drawable.baseline_key_24
+    )
+)
+
+private val sortTypes = listOf(
+    Sort(
+        ru.barinov.ui_ext.R.string.sort_new_first,
+        Sort.Type.NEW_FIRST
+    ),
+    Sort(
+        ru.barinov.ui_ext.R.string.sort_old_first,
+        Sort.Type.OLD_FIRST
+    ),
+    Sort(
+        ru.barinov.ui_ext.R.string.sort_big_first,
+        Sort.Type.BIG_FIRST
+    ),
+    Sort(
+        ru.barinov.ui_ext.R.string.sort_small_first,
+        Sort.Type.SMALL_FIRST
+    ),
+    Sort(
+        ru.barinov.ui_ext.R.string.sort_default,
+        Sort.Type.AS_IS
+    )
 )
 
 @Composable
@@ -60,13 +101,13 @@ fun BrowserBottomNavBar(
     val currentEntry = navController.currentBackStackEntryAsState().value
     NavigationBar(
         containerColor = bottomNavGreen,
-          modifier = Modifier
-              .windowInsetsPadding(
-                  WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-              )
-              .padding(horizontal = 12.dp)
-              .height(64.dp)
-              .clip(RoundedCornerShape(18.dp, 18.dp, 0.dp, 0.dp))
+        modifier = Modifier
+            .windowInsetsPadding(
+                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+            )
+            .padding(horizontal = 12.dp)
+            .height(64.dp)
+            .clip(RoundedCornerShape(18.dp, 18.dp, 0.dp, 0.dp))
     ) {
         fileBrowserTopLevelScreens.forEach { destination ->
             val selected = currentEntry.isSelected(destination.rout)
@@ -105,7 +146,8 @@ fun FileBrowserAppBar(
     showArrow: Boolean,
     actions: Set<@Composable (RowScope) -> Unit> = emptySet()
 ) {
-    val title = @Composable { Text(text = folderName, Modifier.padding(start = 16.dp), fontSize = 14.sp) }
+    val title =
+        @Composable { Text(text = folderName, Modifier.padding(start = 16.dp), fontSize = 14.sp) }
     val navigationIcon = @Composable {
         AnimatedVisibility(showArrow, enter = scaleIn(), exit = scaleOut()) {
             Icon(
@@ -151,7 +193,7 @@ private fun NavBackStackEntry?.isSelected(itemRout: FileBrowserRout): Boolean =
 
 @Composable
 private fun NavigationItemLabel(destination: TopLevelScreen) {
-    Text(text = destination.label, fontSize = 10.sp)
+    Text(text = stringResource(id = destination.label), fontSize = 10.sp)
 }
 
 @Composable
@@ -160,5 +202,40 @@ private fun NavigationIcon(@DrawableRes resId: Int, selected: Boolean) {
         painter = painterResource(id = resId),
         contentDescription = null,
         Modifier.size(18.dp),
-        tint = if(!selected) Color(0xFF525252) else LocalContentColor.current)
+        tint = if (!selected) Color(0xFF525252) else LocalContentColor.current
+    )
+}
+
+@Composable
+fun SortDropDownMenu(
+    isExpanded: Boolean,
+    selectedSort: Sort.Type,
+    onDismissRequest: () -> Unit,
+    onEvent: (FileBrowserEvent) -> Unit
+) {
+    DropdownMenu(
+        expanded = isExpanded,
+        onDismissRequest = { onDismissRequest() }
+    ) {
+        sortTypes.forEach {
+            DropdownMenuItem(
+                trailingIcon = {
+                    RadioButton(
+                        selected = it.type == selectedSort,
+                        onClick = {
+                            onDismissRequest()
+                            onEvent(FileBrowserEvent.SortSelected(it.type))
+                        }
+                    )
+                },
+                text = {
+                    Text(text = stringResource(id = it.text))
+                },
+                onClick = {
+                    onDismissRequest()
+                    onEvent(FileBrowserEvent.SortSelected(it.type))
+                }
+            )
+        }
+    }
 }

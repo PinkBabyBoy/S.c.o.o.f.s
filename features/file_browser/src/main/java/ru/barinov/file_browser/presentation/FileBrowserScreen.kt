@@ -1,10 +1,5 @@
 package ru.barinov.file_browser.presentation
 
-import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.compose.BackHandler
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -36,26 +31,21 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.internal.enableLiveLiterals
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
 import ru.barinov.core.Source
-import ru.barinov.file_browser.R
 
 import ru.barinov.file_browser.events.FileBrowserEvent
-import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
@@ -63,7 +53,6 @@ import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.ui_ext.BottomSheetPolicy
 import ru.barinov.ui_ext.SingleEventEffect
-import ru.barinov.ui_ext.getActivity
 
 @Composable
 fun FileBrowserScreen(
@@ -88,7 +77,7 @@ fun FileBrowserScreen(
         DeleteSelectedAlertDialog(
             dismiss = { deleteDialogVisible.value = false },
             onConfirmed = {
-                onEvent(FileBrowserEvent.Delete)
+                onEvent(FileBrowserEvent.DeleteSelected)
                 deleteDialogVisible.value = false
             }
         )
@@ -158,7 +147,7 @@ fun FileBrowserScreen(
 private fun buildActions(
     state: FileBrowserUiState,
     onEvent: (FileBrowserEvent) -> Unit,
-    deleteDialogVisible: MutableState<Boolean>
+    deleteDialogVisible: MutableState<Boolean>,
 ): Set<@Composable (RowScope) -> Unit> = buildSet {
     if (state.hasSelected) {
         add {
@@ -225,6 +214,28 @@ private fun buildActions(
                     .size(26.dp),
                 tint = if (state.sourceState.currentSource == Source.INTERNAL) Color.Black else LocalContentColor.current
             )
+        }
+        add { Spacer(modifier = Modifier.width(16.dp)) }
+    }
+    if(!state.isPageEmpty) {
+        add {
+            val sortDropDownExpanded = remember { mutableStateOf(false) }
+            Box {
+                Icon(
+                    painter = painterResource(id = ru.barinov.core.R.drawable.outline_sort_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clickable { sortDropDownExpanded.value = true }
+                        .size(26.dp),
+                    tint = Color.Black
+                )
+                SortDropDownMenu(
+                    isExpanded = sortDropDownExpanded.value,
+                    selectedSort = state.selectedSortType,
+                    onDismissRequest = { sortDropDownExpanded.value = false },
+                    onEvent = { onEvent(it) }
+                )
+            }
         }
         add { Spacer(modifier = Modifier.width(16.dp)) }
     }

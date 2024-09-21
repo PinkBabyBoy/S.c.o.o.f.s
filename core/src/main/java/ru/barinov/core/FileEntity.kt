@@ -25,6 +25,7 @@ value class Filepath(val value: String) {
 value class FileSize(val value: Long)
 
 sealed class FileEntity(
+    val lastModifiedTimeStamp: Long,
     val fileId: FileId,
     val size: FileSize,
     val isDir: Boolean,
@@ -38,6 +39,7 @@ sealed class FileEntity(
     class MassStorageFile internal constructor(
         val attachedOrigin: UsbFile,
     ) : FileEntity(
+        attachedOrigin.lastModified(),
         FileId.byFilePath(Filepath(attachedOrigin.absolutePath)),
         FileSize(if (!attachedOrigin.isDirectory) attachedOrigin.length else 0L),
         attachedOrigin.isDirectory,
@@ -58,6 +60,7 @@ sealed class FileEntity(
     class InternalFile internal constructor(
         val attachedOrigin: File
     ) : FileEntity(
+        attachedOrigin.lastModified(),
         FileId.byFilePath(Filepath(attachedOrigin.absolutePath)),
         FileSize(attachedOrigin.length()),
         attachedOrigin.isDirectory,

@@ -9,6 +9,7 @@ import ru.barinov.core.Source
 import ru.barinov.core.folderName
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
+import ru.barinov.file_browser.presentation.Sort
 
 @Stable
 data class FileBrowserUiState internal constructor(
@@ -18,7 +19,8 @@ data class FileBrowserUiState internal constructor(
     val sourceState: SourceState,
     val selectedCount: Int,
     val isInRoot: Boolean,
-    val isPageEmpty: Boolean
+    val isPageEmpty: Boolean,
+    val selectedSortType: Sort.Type
 ) {
     val isKeyLoaded = type == Type.LOADED
     val hasSelected: Boolean = selectedCount > 0
@@ -35,7 +37,8 @@ data class FileBrowserUiState internal constructor(
             selectedCount: Int,
             isInRoot: Boolean,
             isKeyLoaded: Boolean,
-            isPageEmpty: Boolean
+            isPageEmpty: Boolean,
+            selectedSortType: Sort.Type
         ) = FileBrowserUiState(
             type = if(isKeyLoaded) Type.LOADED else Type.KEY_NOT_LOADED,
             files = files,
@@ -43,7 +46,8 @@ data class FileBrowserUiState internal constructor(
             sourceState = sourceState,
             selectedCount = selectedCount,
             isInRoot = isInRoot,
-            isPageEmpty = isPageEmpty
+            isPageEmpty = isPageEmpty,
+            selectedSortType = selectedSortType
         )
 
         fun idle(): FileBrowserUiState =
@@ -54,7 +58,8 @@ data class FileBrowserUiState internal constructor(
                 sourceState = SourceState(false, Source.INTERNAL),
                 selectedCount = 0,
                 isInRoot = true,
-                true
+                true,
+                Sort.Type.AS_IS
             )
     }
 }

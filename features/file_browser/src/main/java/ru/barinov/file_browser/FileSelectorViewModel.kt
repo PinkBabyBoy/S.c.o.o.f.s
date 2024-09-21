@@ -5,7 +5,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.map
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +30,7 @@ import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
+import ru.barinov.file_browser.presentation.Sort
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.states.FileBrowserUiState
@@ -52,6 +52,8 @@ class FileObserverViewModel(
         MutableStateFlow(FileBrowserUiState.idle())
     val uiState = _uiState.asStateFlow()
 
+    private val sortType = MutableStateFlow(Sort.Type.AS_IS)
+
 
     init {
         val sourceState = getMSDAttachStateProvider.invoke()
@@ -63,7 +65,9 @@ class FileObserverViewModel(
                 fileTreeProvider.massStorageFiles
             else
                 fileTreeProvider.innerFiles
-        }.map {
+        }.combine(sortType) { files, sort ->
+            files?.values?.sort(sort)
+        }.map { sortedFiles ->
             Pager(
                 config = PagingConfig(
                     pageSize = PAGE_SIZE,
@@ -71,28 +75,28 @@ class FileObserverViewModel(
                     initialLoadSize = PAGE_SIZE
                 ),
                 pagingSourceFactory = {
-                    FilesPagingSource(it?.values?.toList())
+                    FilesPagingSource(sortedFiles)
                 }
-            ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow){ files, selection  ->
+            ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selection ->
                 fileToUiModelMapper(files, selection, true)
-            } to it.isNullOrEmpty()
+            } to sortedFiles.isNullOrEmpty()
         }
 
         viewModelScope.launch(Dispatchers.Default) {
             combine(sourceState, files, keyManager.isKeyLoaded, ::Triple).map {
-                    val (sourceData, page, isKeyLoaded) = it
-                    val (name, isRoot) =
-                        fileTreeProvider.getCurrentFolderInfo(sourceData.currentSource)
+                val (sourceData, page, isKeyLoaded) = it
+                val (name, isRoot) =
+                    fileTreeProvider.getCurrentFolderInfo(sourceData.currentSource)
                 val (folderFiles, isPageEmpty) = page
-                    RawUiModel(
-                        files = folderFiles,
-                        currentFolderName = name,
-                        sourceState = sourceData,
-                        isInRoot = isRoot,
-                        isKeyLoaded = isKeyLoaded,
-                        isPageEmpty = isPageEmpty
-                    )
-                }
+                RawUiModel(
+                    files = folderFiles,
+                    currentFolderName = name,
+                    sourceState = sourceData,
+                    isInRoot = isRoot,
+                    isKeyLoaded = isKeyLoaded,
+                    isPageEmpty = isPageEmpty
+                )
+            }
                 .combine(selectedCache.cacheFlow.map { it.count() }.stateIn(viewModelScope), ::Pair)
                 .catch { }
                 .collectLatest {
@@ -104,20 +108,22 @@ class FileObserverViewModel(
                         selectedCount = it.second,
                         isInRoot = isInRoot,
                         isKeyLoaded = isKeyLoaded,
-                        isPageEmpty = isPageEmpty
+                        isPageEmpty = isPageEmpty,
+                        selectedSortType = sortType.value
                     )
                 }
         }
     }
 
     fun onNewEvent(event: FileBrowserEvent) {
-        when(event) {
+        when (event) {
             is OnFileClicked -> onFileClicked(event.fileId, event.selectionMode)
             is FileBrowserEvent.RemoveSelection -> selectedCache.removeAll()
             OnBackPressed -> goBack()
             FileBrowserEvent.AddSelection -> askTransactionWithSelected()
             SourceChanged -> changeSource()
-            FileBrowserEvent.Delete -> deleteSelected()
+            FileBrowserEvent.DeleteSelected -> deleteSelected()
+            is FileBrowserEvent.SortSelected -> sortType.value = event.type
         }
     }
 
@@ -160,7 +166,7 @@ class FileObserverViewModel(
 
     private fun goBack() {
         goBack {
-           _sideEffects.send(CanGoBack)
+            _sideEffects.send(CanGoBack)
         }
     }
 
@@ -216,37 +222,3 @@ private data class RawUiModel(
     val isKeyLoaded: Boolean,
     val isPageEmpty: Boolean
 )
-
-//sealed interface FileObserverUiCommand {
-//
-//    data object ShowCantOpenFolderWarning : FileObserverUiCommand
-//
-//    data object CanGoBack : FileObserverUiCommand
-//
-//    class ConfirmFilesTransaction(val destinationId: Int, val args: ConfirmFilesTransactionArgs) :
-//        FileObserverUiCommand {
-//
-//        @Parcelize
-//        class TransactionConfirmationArgs(
-//            val uuid: UUID,
-//            val name: String,
-//            val isDir: Boolean,
-//            val displayableSize: String
-//        ) : Parcelable
-//
-//        @Parcelize
-//        class ConfirmFilesTransactionArgs(
-//            val listForConfirm: List<TransactionConfirmationArgs>
-//        ) : Parcelable
-//    }
-//
-//    class ShowProgress(val args: ProgressArgs, val destinationId: Int) : FileObserverUiCommand {
-//
-//        @Parcelize
-//        class ProgressArgs(
-//            val uuid: UUID,
-//            val totalSize: Long
-//        ) : Parcelable
-//    }
-//}
-
