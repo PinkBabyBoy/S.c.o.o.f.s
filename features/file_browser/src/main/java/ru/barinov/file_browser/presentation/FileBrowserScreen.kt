@@ -11,18 +11,27 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,7 +95,11 @@ fun FileBrowserScreen(
     }
 
     if (!state.isKeyLoaded) {
-        Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center)
@@ -141,6 +154,7 @@ fun FileBrowserScreen(
 //    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 private fun buildActions(
     state: FileBrowserUiState,
     onEvent: (FileBrowserEvent) -> Unit,
@@ -148,35 +162,56 @@ private fun buildActions(
 ): Set<@Composable (RowScope) -> Unit> = buildSet {
     if (state.hasSelected) {
         add {
-            Image(
-                painter = painterResource(id = ru.barinov.core.R.drawable.baseline_post_add_24),
-                contentDescription = null,
-                modifier = Modifier
-                    .clickable {
-                        onEvent(FileBrowserEvent.AddSelection)
-                    }
-                    .size(42.dp)
-                    .padding(end = 16.dp),
-                colorFilter = ColorFilter.tint(Color.Black)
-            )
+            BadgedBox(
+                badge = {
+                    Text(
+                        text = state.selectedCount.toString(),
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(start = 8.dp),
+                        Color.Red,
+                    )
+                },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = ru.barinov.core.R.drawable.baseline_post_add_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .combinedClickable(
+                            interactionSource = remember { mutableStateOf(MutableInteractionSource()) }.value,
+                            indication = rememberRipple(),
+                            onLongClick = {
+                                onEvent(FileBrowserEvent.RemoveSelection)
+                            },
+                            onClick = {
+                                onEvent(FileBrowserEvent.AddSelection)
+                            }
+                        )
+                        .size(26.dp),
+                    tint = Color.Black
+                )
+            }
+
         }
+        add { Spacer(modifier = Modifier.width(16.dp)) }
         add {
-            Image(
+            Icon(
                 painter = painterResource(id = ru.barinov.ui_ext.R.drawable.baseline_delete_outline_24),
                 contentDescription = null,
                 modifier = Modifier
                     .clickable {
                         deleteDialogVisible.value = true
                     }
-                    .size(42.dp)
-                    .padding(end = 16.dp),
-                colorFilter = ColorFilter.tint(Color.Black)
+                    .size(26.dp),
+                tint = Color.Black
             )
         }
+        add { Spacer(modifier = Modifier.width(16.dp)) }
     }
     if (state.sourceState.isMsdAttached) {
         add {
-            Image(
+            Icon(
                 painter = painterResource(
                     id = if (state.sourceState.currentSource == Source.INTERNAL)
                         ru.barinov.core.R.drawable.baseline_sd_storage_24
@@ -187,13 +222,11 @@ private fun buildActions(
                     .clickable {
                         onEvent(SourceChanged)
                     }
-                    .size(32.dp)
-                    .padding(end = 16.dp),
-                colorFilter = if (state.sourceState.currentSource == Source.INTERNAL)
-                    ColorFilter.tint(Color.Black)
-                else null
+                    .size(26.dp),
+                tint = if (state.sourceState.currentSource == Source.INTERNAL) Color.Black else LocalContentColor.current
             )
         }
+        add { Spacer(modifier = Modifier.width(16.dp)) }
     }
 }
 

@@ -31,7 +31,10 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -69,8 +72,8 @@ fun BrowserBottomNavBar(
             val selected = currentEntry.isSelected(destination.rout)
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors().copy(
-                    selectedTextColor = Color(0xFFE4E4E4),
-                    selectedIndicatorColor = Color(0xFFE4E4E4)
+                    selectedTextColor = Color(0xFFF0EFEF),
+                    selectedIndicatorColor = Color(0xFFF0EFEF)
                 ),
                 alwaysShowLabel = selected,
                 selected = selected,
@@ -130,6 +133,14 @@ fun FileBrowserAppBar(
             actions.forEach { action ->
                 action(this)
             }
+        },
+        modifier = Modifier.drawBehind {
+            drawLine(
+                color = Color.Gray,
+                start = Offset(32f, size.height),
+                end = Offset(size.width - 32f, size.height),
+                strokeWidth = 0.5.dp.toPx()
+            )
         }
     )
 }

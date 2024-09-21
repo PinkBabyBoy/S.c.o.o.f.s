@@ -1,15 +1,11 @@
 package ru.barinov.core
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.Log
 import me.jahnen.libaums.core.fs.UsbFile
 import me.jahnen.libaums.core.fs.UsbFileInputStream
 import me.jahnen.libaums.core.fs.UsbFileOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.UUID
 
 
 //Вынести в домейн
@@ -29,7 +25,7 @@ value class Filepath(val value: String) {
 value class FileSize(val value: Long)
 
 sealed class FileEntity(
-    val uuid: UUID,
+    val fileId: FileId,
     val size: FileSize,
     val isDir: Boolean,
     val name: Filename,
@@ -37,29 +33,32 @@ sealed class FileEntity(
     val parent: FileEntity?
 ) {
 
-    abstract fun innerFiles(): List<FileEntity>
+    abstract fun innerFiles(): Map<FileId, FileEntity>
 
     class MassStorageFile internal constructor(
         val attachedOrigin: UsbFile,
     ) : FileEntity(
-        UUID.randomUUID(),
-        FileSize(if(!attachedOrigin.isDirectory) attachedOrigin.length else 0L),
+        FileId.byFilePath(Filepath(attachedOrigin.absolutePath)),
+        FileSize(if (!attachedOrigin.isDirectory) attachedOrigin.length else 0L),
         attachedOrigin.isDirectory,
         Filename(attachedOrigin.name),
         Filepath(attachedOrigin.absolutePath),
         attachedOrigin.parent?.toFileEntity()
     ) {
 
-        override fun innerFiles(): List<MassStorageFile> = runCatching {
-            attachedOrigin.listFiles().map { it.toFileEntity() }
-        }.getOrNull().orEmpty()
+        override fun innerFiles(): Map<FileId, FileEntity> = runCatching {
+            attachedOrigin.listFiles().associate {
+                val entity = it.toFileEntity()
+                return@associate entity.fileId to entity
+            }
+        }.getOrNull() ?: emptyMap()
 
     }
 
     class InternalFile internal constructor(
         val attachedOrigin: File
     ) : FileEntity(
-        UUID.randomUUID(),
+        FileId.byFilePath(Filepath(attachedOrigin.absolutePath)),
         FileSize(attachedOrigin.length()),
         attachedOrigin.isDirectory,
         Filename(attachedOrigin.name),
@@ -67,18 +66,25 @@ sealed class FileEntity(
         attachedOrigin.parentFile?.toFileEntity()
     ) {
 
-        override fun innerFiles(): List<InternalFile> =
-            attachedOrigin.listFiles()?.map { it.toFileEntity() }.orEmpty()
+        override fun innerFiles(): Map<FileId, FileEntity> = runCatching {
+            attachedOrigin.listFiles()?.associate {
+                val entity = it.toFileEntity()
+                return@associate entity.fileId to entity
+            }
+        }.getOrNull() ?: emptyMap()
     }
 
 }
 
-//sealed interface FileFormatType {
-//
-//    class Image(val bitmapPreview: Bitmap) : FileFormatType
-//
-//    class Other(val isBigFile: Boolean) : FileFormatType
-//}
+@JvmInline
+value class FileId private constructor(val path: String) {
+
+    companion object {
+        fun byFilePath(filepath: Filepath): FileId {
+            return FileId(filepath.value)
+        }
+    }
+}
 
 fun File.toFileEntity(): FileEntity.InternalFile =
     FileEntity.InternalFile(this)
@@ -89,7 +95,7 @@ fun UsbFile.toFileEntity(): FileEntity.MassStorageFile =
 
 fun FileEntity.inputStream(): InputStream {
     if (isDir) error("This is folder!")
-    return when(this){
+    return when (this) {
         is FileEntity.InternalFile -> attachedOrigin.inputStream()
         is FileEntity.MassStorageFile -> UsbFileInputStream(attachedOrigin)
     }
@@ -97,7 +103,7 @@ fun FileEntity.inputStream(): InputStream {
 
 fun FileEntity.outputStream(): OutputStream {
     if (isDir) error("This is folder!")
-    return when(this){
+    return when (this) {
         is FileEntity.InternalFile -> attachedOrigin.outputStream()
         is FileEntity.MassStorageFile -> UsbFileOutputStream(attachedOrigin)
     }

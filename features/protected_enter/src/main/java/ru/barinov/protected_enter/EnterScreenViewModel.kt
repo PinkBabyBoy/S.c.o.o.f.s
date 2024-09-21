@@ -39,9 +39,9 @@ internal class EnterScreenViewModel(
             EnterScreenEvent.SubmitClicked -> submit()
             EnterScreenEvent.PermissionGranted
             -> _uiState.value = _uiState.value.onPermissionGiven(
-                    hasPassword = passwordStorage.hasPasswordSet(),
-                    hasRequiredPermission = permissionChecker.hasPermissionToRead()
-                )
+                hasPassword = passwordStorage.hasPasswordSet(),
+                hasRequiredPermission = permissionChecker.hasPermissionToRead()
+            )
 
             EnterScreenEvent.ResetConfirmed -> resetPassword()
         }
@@ -61,19 +61,21 @@ internal class EnterScreenViewModel(
 
 
     private fun submit() {
-        if (!permissionChecker.hasPermissionToRead()) {
-            requestPermission()
-            return
-        }
-        if (!passwordStorage.hasPasswordSet()) {
-            createPassword()
-        } else {
-            submitPassword()
+        viewModelScope.launch(Dispatchers.Default) {
+            if (!permissionChecker.hasPermissionToRead()) {
+                requestPermission()
+                return@launch
+            }
+            if (!passwordStorage.hasPasswordSet()) {
+                createPassword()
+            } else {
+                submitPassword()
+            }
         }
     }
 
 
-    private fun createPassword() {
+    private suspend fun createPassword() {
         val password = userInput.value
         val check = userCheckPassword.value
         val errors = checkInputsOnCreate(password, check)
@@ -85,9 +87,7 @@ internal class EnterScreenViewModel(
         }
         val hash = hashCreator.createHash(password!!)
         passwordStorage.store(hash, PType.REAL)
-        viewModelScope.launch {
-            _sideEffects.send(SideEffects.EnterGranted)
-        }
+        _sideEffects.send(SideEffects.EnterGranted)
     }
 
     private fun checkInputsOnCreate(
@@ -114,20 +114,24 @@ internal class EnterScreenViewModel(
         }
     }
 
-    private suspend fun onError(errors: List<ErrorType>) {
-
+    private fun onError(errors: List<ErrorType>) {
+        _uiState.value = uiState.value.errors(errors)
+        viewModelScope.launch { _sideEffects.send(SideEffects.ProgressStop) }
     }
 
-    private fun submitPassword() {
-        fun validateRPass(storedHash: ByteArray) {
-            val enteredPassword = userInput.value ?: return
-            viewModelScope.launch(Dispatchers.Default) {
-                val result = hashValidator.validate(storedHash, enteredPassword)
-                if (result) {
-                    _sideEffects.send(SideEffects.EnterGranted)
-                } else {
-                    onError(listOf(ErrorType.WRONG_PASSWORD))
-                }
+    private suspend fun submitPassword() {
+
+        suspend fun validateRPass(storedHash: ByteArray) {
+            val enteredPassword = userInput.value
+            if (enteredPassword == null || enteredPassword.isEmpty()) {
+                onError(listOf(ErrorType.PASSWORD_EMPTY))
+                return
+            }
+            val result = hashValidator.validate(storedHash, enteredPassword)
+            if (result) {
+                _sideEffects.send(SideEffects.EnterGranted)
+            } else {
+                onError(listOf(ErrorType.WRONG_PASSWORD))
             }
         }
 
@@ -152,7 +156,6 @@ internal class EnterScreenViewModel(
                 }
             }
         }
-        //TODO refactoring
         runCatching {
             val r = passwordStorage.readHash(PType.REAL)
             val e = passwordStorage.readHash(PType.EMERGENCY)
@@ -162,17 +165,12 @@ internal class EnterScreenViewModel(
                 else -> validateBoth(r, e)
             }
         }.onFailure {
-            throw it
-            viewModelScope.launch {
-                onError(listOf(ErrorType.READ_HASH_ERROR))
-            }
+            onError(listOf(ErrorType.READ_HASH_ERROR))
         }
     }
 
-    private fun requestPermission() {
-        viewModelScope.launch {
-            _sideEffects.send(SideEffects.AskPermission)
-        }
+    private suspend fun requestPermission() {
+        _sideEffects.send(SideEffects.AskPermission)
     }
 }
 

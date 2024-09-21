@@ -44,6 +44,8 @@ import ru.barinov.file_browser.events.KeySelectorEvent
 import ru.barinov.ui_ext.BottomSheetPolicy
 import ru.barinov.ui_ext.Keyboard
 import ru.barinov.ui_ext.PasswordTextField
+import ru.barinov.ui_ext.ProgressButton
+import ru.barinov.ui_ext.TextEnter
 import ru.barinov.ui_ext.keyboardAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +80,9 @@ fun KeyStoreLoadBottomSheet(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp),
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(8.dp),
             onClick = {
                 onConfirmed(enteredPassword.value)
                 onDismissRequested()
@@ -108,30 +112,29 @@ fun CreateKeyStoreBottomSheet(
 
     val passInput = remember { mutableStateOf(String()) }
     val loadStarted = remember { mutableStateOf(false) }
-    val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true,
-        confirmValueChange = { !loadStarted.value })
+    val bsState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { !loadStarted.value }
+    )
 
 
     ModalBottomSheet(
         onDismissRequest = { if (!loadStarted.value) onDismissRequested() },
-        sheetState =  bsState,
+        sheetState = bsState,
         properties = ModalBottomSheetDefaults.properties(shouldDismissOnBackPress = false),
         containerColor = Color.White
     ) {
-        Text(
-            text = "Create the keystore", modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-        )
+        Text(text = "Create the keystore", modifier = Modifier.align(Alignment.CenterHorizontally))
         Spacer(modifier = Modifier.height(32.dp))
         //имя
-        OutlinedTextField(
-            supportingText = {
+        TextEnter(
+            supportText = {
                 SupportText(
                     errors = inputErrors.value.filter { it == InputErrors.NAME_EMPTY },
                     hint = ru.barinov.ui_ext.R.string.keystore_name_hint
                 )
             },
-            value = enteredName.value, onValueChange = { enteredName.value = it },
+            onValueChanged = { enteredName.value = it },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -159,28 +162,24 @@ fun CreateKeyStoreBottomSheet(
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            enabled = !loadStarted.value,
-            onClick = {
-                if (enteredName.value.isNotEmpty() && passInput.value.isNotEmpty()) {
-                    loadStarted.value = true
-                    onConfirmed(enteredName.value, passInput.value.toCharArray(), checkState.value)
-                } else {
-                    inputErrors.value = buildSet {
-                        if (enteredName.value.isEmpty()) add(InputErrors.NAME_EMPTY)
-                        if (passInput.value.isEmpty()) add(InputErrors.PASSWORD_EMPTY)
-                    }
-                }
-            },
+        ProgressButton(
+            isEnabled = !loadStarted.value,
             modifier = Modifier
                 .padding(8.dp)
-                .align(Alignment.CenterHorizontally)
+                .align(Alignment.CenterHorizontally),
+            isProgress = loadStarted,
+            buttonText = ru.barinov.ui_ext.R.string.create,
         ) {
-            if (!loadStarted.value)
-                Text(text = "Create")
-            else CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            if (enteredName.value.isNotEmpty() && passInput.value.isNotEmpty()) {
+                loadStarted.value = true
+                onConfirmed(enteredName.value, passInput.value.toCharArray(), checkState.value)
+            } else {
+                inputErrors.value = buildSet {
+                    if (enteredName.value.isEmpty()) add(InputErrors.NAME_EMPTY)
+                    if (passInput.value.isEmpty()) add(InputErrors.PASSWORD_EMPTY)
+                }
+            }
         }
-
     }
 }
 

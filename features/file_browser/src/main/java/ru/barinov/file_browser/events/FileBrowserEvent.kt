@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.events
 
+import ru.barinov.core.FileId
 import ru.barinov.core.Source
 import java.util.UUID
 
@@ -7,7 +8,7 @@ interface FieObserverEvent
 
 sealed interface FileBrowserEvent : FieObserverEvent {
 
-    class OnSelectionModeToggled(val enabled: Boolean) : FileBrowserEvent
+    data object RemoveSelection: FileBrowserEvent
 
     data object AddSelection : FileBrowserEvent
 
@@ -17,7 +18,7 @@ sealed interface FileBrowserEvent : FieObserverEvent {
 
 sealed interface KeySelectorEvent : FieObserverEvent {
 
-    class KeyLoadConfirmed(val uuid: UUID, val password: CharArray) : KeySelectorEvent
+    class KeyLoadConfirmed(val fileId: FileId, val password: CharArray) : KeySelectorEvent
 
     class CreateKeyStoreConfirmed(
         val password: CharArray,
@@ -35,7 +36,7 @@ sealed interface ContainersEvent : FileBrowserEvent {
 data object OnBackPressed : FileBrowserEvent, KeySelectorEvent, ContainersEvent
 
 class OnFileClicked(
-    val uuid: UUID, val selectionMode: Boolean
+    val fileId: FileId, val selectionMode: Boolean
 ) : FileBrowserEvent, KeySelectorEvent, ContainersEvent
 
 data object SourceChanged : FileBrowserEvent, KeySelectorEvent

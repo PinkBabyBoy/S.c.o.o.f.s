@@ -5,6 +5,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.map
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.barinov.core.FileEntity
+import ru.barinov.core.FileId
 import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
@@ -33,7 +35,6 @@ import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.transaction_manager.FileWriter
-import java.util.UUID
 
 @Suppress("OPT_IN_USAGE")
 class FileObserverViewModel(
@@ -70,10 +71,10 @@ class FileObserverViewModel(
                     initialLoadSize = PAGE_SIZE
                 ),
                 pagingSourceFactory = {
-                    FilesPagingSource(it)
+                    FilesPagingSource(it?.values?.toList())
                 }
-            ).flow.cachedIn(viewModelScope).map{ files ->
-                fileToUiModelMapper(files, selectedCache.getSelected(), true)
+            ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow){ files, selection  ->
+                fileToUiModelMapper(files, selection, true)
             } to it.isNullOrEmpty()
         }
 
@@ -92,7 +93,7 @@ class FileObserverViewModel(
                         isPageEmpty = isPageEmpty
                     )
                 }
-                .combine(selectedCache.cacheFlow.map { it.isNotEmpty() }.stateIn(viewModelScope), ::Pair)
+                .combine(selectedCache.cacheFlow.map { it.count() }.stateIn(viewModelScope), ::Pair)
                 .catch { }
                 .collectLatest {
                     val (filesList, folderName, sourceData, isInRoot, isKeyLoaded, isPageEmpty) = it.first
@@ -100,7 +101,7 @@ class FileObserverViewModel(
                         files = filesList,
                         folderName = folderName,
                         sourceState = sourceData,
-                        hasSelected = it.second,
+                        selectedCount = it.second,
                         isInRoot = isInRoot,
                         isKeyLoaded = isKeyLoaded,
                         isPageEmpty = isPageEmpty
@@ -111,13 +112,8 @@ class FileObserverViewModel(
 
     fun onNewEvent(event: FileBrowserEvent) {
         when(event) {
-            is OnFileClicked -> onFileClicked(event.uuid, event.selectionMode)
-            is FileBrowserEvent.OnSelectionModeToggled -> {
-                if(!event.enabled) {
-                    selectedCache.removeAll()
-                }
-            }
-
+            is OnFileClicked -> onFileClicked(event.fileId, event.selectionMode)
+            is FileBrowserEvent.RemoveSelection -> selectedCache.removeAll()
             OnBackPressed -> goBack()
             FileBrowserEvent.AddSelection -> askTransactionWithSelected()
             SourceChanged -> changeSource()
@@ -138,13 +134,13 @@ class FileObserverViewModel(
     }
 
 
-    private fun onSelect(uuid: UUID, selected: Boolean) {
+    private fun onSelect(fileId: FileId, selected: Boolean) {
         viewModelScope.launch {
-            val file = fileTreeProvider.getFileByUUID(uuid, sourceType.value)
+            val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
             if (!selected) {
-                selectedCache.add(uuid, file)
+                selectedCache.add(fileId, file)
             } else {
-                selectedCache.remove(file.uuid)
+                selectedCache.remove(file.fileId)
             }
         }
     }
@@ -154,12 +150,12 @@ class FileObserverViewModel(
         sourceType.value = sourceType.value.change()
     }
 
-    private fun onFileClicked(uuid: UUID, toggleMode: Boolean) {
+    private fun onFileClicked(fileId: FileId, toggleMode: Boolean) {
         if (toggleMode) {
-            onSelect(uuid, selectedCache.hasSelected(uuid))
+            onSelect(fileId, selectedCache.hasSelected(fileId))
             return
         }
-        openFolder(uuid)
+        openFolder(fileId)
     }
 
     private fun goBack() {
@@ -169,9 +165,9 @@ class FileObserverViewModel(
     }
 
 
-    private fun openFolder(uuid: UUID) {
+    private fun openFolder(fileId: FileId) {
         runCatching {
-            fileTreeProvider.open(uuid, sourceType.value)
+            fileTreeProvider.open(fileId, sourceType.value)
         }.fold(
             onSuccess = { attemptsToOpenFile = 0 },
             onFailure = {
@@ -185,8 +181,8 @@ class FileObserverViewModel(
         )
     }
 
-    private fun directFolderAdd(uuid: UUID) {
-        val file = fileTreeProvider.getFileByUUID(uuid, sourceType.value)
+    private fun directFolderAdd(fileId: FileId) {
+        val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
         if (!file.isDir) error("")
 //        val selectedData = file.innerFiles().map { innerFile ->
 //            FileObserverUiCommand.ConfirmFilesTransaction.TransactionConfirmationArgs(

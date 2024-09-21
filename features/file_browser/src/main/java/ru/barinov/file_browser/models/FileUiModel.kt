@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import ru.barinov.core.FileEntity
+import ru.barinov.core.FileId
 import ru.barinov.core.FileSize
 import ru.barinov.core.Source
 import ru.barinov.core.inputStream
@@ -21,7 +22,7 @@ import java.util.UUID
 
 @Stable
 data class FileUiModel(
-    val uuid: UUID,
+    val fileId: FileId,
     val filePath: String,
     val type: Source,
     val isDir: Boolean,

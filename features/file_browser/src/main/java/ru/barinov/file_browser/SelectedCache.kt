@@ -1,23 +1,23 @@
 package ru.barinov.file_browser
 
-import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import ru.barinov.core.FileEntity
+import ru.barinov.core.FileId
 import java.util.UUID
 
 class SelectedCache {
 
-    private val selectedCache = mutableMapOf<UUID, FileEntity>()
-    val cacheFlow = MutableStateFlow<HashSet<UUID>>(hashSetOf())
+    private val selectedCache = mutableMapOf<FileId, FileEntity>()
+    val cacheFlow = MutableStateFlow<HashSet<FileId>>(hashSetOf())
 
-    fun add(uuid: UUID, file: FileEntity){
-        selectedCache[uuid] = file
-        cacheFlow.value = selectedCache.values.mapTo(HashSet()) { it.uuid }
+    fun add(fileId: FileId, file: FileEntity){
+        selectedCache[fileId] = file
+        cacheFlow.value = selectedCache.values.mapTo(HashSet()) { it.fileId }
     }
 
-    fun remove(uuid: UUID){
-        selectedCache.remove(uuid)
-        cacheFlow.value = selectedCache.values.mapTo(HashSet()) { it.uuid }
+    fun remove(fileId: FileId){
+        selectedCache.remove(fileId)
+        cacheFlow.value = selectedCache.values.mapTo(HashSet()) { it.fileId }
     }
 
     fun removeAll() {
@@ -25,15 +25,15 @@ class SelectedCache {
         cacheFlow.value = hashSetOf()
     }
 
-    operator fun get(uuid: UUID) = selectedCache[uuid]
+    operator fun get(fileId: FileId) = selectedCache[fileId]
 
-    fun getCache(): Map<UUID, FileEntity>{
+    fun getCache(): Map<FileId, FileEntity>{
         return selectedCache.toMap()
     }
 
-    fun getSelected(): HashSet<UUID> = selectedCache.values.mapTo(HashSet()) { it.uuid }
+    fun getSelected(): HashSet<FileId> = selectedCache.values.mapTo(HashSet()) { it.fileId }
 
-    fun hasSelected(uuid: UUID) = selectedCache.hasKey(uuid)
+    fun hasSelected(fileId: FileId) = selectedCache.hasKey(fileId)
 }
 
 private fun <K>MutableMap<K, *>.hasKey(key: K): Boolean = keys.contains(key)

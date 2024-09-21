@@ -16,11 +16,12 @@ data class FileBrowserUiState internal constructor(
     val files: Flow<PagingData<FileUiModel>>,
     val currentFolderName: String,
     val sourceState: SourceState,
-    val hasSelected: Boolean,
+    val selectedCount: Int,
     val isInRoot: Boolean,
     val isPageEmpty: Boolean
 ) {
     val isKeyLoaded = type == Type.LOADED
+    val hasSelected: Boolean = selectedCount > 0
 
     enum class Type {
         LOADED, KEY_NOT_LOADED, IDLE
@@ -31,7 +32,7 @@ data class FileBrowserUiState internal constructor(
             files: Flow<PagingData<FileUiModel>>,
             folderName: Filepath,
             sourceState: SourceState,
-            hasSelected: Boolean,
+            selectedCount: Int,
             isInRoot: Boolean,
             isKeyLoaded: Boolean,
             isPageEmpty: Boolean
@@ -40,7 +41,7 @@ data class FileBrowserUiState internal constructor(
             files = files,
             currentFolderName = folderName.value.folderName(),
             sourceState = sourceState,
-            hasSelected = hasSelected,
+            selectedCount = selectedCount,
             isInRoot = isInRoot,
             isPageEmpty = isPageEmpty
         )
@@ -51,7 +52,7 @@ data class FileBrowserUiState internal constructor(
                 files = flowOf(PagingData.empty()),
                 currentFolderName = String(),
                 sourceState = SourceState(false, Source.INTERNAL),
-                hasSelected = false,
+                selectedCount = 0,
                 isInRoot = true,
                 true
             )

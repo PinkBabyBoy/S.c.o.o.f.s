@@ -1,19 +1,28 @@
 package ru.barinov.ui_ext
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -81,15 +90,47 @@ private fun InformationalBlockPreview() {
 }
 
 @Composable
+fun TextEnter(
+    onValueChanged: (String) -> Unit,
+    supportText: @Composable () -> Unit,
+    isError: Boolean = false,
+    modifier: Modifier
+) {
+    val enteredText = remember { mutableStateOf(String()) }
+    OutlinedTextField(
+        isError = isError,
+        colors = OutlinedTextFieldDefaults.colors().copy(
+            cursorColor = darkGreen,
+            unfocusedIndicatorColor = darkGreen,
+            focusedIndicatorColor = darkGreen
+        ),
+        supportingText = { supportText() },
+        value = enteredText.value,
+        onValueChange = {
+            enteredText.value = it
+            onValueChanged(it)
+        },
+        modifier = modifier
+    )
+}
+
+@Composable
 fun PasswordTextField(
     onValueChanged: (String) -> Unit,
     supportText: @Composable () -> Unit,
+    isError: Boolean = false,
     modifier: Modifier
 ) {
     val enteredPass = remember {
         mutableStateOf("")
     }
     OutlinedTextField(
+        colors = OutlinedTextFieldDefaults.colors().copy(
+            cursorColor = darkGreen,
+            unfocusedIndicatorColor = darkGreen,
+            focusedIndicatorColor = darkGreen
+        ),
+        isError = isError,
         value = enteredPass.value,
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -99,4 +140,29 @@ fun PasswordTextField(
         }, modifier = modifier,
         supportingText = { supportText() }
     )
+}
+
+@Composable
+fun ProgressButton(
+    isEnabled: Boolean = true,
+    modifier: Modifier,
+    isProgress: State<Boolean>,
+    @StringRes buttonText: Int,
+    onClick: () -> Unit
+) {
+    ElevatedButton(
+        colors = ButtonDefaults.buttonColors().copy(containerColor = mainGreen),
+        onClick = { onClick() },
+        modifier = modifier,
+        enabled = isEnabled
+    ) {
+        if (!isProgress.value) {
+            Text(text = stringResource(id = buttonText), fontSize = 22.sp)
+        } else {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+    }
 }

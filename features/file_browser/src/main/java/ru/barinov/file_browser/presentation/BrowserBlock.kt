@@ -75,7 +75,6 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
                 onNavigateUpClicked = {
                     if (selectionMode.value) {
                         selectionMode.value = false
-//                        onEvent(FileBrowserEvent.OnSelectionModeToggled(false) as T)
                     } else onEvent(OnBackPressed as T)
                 },
                 actions = actions,

@@ -1,14 +1,12 @@
 package ru.barinov.file_browser
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
-import androidx.paging.PagingSource
 import androidx.paging.map
 import ru.barinov.core.FileEntity
+import ru.barinov.core.FileId
 import ru.barinov.core.Source
 import ru.barinov.core.bytesToMbSting
 import ru.barinov.core.trimFileName
@@ -21,29 +19,29 @@ class FileToUiModelMapper(
     private val fileRecogniser: FileRecogniser
 ) {
 
-    private val savedStates = mutableMapOf<UUID, MutableState<FileType>>()
+    private val savedStates = mutableMapOf<FileId, MutableState<FileType>>()
 
     operator fun invoke(
         files: PagingData<FileEntity>,
-        selected: HashSet<UUID>,
+        selected: HashSet<FileId>,
         recognizerOn: Boolean
     ):  PagingData<FileUiModel> {
         return files.map {
-            val hasSavedState = savedStates.containsKey(it.uuid)
+            val hasSavedState = savedStates.containsKey(it.fileId)
             if(recognizerOn && !hasSavedState) {
                 val typeState = mutableStateOf<FileType>(FileType.Unconfirmed)
-                savedStates[it.uuid] = typeState
+                savedStates[it.fileId] = typeState
                 fileRecogniser(it, typeState)
             }
-            mapFile(it, selected, savedStates[it.uuid] ?: mutableStateOf(FileType.Unconfirmed))
+            mapFile(it, selected, savedStates[it.fileId] ?: mutableStateOf(FileType.Unconfirmed))
         }
     }
 
-    private fun mapFile(file: FileEntity, selected: HashSet<UUID>, typeState: MutableState<FileType>): FileUiModel =
+    private fun mapFile(file: FileEntity, selected: HashSet<FileId>, typeState: MutableState<FileType>): FileUiModel =
         file.run {
-            val isSelected = uuid in selected
+            val isSelected = fileId in selected
             FileUiModel(
-                uuid = uuid,
+                fileId = fileId,
                 filePath = file.path.value.trimFilePath(),
                 type = if(this is FileEntity.MassStorageFile) Source.MASS_STORAGE else Source.INTERNAL,
                 isDir = isDir,

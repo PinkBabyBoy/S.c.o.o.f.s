@@ -1,6 +1,7 @@
 package ru.barinov.file_browser.sideEffects
 
 import androidx.annotation.StringRes
+import ru.barinov.core.FileId
 import ru.barinov.core.Filename
 import java.util.UUID
 
@@ -16,7 +17,7 @@ sealed interface KeySelectorSideEffect: SideEffect {
 
     data class AskToLoadKey(
         val name: Filename,
-        val uuid: UUID
+        val fileId: FileId
     ): KeySelectorSideEffect
 }
 

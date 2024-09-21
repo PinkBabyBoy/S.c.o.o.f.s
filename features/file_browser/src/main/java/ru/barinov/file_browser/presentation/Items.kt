@@ -32,7 +32,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.barinov.core.FileId
 import ru.barinov.core.FileSize
+import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.FileBrowserEvent
@@ -52,7 +54,6 @@ inline fun <reified T : FieObserverEvent> FileItem(
     crossinline onEvent: (T) -> Unit
 ) {
     val interactSource = remember { mutableStateOf(MutableInteractionSource()) }
-    val isSelected = remember { mutableStateOf(file.isSelected) }
     Card(
         colors = CardDefaults.cardColors(
             containerColor = fileItemColor
@@ -74,13 +75,12 @@ inline fun <reified T : FieObserverEvent> FileItem(
                 indication = rememberRipple(),
                 onLongClick = {
                     if (selectionAvailable) {
-//                        onEvent(FileBrowserEvent.OnSelectionModeToggled(!selectionMode) as T)
                         toggleSelection()
                     }
                 },
                 onClick = {
-                    isSelected.value = !isSelected.value
-                    onEvent(OnFileClicked(file.uuid, selectionMode) as T)
+                    onEvent(OnFileClicked(file.fileId, selectionMode) as T)
+
                 }
             )
     ) {
@@ -119,10 +119,9 @@ inline fun <reified T : FieObserverEvent> FileItem(
             ) {
                 AnimatedVisibility(visible = selectionMode) {
                     Checkbox(
-                        checked = isSelected.value,
+                        checked =  file.isSelected,
                         onCheckedChange = {
-                            isSelected.value = !isSelected.value
-                            onEvent(OnFileClicked(file.uuid, selectionMode) as T)
+                            onEvent(OnFileClicked(file.fileId, selectionMode) as T)
                         })
                 }
             }
@@ -137,7 +136,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
 fun FileItemPreview() {
     FileItem<FieObserverEvent>(
         FileUiModel(
-            uuid = UUID.randomUUID(),
+            fileId = FileId.byFilePath(Filepath.root("")),
             filePath = "",
             type = Source.INTERNAL,
             isDir = false,

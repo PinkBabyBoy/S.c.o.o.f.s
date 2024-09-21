@@ -1,6 +1,5 @@
 package ru.barinov.file_browser
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.barinov.core.FileId
 import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
@@ -32,7 +32,6 @@ import ru.barinov.file_browser.models.SourceState
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
-import ru.barinov.file_browser.sideEffects.SideEffect
 import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.ui_ext.R
@@ -70,7 +69,7 @@ class KeySelectorViewModel(
                     initialLoadSize = PAGE_SIZE
                 ),
                 pagingSourceFactory = {
-                    FilesPagingSource(it)
+                    FilesPagingSource(it?.values?.toList())
                 }
             ).flow.cachedIn(viewModelScope).map {
                 fileToUiModelMapper(it, hashSetOf(), false)
@@ -113,11 +112,11 @@ class KeySelectorViewModel(
     fun handleEvent(event: KeySelectorEvent) {
         when (event) {
             OnBackPressed -> goBack()
-            is OnFileClicked -> onFileClicked(event.uuid)
+            is OnFileClicked -> onFileClicked(event.fileId)
             SourceChanged -> sourceType.value = sourceType.value.change()
             is KeySelectorEvent.KeyLoadConfirmed
             -> keyManager.loadKey(
-                keyFile = fileTreeProvider.getFileByUUID(event.uuid, sourceType.value),
+                keyFile = fileTreeProvider.getFileByID(event.fileId, sourceType.value),
                 password = event.password,
                 onSuccess = {
                     viewModelScope.launch {
@@ -155,16 +154,16 @@ class KeySelectorViewModel(
         }
     }
 
-    private fun onFileClicked(uuid: UUID) {
-        val file = fileTreeProvider.getFileByUUID(uuid, sourceType.value)
+    private fun onFileClicked(fileId: FileId) {
+        val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
         if (file.isDir) {
-            openFolder(uuid)
+            openFolder(fileId)
         } else {
             viewModelScope.launch {
                 _sideEffects.send(
                     KeySelectorSideEffect.AskToLoadKey(
                         name = file.name,
-                        uuid = file.uuid
+                        fileId = file.fileId
                     )
                 )
             }
@@ -177,9 +176,9 @@ class KeySelectorViewModel(
         }
     }
 
-    private fun openFolder(uuid: UUID) {
+    private fun openFolder(fileId: FileId) {
         runCatching {
-            fileTreeProvider.open(uuid, sourceType.value)
+            fileTreeProvider.open(fileId, sourceType.value)
         }
     }
 

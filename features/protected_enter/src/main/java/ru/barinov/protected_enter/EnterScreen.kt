@@ -26,7 +26,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -48,9 +50,11 @@ import ru.barinov.ui_ext.InformationalBlock
 import ru.barinov.ui_ext.InformationalBlockType
 import ru.barinov.ui_ext.Keyboard
 import ru.barinov.ui_ext.PasswordTextField
+import ru.barinov.ui_ext.ProgressButton
 import ru.barinov.ui_ext.RegisterLifecycleCallbacks
 import ru.barinov.ui_ext.SingleEventEffect
 import ru.barinov.ui_ext.bottomNavGreen
+import ru.barinov.ui_ext.darkGreen
 import ru.barinov.ui_ext.enterScreenBackground
 import ru.barinov.ui_ext.keyboardAsState
 import ru.barinov.ui_ext.lightGreen
@@ -79,10 +83,14 @@ internal fun EnterScreen(
     RegisterLifecycleCallbacks(
         onDestroy = { permissionManager.close() }
     )
+
+    val progress = remember { mutableStateOf(false) }
+
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
             SideEffects.AskPermission -> permissionManager.launch(Permission.MANAGE_FILES)
             SideEffects.EnterGranted -> rebase()
+            SideEffects.ProgressStop -> progress.value = false
         }
     }
 
@@ -103,20 +111,28 @@ internal fun EnterScreen(
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
                         .padding(top = 128.dp)
-                    
                 )
             }
         }
 
-        if(kbState.value == Keyboard.Opened) {
+        if (kbState.value == Keyboard.Opened) {
             Spacer(modifier = Modifier.height(64.dp))
         }
-
+        val errors =
+            state.errors.filter { it != ErrorType.CHECK_EMPTY && it != ErrorType.CREATE_NOT_EQUALS }
         PasswordTextField(
-            onValueChanged = { enterScreenEvent(EnterScreenEvent.NewInput(InputType.PASSWORD, it)) },
+            onValueChanged = {
+                enterScreenEvent(
+                    EnterScreenEvent.NewInput(
+                        type = InputType.PASSWORD,
+                        input = it
+                    )
+                )
+            },
+            isError = errors.isNotEmpty(),
             supportText = {
                 SupportText(
-                    errors = state.errors.filter { it != ErrorType.CHECK_EMPTY && it != ErrorType.CREATE_NOT_EQUALS },
+                    errors = errors,
                     hint = ru.barinov.ui_ext.R.string.password_enter_helper_text
                 )
             },
@@ -130,6 +146,7 @@ internal fun EnterScreen(
             }
             Spacer(modifier = Modifier.height(24.dp))
             Text(
+                color = darkGreen,
                 text = "Forgot your password",
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -146,11 +163,20 @@ internal fun EnterScreen(
             }
         }
         if (state.type == Stage.Create) {
+            val confirmErrors = state.errors.filter { it == ErrorType.CHECK_EMPTY || it == ErrorType.CREATE_NOT_EQUALS }
             PasswordTextField(
-                onValueChanged = { enterScreenEvent(EnterScreenEvent.NewInput(InputType.CONFIRMATION, it)) },
+                onValueChanged = {
+                    enterScreenEvent(
+                        EnterScreenEvent.NewInput(
+                            InputType.CONFIRMATION,
+                            it
+                        )
+                    )
+                },
+                isError = confirmErrors.isNotEmpty(),
                 supportText = {
                     SupportText(
-                        errors = state.errors.filter { it == ErrorType.CHECK_EMPTY || it == ErrorType.CREATE_NOT_EQUALS },
+                        errors = confirmErrors,
                         hint = R.string.check_password_helper_text
                     )
                 },
@@ -163,17 +189,17 @@ internal fun EnterScreen(
         }
 
         if (state.hasPermission) {
-            ElevatedButton(
-                colors = ButtonDefaults.buttonColors().copy(
-                    containerColor = mainGreen
-                ),
-                onClick = { enterScreenEvent(EnterScreenEvent.SubmitClicked) },
+            Spacer(modifier = Modifier.height(if (kbState.value == Keyboard.Closed) 84.dp else 42.dp))
+            ProgressButton(
+                isEnabled = !progress.value,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(top = if (kbState.value == Keyboard.Closed) 84.dp else 42.dp)
-                    .defaultMinSize(minWidth = 228.dp)
+                    .defaultMinSize(minWidth = 228.dp),
+                buttonText = R.string.enter_text,
+                isProgress = progress
             ) {
-                Text(text = stringResource(id = R.string.enter_text), fontSize = 22.sp)
+                progress.value = true
+                enterScreenEvent(EnterScreenEvent.SubmitClicked)
             }
         } else {
             InformationalBlock(
@@ -185,7 +211,7 @@ internal fun EnterScreen(
                 onBlockClicked = { permissionManager.launch(Permission.MANAGE_FILES) },
                 onIconClicked = { isPermissionInfoBsVisible.value = true }
             )
-            if(isPermissionInfoBsVisible.value) {
+            if (isPermissionInfoBsVisible.value) {
                 PermissionInfoBottomSheet {
                     isPermissionInfoBsVisible.value = false
                 }

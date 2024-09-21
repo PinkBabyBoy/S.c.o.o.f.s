@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
@@ -45,7 +47,6 @@ import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.ui_ext.BottomSheetPolicy
 import ru.barinov.ui_ext.SingleEventEffect
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeySelector(
     state: KeyPickerUiState,
@@ -67,7 +68,7 @@ fun KeySelector(
                 keyLoadBsState.value = BottomSheetPolicy.Expanded(
                     KeyLoadBottomSheetArgs(
                         filename = sideEffect.name,
-                        uuid = sideEffect.uuid
+                        fileId = sideEffect.fileId
                     )
                 )
 
@@ -80,7 +81,11 @@ fun KeySelector(
         }
     }
     if (state.isKeyLoaded) {
-    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center)
@@ -111,14 +116,15 @@ fun KeySelector(
             onEvent = { onEvent(it) },
             isPageEmpty = state.isPageEmpty,
             isInRoot = state.isInRoot,
-            actions = setOf {
-                Image(
-                    painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
-                    contentDescription = null,
-                    modifier = Modifier.clickable {
-                        isKeystoreCreatorBsVisible.value = true
-                    }
-                )
+            actions = buildSet {
+                add {
+                    Icon(
+                        painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
+                        contentDescription = null,
+                        modifier = Modifier.clickable { isKeystoreCreatorBsVisible.value = true }
+                    )
+                }
+                add { Spacer(modifier = Modifier.width(16.dp)) }
             }
         )
     }
@@ -144,7 +150,7 @@ fun KeySelector(
             onConfirmed = { pass ->
                 onEvent(
                     KeySelectorEvent.KeyLoadConfirmed(
-                        uuid = uuid,
+                        fileId = fileId,
                         password = pass.toCharArray()
                     )
                 )
