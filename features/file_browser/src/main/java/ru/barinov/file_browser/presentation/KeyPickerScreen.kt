@@ -45,6 +45,7 @@ import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.ui_ext.BottomSheetPolicy
+import ru.barinov.ui_ext.ScoofButton
 import ru.barinov.ui_ext.SingleEventEffect
 
 @Composable
@@ -90,7 +91,7 @@ fun KeySelector(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center)
             ) {
-                Text(text = "Key is binded")
+                Text(text = stringResource(id = ru.barinov.ui_ext.R.string.key_loaded))
                 Image(
                     painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
                     contentDescription = null
@@ -99,12 +100,11 @@ fun KeySelector(
                     modifier = Modifier
                         .height(32.dp)
                 )
-                Button(
-                    onClick = { onEvent(KeySelectorEvent.UnbindKey) }, modifier = Modifier
-                        .padding(8.dp)
-                ) {
-                    Text(text = "Unbind")
-                }
+                ScoofButton(
+                    onClick = { onEvent(KeySelectorEvent.UnbindKey) },
+                    modifier = Modifier.padding(8.dp),
+                    buttonText = ru.barinov.ui_ext.R.string.unbind
+                )
             }
         }
     } else {

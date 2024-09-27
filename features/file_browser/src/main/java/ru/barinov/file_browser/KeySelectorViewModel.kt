@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filepath
 import ru.barinov.core.Source
@@ -155,7 +156,7 @@ class KeySelectorViewModel(
     }
 
     private fun onFileClicked(fileId: FileId) {
-        val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
+        val file = fileTreeProvider.getFileByID(fileId, sourceType.value) as FileEntity
         if (file.isDir) {
             openFolder(fileId)
         } else {

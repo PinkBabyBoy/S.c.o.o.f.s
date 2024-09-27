@@ -8,7 +8,7 @@ import ru.barinov.read_worker.ReadFileWorkerImpl
 val readWorkerModule = module {
 
     factory {
-        ReadFileWorkerImpl(get())
+        ReadFileWorkerImpl(get(), get())
     } bind ReadFileWorker::class
 
 }

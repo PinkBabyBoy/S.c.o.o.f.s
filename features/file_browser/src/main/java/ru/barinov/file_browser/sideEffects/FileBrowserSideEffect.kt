@@ -7,11 +7,9 @@ import java.util.UUID
 
 interface SideEffect
 
-sealed interface FileBrowserSideEffect: SideEffect {
+sealed interface FileBrowserSideEffect: SideEffect {}
 
-
-}
-
+sealed interface ContainersSideEffect: SideEffect {}
 
 sealed interface KeySelectorSideEffect: SideEffect {
 

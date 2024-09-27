@@ -70,7 +70,7 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
         ) {
             val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
             FileBrowserAppBar(
-                folderName = currentFolderName,
+                titleString = currentFolderName,
                 topAppBarScrollBehavior = scrollBehavior,
                 onNavigateUpClicked = {
                     if (selectionMode.value) {
@@ -88,7 +88,10 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
                     end = 6.dp
                 )
             ) {
-                items(folderFiles.itemCount) { index ->
+                items(
+                    count = folderFiles.itemCount,
+                    key = { folderFiles[it]?.fileId?.path ?: String() }
+                ) { index ->
                     val fileModel = folderFiles[index]
                     if (fileModel != null) {
                         FileItem<T>(

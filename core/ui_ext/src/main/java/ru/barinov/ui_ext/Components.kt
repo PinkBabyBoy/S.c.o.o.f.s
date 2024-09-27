@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -124,6 +126,7 @@ fun PasswordTextField(
     val enteredPass = remember {
         mutableStateOf("")
     }
+    val keyboardController = LocalSoftwareKeyboardController.current
     OutlinedTextField(
         colors = OutlinedTextFieldDefaults.colors().copy(
             cursorColor = darkGreen,
@@ -134,6 +137,8 @@ fun PasswordTextField(
         value = enteredPass.value,
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardActions = KeyboardActions(
+            onDone = { keyboardController?.hide() }),
         onValueChange = {
             enteredPass.value = it
             onValueChanged(enteredPass.value)
@@ -164,5 +169,22 @@ fun ProgressButton(
                 modifier = Modifier.size(28.dp)
             )
         }
+    }
+}
+
+@Composable
+fun ScoofButton(
+    isEnabled: Boolean = true,
+    modifier: Modifier,
+    @StringRes buttonText: Int,
+    onClick: () -> Unit
+) {
+    ElevatedButton(
+        colors = ButtonDefaults.buttonColors().copy(containerColor = mainGreen),
+        onClick = { onClick() },
+        modifier = modifier,
+        enabled = isEnabled
+    ) {
+        Text(text = stringResource(id = buttonText), fontSize = 18.sp)
     }
 }

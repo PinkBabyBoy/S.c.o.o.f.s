@@ -4,6 +4,9 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import ru.barinov.file_browser.ContainersManager
+import ru.barinov.file_browser.ContainersManagerImpl
+import ru.barinov.file_browser.ContainersViewModel
 import ru.barinov.file_browser.FileObserverViewModel
 import ru.barinov.file_browser.FileRecogniser
 import ru.barinov.file_browser.FileToUiModelMapper
@@ -14,13 +17,14 @@ import ru.barinov.file_browser.KeySelectorViewModel
 import ru.barinov.file_browser.RootProvider
 import ru.barinov.file_browser.RootProviderImpl
 import ru.barinov.file_browser.SelectedCache
+import ru.barinov.file_browser.usecases.CreateContainerUseCase
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 
 
 val fileObserverModule = module {
 
     factory {
-        FileToUiModelMapper(get())
+        FileToUiModelMapper(get(), androidContext())
     }
 
     factory {
@@ -60,6 +64,26 @@ val fileObserverModule = module {
 
     factory {
         CreateKeyStoreUseCase(get(), get())
+    }
+
+    single {
+        ContainersManagerImpl(
+            containerProvider = get(),
+            indexesProvider = get(),
+        )
+    } bind ContainersManager::class
+
+    factory {
+        CreateContainerUseCase(get())
+    }
+
+    viewModel {
+        ContainersViewModel(
+            containersManager = get(),
+            fileToUiModelMapper = get(),
+            createContainerUseCase = get(),
+            keyManager = get(),
+        )
     }
 
     viewModel {

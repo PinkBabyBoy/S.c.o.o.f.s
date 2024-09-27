@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -190,6 +191,7 @@ internal fun EnterScreen(
 
         if (state.hasPermission) {
             Spacer(modifier = Modifier.height(if (kbState.value == Keyboard.Closed) 84.dp else 42.dp))
+            val keyboardController = LocalSoftwareKeyboardController.current
             ProgressButton(
                 isEnabled = !progress.value,
                 modifier = Modifier
@@ -198,6 +200,7 @@ internal fun EnterScreen(
                 buttonText = R.string.enter_text,
                 isProgress = progress
             ) {
+                keyboardController?.hide()
                 progress.value = true
                 enterScreenEvent(EnterScreenEvent.SubmitClicked)
             }

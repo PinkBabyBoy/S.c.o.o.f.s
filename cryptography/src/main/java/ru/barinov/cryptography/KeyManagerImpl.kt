@@ -6,14 +6,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import ru.barinov.core.FileEntity
+import ru.barinov.core.Openable
+import ru.barinov.core.inputStream
 import ru.barinov.core.launchCatching
-import ru.barinov.read_worker.ReadFileWorker
 
 
 internal class KeyManagerImpl(
-    private val keyCache: KeyMemoryCache,
-    private val readFileWorker: ReadFileWorker
+    private val keyCache: KeyMemoryCache
 ): KeyManager {
 
     private val mutex = Mutex()
@@ -24,7 +23,7 @@ internal class KeyManagerImpl(
     override val isKeyLoaded: StateFlow<Boolean> = keyCache.isLoaded
 
     override fun loadKey(
-        keyFile: FileEntity,
+        keyFile: Openable,
         password: CharArray,
         onSuccess: () -> Unit,
         onError: (Throwable) -> Unit
@@ -32,7 +31,7 @@ internal class KeyManagerImpl(
         serviceCoroutine.launchCatching(
             block = {
                 mutex.withLock {
-                    val input = readFileWorker.getInputStream(keyFile)
+                    val input = keyFile.inputStream()
                     keyCache.initKeyStore(input, password)
                 }
             },

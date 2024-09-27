@@ -5,9 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.height
@@ -15,7 +13,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
@@ -32,7 +29,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -42,14 +38,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import ru.barinov.file_browser.R
-import ru.barinov.file_browser.events.FieObserverEvent
+import ru.barinov.core.topBarHeaderStyle
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.ui_ext.bottomNavGreen
 
@@ -140,24 +134,30 @@ fun BrowserBottomNavBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileBrowserAppBar(
-    folderName: String,
+    titleString: String,
     topAppBarScrollBehavior: TopAppBarScrollBehavior,
-    onNavigateUpClicked: () -> Unit,
+    onNavigateUpClicked: () -> Unit = {},
     showArrow: Boolean,
-    actions: Set<@Composable (RowScope) -> Unit> = emptySet()
+    actions: Set<@Composable (RowScope) -> Unit> = emptySet(),
 ) {
     val title =
-        @Composable { Text(text = folderName, Modifier.padding(start = 16.dp), fontSize = 14.sp) }
-    val navigationIcon = @Composable {
-        AnimatedVisibility(showArrow, enter = scaleIn(), exit = scaleOut()) {
-            Icon(
-                painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
-                contentDescription = null,
-                modifier = Modifier
-                    .clickable { onNavigateUpClicked() }
-                    .padding(start = 12.dp)
+        @Composable {
+            Text(
+                text = titleString,
+                modifier = Modifier.padding(start = 16.dp),
+                style = topBarHeaderStyle
             )
         }
+    val navigationIcon = @Composable {
+            AnimatedVisibility(showArrow, enter = scaleIn(), exit = scaleOut()) {
+                Icon(
+                    painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clickable { onNavigateUpClicked() }
+                        .padding(start = 12.dp)
+                )
+            }
     }
     TopAppBar(
         title = { title() },

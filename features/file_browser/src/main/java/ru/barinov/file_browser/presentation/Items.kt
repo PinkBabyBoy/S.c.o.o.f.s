@@ -1,6 +1,5 @@
 package ru.barinov.file_browser.presentation
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -32,17 +31,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.barinov.core.FileCategory
 import ru.barinov.core.FileId
 import ru.barinov.core.FileSize
 import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.file_browser.events.FieObserverEvent
-import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.models.FileType
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.ui_ext.fileItemColor
-import java.util.UUID
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,7 +48,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
     file: FileUiModel,
     selectionMode: Boolean,
     selectionAvailable: Boolean,
-    crossinline toggleSelection: () -> Unit,
+    crossinline toggleSelection: () -> Unit = {},
     crossinline onEvent: (T) -> Unit
 ) {
     val interactSource = remember { mutableStateOf(MutableInteractionSource()) }
@@ -78,10 +76,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
                         toggleSelection()
                     }
                 },
-                onClick = {
-                    onEvent(OnFileClicked(file.fileId, selectionMode) as T)
-
-                }
+                onClick = { onEvent(OnFileClicked(file.fileId, selectionMode) as T) }
             )
     ) {
         Row(
@@ -108,7 +103,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
                 )
             Column(modifier = Modifier.padding(start = 4.dp)) {
                 Text(text = file.name)
-                Text(text = file.displayAbleSize, fontSize = 10.sp, color = Color.Gray)
+                Text(text = file.sizeInMb, fontSize = 10.sp, color = Color.Gray)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -120,12 +115,9 @@ inline fun <reified T : FieObserverEvent> FileItem(
                 AnimatedVisibility(visible = selectionMode) {
                     Checkbox(
                         checked =  file.isSelected,
-                        onCheckedChange = {
-                            onEvent(OnFileClicked(file.fileId, selectionMode) as T)
-                        })
+                        onCheckedChange = { onEvent(OnFileClicked(file.fileId, selectionMode) as T) })
                 }
             }
-
         }
     }
 }
@@ -138,17 +130,17 @@ fun FileItemPreview() {
         FileUiModel(
             fileId = FileId.byFilePath(Filepath.root("")),
             filePath = "",
-            type = Source.INTERNAL,
+            origin = Source.INTERNAL,
             isDir = false,
             isFile = true,
             name = "my_pron.mp4",
-            size = FileSize(43534534453L),
-            displayAbleSize = "4.1mb",
+            size = FileSize(656565L),
             placeholderRes = ru.barinov.core.R.drawable.file,
             isSelected = true,
             fileType = remember {
                 mutableStateOf(FileType.Unconfirmed)
-            }
+            },
+            sizeInMb = "4.mb"
         ),
         true, false, {}, {},
     )

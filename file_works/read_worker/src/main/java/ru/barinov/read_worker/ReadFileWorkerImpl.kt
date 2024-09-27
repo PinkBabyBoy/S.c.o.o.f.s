@@ -3,50 +3,51 @@ package ru.barinov.read_worker
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileIndex
+import ru.barinov.cryptography.Decryptor
 import ru.barinov.external_data.GetMSDFileSystemUseCase
 import ru.barinov.file_works.IndexCreator
 import java.io.BufferedInputStream
+import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.lang.Exception
-import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 
 private const val KEY_FILE_LIMIT_SIZE = 4*1024*1024
 
 internal class ReadFileWorkerImpl(
-    private val getMSDFileSystemUseCase: GetMSDFileSystemUseCase
+    private val getMSDFileSystemUseCase: GetMSDFileSystemUseCase,
+    private val decryptor: Decryptor
 ): ReadFileWorker {
 
-    override fun readIndexes(file: FileEntity.InternalFile): Result<List<FileIndex>> = runCatching{
-//        if(!file.isInternalFile) throw IllegalArgumentException("Can not load from msd device file")
-        val tagFile = file.attachedOrigin
-        FileInputStream(tagFile).buffered().use { iStream ->
+    override suspend fun readIndexes(file: File): Result<List<FileIndex>> = runCatching{
+        FileInputStream(file).buffered().use { iStream ->
             var pos:Long = 0
             mutableListOf<FileIndex>().apply {
                 while (iStream.available() > 0) {
-                    val tagSize = readTagSize(iStream)
-                    ByteArray(tagSize).let { tagBuffer ->
+                    val tagSize = readSize(iStream)
+                    ByteArray(tagSize).also { tagBuffer ->
                         val startPos = pos
                         pos += iStream.read(tagBuffer) + Int.SIZE_BYTES
-                        IndexCreator.restoreIndex(tagBuffer, startPos)
+                        add(IndexCreator.restoreIndex(decodeIndex(tagBuffer), startPos, tagSize))
                     }
                 }
             }
         }
     }
 
-    private fun readTagSize(dataFlow: BufferedInputStream): Int {
-        val buffer = ByteArray(Int.SIZE_BYTES)
-        dataFlow.read(buffer)
-        return ByteBuffer.wrap(buffer).getInt()
+    private suspend fun decodeIndex(encodedIndex: ByteArray): ByteArray {
+        val indexStream = encodedIndex.inputStream()
+        val keySize = ByteBuffer.wrap(ByteArray(Int.SIZE_BYTES).also { indexStream.read(it) }).getInt()
+        val encryptedKey = ByteBuffer.wrap(ByteArray(keySize).also { indexStream.read(it) }).array()
+        return decryptor.decryptIndex(encryptedKey, indexStream.readBytes())
     }
 
-    override fun getInputStream(fileEntity: FileEntity): InputStream =
-       when(fileEntity){
-           is FileEntity.InternalFile -> readKeyFromInternalStorage(fileEntity)
-           is FileEntity.MassStorageFile -> readKeyFromMSD(fileEntity)
-       }
+    private fun readSize(input: InputStream): Int {
+        val buffer = ByteArray(Int.SIZE_BYTES)
+        input.read(buffer)
+        return ByteBuffer.wrap(buffer).getInt()
+    }
 
     private fun readKeyFromMSD(fileEntity: FileEntity.MassStorageFile): InputStream =
         UsbFileStreamFactory.createBufferedInputStream(fileEntity.attachedOrigin, getMSDFileSystemUseCase()!!)

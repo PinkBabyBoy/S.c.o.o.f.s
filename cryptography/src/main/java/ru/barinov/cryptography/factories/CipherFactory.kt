@@ -5,7 +5,8 @@ import javax.crypto.SecretKey
 
 interface CipherFactory {
 
-    fun createDecryptionInnerCipher(rawSecretKey: ByteArray, iv: ByteArray): Cipher
+    //TODO IV?
+    fun createDecryptionInnerCipher(rawSecretKey: ByteArray, iv: ByteArray? = null): Cipher
 
     fun createDecryptionInnerCipher(key: SecretKey, iv: ByteArray?): Cipher
 

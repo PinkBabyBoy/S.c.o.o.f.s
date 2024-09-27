@@ -43,6 +43,8 @@ internal class WriteFileWorkerImpl(
 
             is FileEntity.MassStorageFile ->
                 appendMSDFile(targetFile, container, progressFlow, blockCipher)
+
+            is FileEntity.Index -> error("Container is not allowed here")
         }
         runCatching {
             indexes.appendBytes(index.size.getBytes())

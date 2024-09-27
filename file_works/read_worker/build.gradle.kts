@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":providers:external_data"))
     implementation(project(":file_works"))
+    implementation(project(":cryptography"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

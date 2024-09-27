@@ -40,7 +40,7 @@ val cryptographyModule = module{
     } bind KeyMemoryCache::class
 
     factory {
-        DecryptorImpl()
+        DecryptorImpl(get())
     } bind Decryptor::class
 
     factory {
@@ -55,7 +55,6 @@ val cryptographyModule = module{
     single {
         KeyManagerImpl(
             keyCache = get(),
-            readFileWorker = get(),
         )
     } bind KeyManager::class
 

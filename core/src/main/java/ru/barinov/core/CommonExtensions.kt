@@ -107,3 +107,5 @@ fun Int.getBytes(): ByteArray{
 }
 
 fun Long.mb(): Float = (this / (1024 * 1024)).toFloat()
+
+fun String.hasNoSpecialSymbols() = !matches("^[a-zA-Z0-9]{4,10}\$".toRegex())

@@ -29,11 +29,12 @@ sealed interface KeySelectorEvent : FieObserverEvent {
     data object UnbindKey: KeySelectorEvent
 }
 
-sealed interface ContainersEvent : FileBrowserEvent {
+sealed interface ContainersEvent : FieObserverEvent {
 
+    class ContainerCreateConfirmed(val name: String): ContainersEvent
 }
 
-data object OnBackPressed : FileBrowserEvent, KeySelectorEvent, ContainersEvent
+data object OnBackPressed : FileBrowserEvent, KeySelectorEvent
 
 class OnFileClicked(
     val fileId: FileId, val selectionMode: Boolean

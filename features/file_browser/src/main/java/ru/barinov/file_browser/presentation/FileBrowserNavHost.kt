@@ -14,6 +14,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
+import ru.barinov.file_browser.ContainerContentViewModel
+import ru.barinov.file_browser.ContainersViewModel
 import ru.barinov.file_browser.FileObserverViewModel
 import ru.barinov.file_browser.KeySelectorViewModel
 
@@ -35,8 +38,22 @@ fun FileBrowserNavHost(
                 exitSlider(initialState.destination.route, FileBrowserRout.CONTAINERS.name)
             }
         ) {
-            Containers()
+            val vm: ContainersViewModel = koinViewModel()
+            Containers(
+                state = vm.uiState.collectAsState().value,
+                navController = navController,
+                snackbarHostState = snackbarHostState,
+                sideEffects = vm.sideEffects,
+                onEvent = vm::handleEvent
+            )
         }
+
+        composable(route = "${FileBrowserRout.CONTAINER_CONTENT}/{name}") {
+            val name = it.arguments?.getString("name") ?: error("Args should be passed")
+            val vm: ContainerContentViewModel = koinViewModel(parameters = { parametersOf(name)})
+            ContainerContent()
+        }
+
         composable(
             route = FileBrowserRout.FILE_PICKER.name,
             enterTransition = {

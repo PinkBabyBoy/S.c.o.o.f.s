@@ -133,6 +133,7 @@ class FileObserverViewModel(
                 when (it) {
                     is FileEntity.InternalFile -> it.attachedOrigin.delete()
                     is FileEntity.MassStorageFile -> it.attachedOrigin.delete()
+                    is FileEntity.Index -> TODO()
                 }
             }
             fileTreeProvider.update(sourceType.value)
@@ -144,9 +145,9 @@ class FileObserverViewModel(
         viewModelScope.launch {
             val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
             if (!selected) {
-                selectedCache.add(fileId, file)
+                selectedCache.add(fileId, file as FileEntity)
             } else {
-                selectedCache.remove(file.fileId)
+                selectedCache.remove(fileId)
             }
         }
     }

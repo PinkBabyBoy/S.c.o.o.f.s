@@ -1,9 +1,9 @@
 package ru.barinov.file_browser.usecases
 
-import android.util.Log
 import ru.barinov.core.FileEntity
+import ru.barinov.core.Openable
 import ru.barinov.core.inputStream
-import ru.barinov.core.toFileEntity
+import ru.barinov.core.toInternalFileEntity
 import ru.barinov.cryptography.KeyMemoryCache
 import ru.barinov.cryptography.factories.KeyStoreFactory
 import java.io.File
@@ -14,7 +14,7 @@ class CreateKeyStoreUseCase(
 ) {
 
     operator fun invoke(
-        folder: FileEntity,
+        folder: Openable,
         password: CharArray,
         name: String,
         loadInstantly: Boolean
@@ -24,12 +24,12 @@ class CreateKeyStoreUseCase(
                 is FileEntity.InternalFile -> {
                     File(it.attachedOrigin, name).apply {
                         if (!isFile) createNewFile() else error("")
-                    }.toFileEntity()
+                    }.toInternalFileEntity()
                 }
 
                 is FileEntity.MassStorageFile -> {
                     if(it.attachedOrigin.search(name) != null) error("")
-                    it.attachedOrigin.createFile(name).toFileEntity()
+                    it.attachedOrigin.createFile(name).toInternalFileEntity()
                 }
             }
         }

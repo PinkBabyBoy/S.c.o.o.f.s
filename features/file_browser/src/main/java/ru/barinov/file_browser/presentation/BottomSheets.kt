@@ -39,14 +39,64 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import ru.barinov.core.Filename
+import ru.barinov.core.hasNoSpecialSymbols
 import ru.barinov.file_browser.R
 import ru.barinov.file_browser.events.KeySelectorEvent
 import ru.barinov.ui_ext.BottomSheetPolicy
 import ru.barinov.ui_ext.Keyboard
 import ru.barinov.ui_ext.PasswordTextField
 import ru.barinov.ui_ext.ProgressButton
+import ru.barinov.ui_ext.ScoofButton
 import ru.barinov.ui_ext.TextEnter
 import ru.barinov.ui_ext.keyboardAsState
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateContainerBottomSheet(
+    onDismissRequested: () -> Unit,
+    onConfirmed: (String) -> Unit
+) {
+    val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = { onDismissRequested() },
+        sheetState = bsState,
+        containerColor = Color.White
+    ) {
+        val nameInput = remember { mutableStateOf("") }
+        val inputErrors = remember { mutableStateOf(emptySet<InputErrors>()) }
+        Text(text = "Create container", modifier = Modifier.align(Alignment.CenterHorizontally))
+        Spacer(modifier = Modifier.height(32.dp))
+        TextEnter(
+            supportText = {
+                SupportText(
+                    errors = inputErrors.value.filter { it == InputErrors.NAME_EMPTY },
+                    hint = ru.barinov.ui_ext.R.string.container_name_hint
+                )
+            },
+            onValueChanged = { nameInput.value = it },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+        ScoofButton(
+            isEnabled = true,
+            modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.CenterHorizontally),
+            buttonText = ru.barinov.ui_ext.R.string.create,
+        ) {
+            when {
+                nameInput.value.isEmpty() -> inputErrors.value = setOf(InputErrors.NAME_EMPTY)
+                nameInput.value.hasNoSpecialSymbols() -> inputErrors.value =
+                    setOf(InputErrors.HAS_SPECIAL_SYMBOLS)
+
+                else -> {
+                    onConfirmed(nameInput.value)
+                    onDismissRequested()
+                }
+            }
+        }
+
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,17 +129,17 @@ fun KeyStoreLoadBottomSheet(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Spacer(modifier = Modifier.height(32.dp))
-        Button(
+        ScoofButton(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .padding(8.dp),
             onClick = {
                 onConfirmed(enteredPassword.value)
                 onDismissRequested()
-            }
-        ) {
-            Text(text = "Load", modifier = Modifier.padding(horizontal = 32.dp))
-        }
+            },
+            buttonText = ru.barinov.ui_ext.R.string.load
+        )
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -116,7 +166,6 @@ fun CreateKeyStoreBottomSheet(
         skipPartiallyExpanded = true,
         confirmValueChange = { !loadStarted.value }
     )
-
 
     ModalBottomSheet(
         onDismissRequest = { if (!loadStarted.value) onDismissRequested() },
@@ -171,8 +220,10 @@ fun CreateKeyStoreBottomSheet(
             buttonText = ru.barinov.ui_ext.R.string.create,
         ) {
             if (enteredName.value.isNotEmpty() && passInput.value.isNotEmpty()) {
-                loadStarted.value = true
-                onConfirmed(enteredName.value, passInput.value.toCharArray(), checkState.value)
+                if (enteredName.value.hasNoSpecialSymbols()) {
+                    loadStarted.value = true
+                    onConfirmed(enteredName.value, passInput.value.toCharArray(), checkState.value)
+                } else inputErrors.value = setOf(InputErrors.HAS_SPECIAL_SYMBOLS)
             } else {
                 inputErrors.value = buildSet {
                     if (enteredName.value.isEmpty()) add(InputErrors.NAME_EMPTY)
@@ -192,10 +243,11 @@ private fun SupportText(errors: List<InputErrors>, @StringRes hint: Int) {
     val text = when (errors.first()) {
         InputErrors.NAME_EMPTY -> ru.barinov.ui_ext.R.string.empty_keystore_name
         InputErrors.PASSWORD_EMPTY -> ru.barinov.ui_ext.R.string.empty_password_text
+        InputErrors.HAS_SPECIAL_SYMBOLS -> TODO()
     }.let { stringResource(id = it) }
     Text(text = text, color = MaterialTheme.colorScheme.error)
 }
 
 private enum class InputErrors {
-    NAME_EMPTY, PASSWORD_EMPTY
+    NAME_EMPTY, PASSWORD_EMPTY, HAS_SPECIAL_SYMBOLS
 }
