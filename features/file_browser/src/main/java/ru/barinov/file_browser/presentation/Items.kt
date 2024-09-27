@@ -17,6 +17,8 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -31,16 +33,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.barinov.core.FileCategory
 import ru.barinov.core.FileId
 import ru.barinov.core.FileSize
 import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.OnFileClicked
-import ru.barinov.file_browser.models.FileType
+import ru.barinov.file_browser.models.FileInfo
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.ui_ext.fileItemColor
+import ru.barinov.ui_ext.mainGreen
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -84,7 +86,8 @@ inline fun <reified T : FieObserverEvent> FileItem(
             horizontalArrangement = Arrangement.End
         ) {
             val type = file.fileType.value
-            if (type !is FileType.ImageFile)
+            val info = file.contentInfo.value
+            if (type !is FileInfo.ImageFile)
                 Image(
                     painter = painterResource(id = file.placeholderRes),
                     contentDescription = null,
@@ -103,7 +106,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
                 )
             Column(modifier = Modifier.padding(start = 4.dp)) {
                 Text(text = file.name)
-                Text(text = file.sizeInMb, fontSize = 10.sp, color = Color.Gray)
+                Text(text = info, fontSize = 10.sp, color = Color.Gray)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -114,6 +117,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
             ) {
                 AnimatedVisibility(visible = selectionMode) {
                     Checkbox(
+                        colors = CheckboxDefaults.colors().copy(checkedBoxColor = mainGreen),
                         checked =  file.isSelected,
                         onCheckedChange = { onEvent(OnFileClicked(file.fileId, selectionMode) as T) })
                 }
@@ -138,10 +142,10 @@ fun FileItemPreview() {
             placeholderRes = ru.barinov.core.R.drawable.file,
             isSelected = true,
             fileType = remember {
-                mutableStateOf(FileType.Unconfirmed)
+                mutableStateOf(FileInfo.Unconfirmed)
             },
-            sizeInMb = "4.mb"
+            contentInfo =  remember { mutableStateOf("") }
         ),
-        true, false, {}, {},
+        true, true, {}, {},
     )
 }

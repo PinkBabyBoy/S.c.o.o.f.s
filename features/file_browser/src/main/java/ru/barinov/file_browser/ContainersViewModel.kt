@@ -36,30 +36,30 @@ class ContainersViewModel(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-//            val containersPages = containersManager.indexes.map {
-//                Pager(
-//                    config = PagingConfig(
-//                        pageSize = PAGE_SIZE,
-//                        enablePlaceholders = true,
-//                        initialLoadSize = PAGE_SIZE
-//                    ),
-//                    pagingSourceFactory = {
-//                        FilesPagingSource(it)
-//                    }
-//                ).flow.cachedIn(viewModelScope).map { fileToUiModelMapper(it, hashSetOf(), false) } to it.isEmpty()
-//            }
-//            combine(containersPages, keyManager.isKeyLoaded, ::Pair).catch {
-//
-//            }.collectLatest {
-//                val (containersPageAndKey, isKeyLoaded) = it
-//                val (containers, isPageEmpty) = containersPageAndKey
-//                _uiState.value =
-//                    uiState.value.copy(
-//                        isPageEmpty = isPageEmpty,
-//                        containers = containers,
-//                        state = if (isKeyLoaded) ContainersUiState.State.LOADED else ContainersUiState.State.KEY_UNLOADED
-//                    )
-//            }
+            val containersPages = containersManager.indexes.map {
+                Pager(
+                    config = PagingConfig(
+                        pageSize = PAGE_SIZE,
+                        enablePlaceholders = true,
+                        initialLoadSize = PAGE_SIZE
+                    ),
+                    pagingSourceFactory = {
+                        FilesPagingSource(it)
+                    }
+                ).flow.cachedIn(viewModelScope).map { fileToUiModelMapper(it, hashSetOf(), false) } to it.isEmpty()
+            }
+            combine(containersPages, keyManager.isKeyLoaded, ::Pair).catch {
+
+            }.collectLatest {
+                val (containersPageAndKey, isKeyLoaded) = it
+                val (containers, isPageEmpty) = containersPageAndKey
+                _uiState.value =
+                    uiState.value.copy(
+                        isPageEmpty = isPageEmpty,
+                        containers = containers,
+                        state = if (isKeyLoaded) ContainersUiState.State.LOADED else ContainersUiState.State.KEY_UNLOADED
+                    )
+            }
         }
     }
 

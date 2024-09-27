@@ -4,11 +4,13 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import ru.barinov.file_browser.ContainerContentViewModel
 import ru.barinov.file_browser.ContainersManager
 import ru.barinov.file_browser.ContainersManagerImpl
 import ru.barinov.file_browser.ContainersViewModel
+import ru.barinov.file_browser.FileInfoExtractor
 import ru.barinov.file_browser.FileObserverViewModel
-import ru.barinov.file_browser.FileRecogniser
+import ru.barinov.file_browser.MimeRecognizer
 import ru.barinov.file_browser.FileToUiModelMapper
 import ru.barinov.file_browser.FileTreeProvider
 import ru.barinov.file_browser.GetMSDAttachStateProvider
@@ -24,11 +26,15 @@ import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 val fileObserverModule = module {
 
     factory {
-        FileToUiModelMapper(get(), androidContext())
+        FileToUiModelMapper(get(), get())
     }
 
     factory {
-        FileRecogniser()
+        FileInfoExtractor(androidContext())
+    }
+
+    factory {
+        MimeRecognizer()
     }
 
     factory {
@@ -75,6 +81,10 @@ val fileObserverModule = module {
 
     factory {
         CreateContainerUseCase(get())
+    }
+
+    viewModel { params ->
+        ContainerContentViewModel(params.get())
     }
 
     viewModel {

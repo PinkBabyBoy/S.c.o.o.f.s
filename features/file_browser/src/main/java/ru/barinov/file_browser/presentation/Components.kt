@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -24,6 +25,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -46,6 +48,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import ru.barinov.core.topBarHeaderStyle
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.ui_ext.bottomNavGreen
+import ru.barinov.ui_ext.mainGreen
 
 private val fileBrowserTopLevelScreens = setOf(
     TopLevelScreen(
@@ -214,6 +217,7 @@ fun SortDropDownMenu(
     onEvent: (FileBrowserEvent) -> Unit
 ) {
     DropdownMenu(
+        modifier = Modifier.background(Color.White),
         expanded = isExpanded,
         onDismissRequest = { onDismissRequest() }
     ) {
@@ -221,6 +225,7 @@ fun SortDropDownMenu(
             DropdownMenuItem(
                 trailingIcon = {
                     RadioButton(
+                        colors = RadioButtonDefaults.colors().copy(selectedColor = mainGreen),
                         selected = it.type == selectedSort,
                         onClick = {
                             onDismissRequest()

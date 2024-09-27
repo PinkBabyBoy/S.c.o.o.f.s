@@ -57,6 +57,7 @@ fun Containers(
 ) {
     val exitConfirmDialogVisible = remember { mutableStateOf(false) }
     val isContainerCreateBsExpanded = remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
     BackHandler {
         exitConfirmDialogVisible.value = true
     }
@@ -77,7 +78,7 @@ fun Containers(
                 onEvent = {},
                 isContainerCreateBsExpanded = isContainerCreateBsExpanded,
                 snackbarHostState = snackbarHostState,
-                coroutine = rememberCoroutineScope()
+                coroutine = coroutineScope
             )
         )
         LazyColumn {
@@ -89,8 +90,13 @@ fun Containers(
                         selectionMode = false,
                         selectionAvailable = false,
                         onEvent = {
-                            if (it is OnFileClicked)
-                                navController.navigate("${FileBrowserRout.CONTAINER_CONTENT}/{${it.fileId}}")
+                            if (it is OnFileClicked) {
+                                if (state.isKeyLoaded)
+                                    navController.navigate("${FileBrowserRout.CONTAINER_CONTENT}/{${it.fileId}}")
+                                else coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Can't open without key")
+                                }
+                            }
                         }
                     )
                 }

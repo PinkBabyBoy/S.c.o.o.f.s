@@ -28,7 +28,6 @@ sealed interface Openable {
     val parent: Openable?
     val path: Filepath
     fun innerFiles(): Map<FileId, FileEntity>
-    fun contentSize() : Int
 }
 
 sealed interface FileCategory {
@@ -66,8 +65,6 @@ sealed class FileEntity(
                 return@associate entity.fileId to entity
             }
         }.getOrNull() ?: emptyMap()
-
-        override fun contentSize(): Int = attachedOrigin.list()?.size ?: 0
     }
 
     class InternalFile internal constructor(
@@ -82,15 +79,12 @@ sealed class FileEntity(
         parent = attachedOrigin.parentFile?.toInternalFileEntity()
     ), Openable {
 
-
         override fun innerFiles(): Map<FileId, FileEntity> = runCatching {
             attachedOrigin.listFiles()?.associate {
                 val entity = it.toInternalFileEntity()
                 return@associate entity.fileId to entity
             }
         }.getOrNull() ?: emptyMap()
-
-        override fun contentSize(): Int = attachedOrigin.list()?.size ?: 0
     }
 
     class Index internal constructor(

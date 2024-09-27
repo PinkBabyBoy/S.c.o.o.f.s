@@ -6,22 +6,22 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
 import androidx.paging.map
-import ru.barinov.core.FileCategory
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Source
 import ru.barinov.core.bytesToMbSting
 import ru.barinov.core.trimFileName
 import ru.barinov.core.trimFilePath
-import ru.barinov.file_browser.models.FileType
+import ru.barinov.file_browser.models.FileInfo
 import ru.barinov.file_browser.models.FileUiModel
 
 class FileToUiModelMapper(
-    private val fileRecogniser: FileRecogniser,
-    private val appContext: Context
+    private val mimeRecognizer: MimeRecognizer,
+    private val fileInfoExtractor: FileInfoExtractor
 ) {
 
-    private val savedStates = mutableMapOf<FileId, MutableState<FileType>>()
+    private val savedMimes = mutableMapOf<FileId, MutableState<FileInfo>>()
+    private val savedContentInfo = mutableMapOf<FileId, MutableState<String>>()
 
     operator fun invoke(
         files: PagingData<FileEntity>,
@@ -29,20 +29,31 @@ class FileToUiModelMapper(
         recognizerOn: Boolean
     ): PagingData<FileUiModel> {
         return files.map {
-            val hasSavedState = savedStates.containsKey(it.fileId)
+            val hasSavedState = savedMimes.containsKey(it.fileId)
             if (recognizerOn && !hasSavedState) {
-                val typeState = mutableStateOf<FileType>(FileType.Unconfirmed)
-                savedStates[it.fileId] = typeState
-                fileRecogniser(it, typeState)
+                val typeState = mutableStateOf<FileInfo>(FileInfo.Unconfirmed)
+                savedMimes[it.fileId] = typeState
+                mimeRecognizer(it, typeState)
             }
-            mapFile(it, selected, savedStates[it.fileId] ?: mutableStateOf(FileType.Unconfirmed))
+            if (!savedContentInfo.containsKey(it.fileId)) {
+                val state = mutableStateOf("")
+                fileInfoExtractor(state, it)
+                savedContentInfo[it.fileId] = state
+            }
+            mapFile(
+                file = it,
+                selected = selected,
+                typeState = savedMimes[it.fileId] ?: mutableStateOf(FileInfo.Unconfirmed),
+                contentInfo = savedContentInfo[it.fileId] ?: mutableStateOf(""),
+            )
         }
     }
 
     private fun mapFile(
         file: FileEntity,
         selected: HashSet<FileId>,
-        typeState: MutableState<FileType>
+        typeState: MutableState<FileInfo>,
+        contentInfo: MutableState<String>
     ): FileUiModel =
         file.run {
             val isSelected = fileId in selected
@@ -56,8 +67,8 @@ class FileToUiModelMapper(
                 placeholderRes = fetchPlaceholderRes(this),
                 isSelected = isSelected,
                 fileType = typeState,
-                sizeInMb = size.value.bytesToMbSting(),
-                size = size
+                size = size,
+                contentInfo = contentInfo
             )
         }
 
