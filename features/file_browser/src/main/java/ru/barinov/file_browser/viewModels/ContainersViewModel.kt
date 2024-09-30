@@ -1,7 +1,5 @@
-package ru.barinov.file_browser
+package ru.barinov.file_browser.viewModels
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -15,14 +13,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.barinov.cryptography.KeyManager
+import ru.barinov.file_browser.ContainersManager
+import ru.barinov.file_browser.FileToUiModelMapper
+import ru.barinov.file_browser.FilesPagingSource
+import ru.barinov.file_browser.PAGE_SIZE
 import ru.barinov.file_browser.base.SideEffectViewModel
 import ru.barinov.file_browser.events.ContainersEvent
-import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.sideEffects.ContainersSideEffect
 import ru.barinov.file_browser.states.ContainersUiState
 import ru.barinov.file_browser.usecases.CreateContainerUseCase
-import ru.barinov.internal_data.IndexesProvider
 
 class ContainersViewModel(
     private val containersManager: ContainersManager,

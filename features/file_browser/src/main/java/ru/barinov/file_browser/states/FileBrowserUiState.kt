@@ -9,7 +9,7 @@ import ru.barinov.core.Source
 import ru.barinov.core.folderName
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
-import ru.barinov.file_browser.presentation.Sort
+import ru.barinov.file_browser.models.Sort
 
 @Stable
 data class FileBrowserUiState internal constructor(

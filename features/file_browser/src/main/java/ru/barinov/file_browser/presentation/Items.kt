@@ -54,6 +54,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
     crossinline onEvent: (T) -> Unit
 ) {
     val interactSource = remember { mutableStateOf(MutableInteractionSource()) }
+    val type = file.info.value
     Card(
         colors = CardDefaults.cardColors(
             containerColor = fileItemColor
@@ -78,15 +79,13 @@ inline fun <reified T : FieObserverEvent> FileItem(
                         toggleSelection()
                     }
                 },
-                onClick = { onEvent(OnFileClicked(file.fileId, selectionMode) as T) }
+                onClick = { onEvent(OnFileClicked(file.fileId, selectionMode, type) as T) }
             )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            val type = file.fileType.value
-            val info = file.contentInfo.value
             if (type !is FileInfo.ImageFile)
                 Image(
                     painter = painterResource(id = file.placeholderRes),
@@ -106,7 +105,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
                 )
             Column(modifier = Modifier.padding(start = 4.dp)) {
                 Text(text = file.name)
-                Text(text = info, fontSize = 10.sp, color = Color.Gray)
+                Text(text = type.getText(), fontSize = 10.sp, color = Color.Gray)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -119,12 +118,21 @@ inline fun <reified T : FieObserverEvent> FileItem(
                     Checkbox(
                         colors = CheckboxDefaults.colors().copy(checkedBoxColor = mainGreen),
                         checked =  file.isSelected,
-                        onCheckedChange = { onEvent(OnFileClicked(file.fileId, selectionMode) as T) })
+                        onCheckedChange = { onEvent(OnFileClicked(file.fileId, selectionMode, type) as T) })
                 }
             }
         }
     }
 }
+
+fun FileInfo.getText(): String =
+    when(this){
+        is FileInfo.Dir -> contentText
+        is FileInfo.ImageFile -> size
+        is FileInfo.Index -> creationDate
+        is FileInfo.Other -> size
+        is FileInfo.Unconfirmed -> String()
+    }
 
 //Previews
 @Composable
@@ -141,10 +149,9 @@ fun FileItemPreview() {
             size = FileSize(656565L),
             placeholderRes = ru.barinov.core.R.drawable.file,
             isSelected = true,
-            fileType = remember {
-                mutableStateOf(FileInfo.Unconfirmed)
-            },
-            contentInfo =  remember { mutableStateOf("") }
+            info = remember {
+                mutableStateOf(FileInfo.Other(false, ""))
+            }
         ),
         true, true, {}, {},
     )

@@ -1,4 +1,4 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.file_browser.models
 
 import androidx.annotation.StringRes
 

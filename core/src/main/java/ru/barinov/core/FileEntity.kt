@@ -1,5 +1,7 @@
 package ru.barinov.core
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import me.jahnen.libaums.core.fs.UsbFile
 import me.jahnen.libaums.core.fs.UsbFileInputStream
 import me.jahnen.libaums.core.fs.UsbFileOutputStream
@@ -23,18 +25,12 @@ value class Filepath(val value: String) {
 @JvmInline
 value class FileSize(val value: Long)
 
-sealed interface Openable {
+sealed interface Addable {
     val isDir: Boolean
-    val parent: Openable?
+    val parent: Addable?
     val path: Filepath
+    suspend fun innerFilesAsync(): Map<FileId, FileEntity>
     fun innerFiles(): Map<FileId, FileEntity>
-}
-
-sealed interface FileCategory {
-    @JvmInline
-    value class File(val size: FileSize) : FileCategory
-    @JvmInline
-    value class Directory(val filesCount: Int) : FileCategory
 }
 
 sealed class FileEntity(
@@ -44,8 +40,10 @@ sealed class FileEntity(
     val isDir: Boolean,
     val name: Filename,
     val path: Filepath,
-    val parent: Openable?
+    val parent: Addable?
 ) {
+
+    abstract fun containsCount(): Int?
 
     class MassStorageFile internal constructor(
         val attachedOrigin: UsbFile,
@@ -57,14 +55,23 @@ sealed class FileEntity(
         name = Filename(attachedOrigin.name),
         path = Filepath(attachedOrigin.absolutePath),
         parent = attachedOrigin.parent?.toInternalFileEntity()
-    ), Openable {
+    ), Addable {
 
         override fun innerFiles(): Map<FileId, FileEntity> = runCatching {
-            attachedOrigin.listFiles().associate {
-                val entity = it.toInternalFileEntity()
-                return@associate entity.fileId to entity
-            }
+            attachedOrigin.listFiles().map { it.toInternalFileEntity() }.associateBy { it.fileId }
         }.getOrNull() ?: emptyMap()
+
+        override suspend fun innerFilesAsync(): Map<FileId, FileEntity> = coroutineScope {
+            runCatching {
+                attachedOrigin.listFiles().map {
+                    async { it.toInternalFileEntity() }
+                }.map { it.await() }.associateBy { it.fileId }
+            }.getOrNull().orEmpty()
+        }
+
+        override fun containsCount(): Int {
+            TODO("Not yet implemented")
+        }
     }
 
     class InternalFile internal constructor(
@@ -77,14 +84,23 @@ sealed class FileEntity(
         name = Filename(attachedOrigin.name),
         path = Filepath(attachedOrigin.path),
         parent = attachedOrigin.parentFile?.toInternalFileEntity()
-    ), Openable {
+    ), Addable {
 
         override fun innerFiles(): Map<FileId, FileEntity> = runCatching {
-            attachedOrigin.listFiles()?.associate {
-                val entity = it.toInternalFileEntity()
-                return@associate entity.fileId to entity
-            }
+            attachedOrigin.listFiles()?.map { it.toInternalFileEntity() }?.associateBy { it.fileId }
         }.getOrNull() ?: emptyMap()
+
+        override suspend fun innerFilesAsync(): Map<FileId, FileEntity> = coroutineScope {
+            runCatching {
+                attachedOrigin.listFiles()?.map {
+                    async { it.toInternalFileEntity() }
+                }?.map { it.await() }?.associateBy { it.fileId }.orEmpty()
+            }.getOrNull().orEmpty()
+        }
+
+        override fun containsCount(): Int? {
+           return attachedOrigin.list()?.size
+        }
     }
 
     class Index internal constructor(
@@ -97,7 +113,11 @@ sealed class FileEntity(
         name = Filename(attachedOrigin.name),
         path = Filepath(attachedOrigin.path),
         parent = null
-    )
+    ) {
+        override fun containsCount(): Int {
+            TODO("Not yet implemented")
+        }
+    }
 }
 
 @JvmInline
@@ -124,14 +144,14 @@ fun File.toContainerFileEntity(): FileEntity.Index =
 fun UsbFile.toInternalFileEntity(): FileEntity.MassStorageFile =
     FileEntity.MassStorageFile(this)
 
-fun Openable.inputStream(): InputStream {
+fun Addable.inputStream(): InputStream {
     return when (this) {
         is FileEntity.InternalFile -> attachedOrigin.inputStream()
         is FileEntity.MassStorageFile -> UsbFileInputStream(attachedOrigin)
     }
 }
 
-fun Openable.outputStream(): OutputStream {
+fun Addable.outputStream(): OutputStream {
     return when (this) {
         is FileEntity.InternalFile -> attachedOrigin.outputStream()
         is FileEntity.MassStorageFile -> UsbFileOutputStream(attachedOrigin)

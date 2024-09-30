@@ -1,9 +1,7 @@
-package ru.barinov.file_browser
+package ru.barinov.file_browser.utils
 
 import ru.barinov.core.FileEntity
-import ru.barinov.core.FileId
-import ru.barinov.file_browser.presentation.Sort
-import java.util.SortedMap
+import ru.barinov.file_browser.models.Sort
 
 fun  Collection<FileEntity>.sort(type: Sort.Type): List<FileEntity> {
    return this.sortedWith(

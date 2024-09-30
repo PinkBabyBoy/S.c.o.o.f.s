@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import ru.barinov.core.FileCategory
 import ru.barinov.core.FileEntity
 import ru.barinov.core.launchCatching
 import ru.barinov.core.launchWithMutex

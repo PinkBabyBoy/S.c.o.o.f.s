@@ -3,6 +3,8 @@ package ru.barinov.core
 import android.content.Context
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -109,3 +111,4 @@ fun Int.getBytes(): ByteArray{
 fun Long.mb(): Float = (this / (1024 * 1024)).toFloat()
 
 fun String.hasNoSpecialSymbols() = !matches("^[a-zA-Z0-9]{4,10}\$".toRegex())
+

@@ -70,6 +70,7 @@ fun FileBrowserScreen(
         when (sideEffect) {
             CanGoBack -> navController.navigateUp()
             is ShowInfo -> TODO()
+            is FileBrowserSideEffect.OpenFile -> TODO()
         }
     }
 

@@ -1,4 +1,4 @@
-package ru.barinov.file_browser
+package ru.barinov.file_browser.viewModels
 
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -22,17 +22,25 @@ import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
+import ru.barinov.file_browser.FileToUiModelMapper
+import ru.barinov.file_browser.FileTreeProvider
+import ru.barinov.file_browser.FilesPagingSource
+import ru.barinov.file_browser.GetMSDAttachStateProvider
+import ru.barinov.file_browser.PAGE_SIZE
+import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.events.SourceChanged
+import ru.barinov.file_browser.models.FileInfo
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
-import ru.barinov.file_browser.presentation.Sort
+import ru.barinov.file_browser.models.Sort
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
+import ru.barinov.file_browser.utils.sort
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.transaction_manager.FileWriter
 
@@ -70,15 +78,16 @@ class FileObserverViewModel(
         }.map { sortedFiles ->
             Pager(
                 config = PagingConfig(
+                    prefetchDistance = PAGE_SIZE,
                     pageSize = PAGE_SIZE,
-                    enablePlaceholders = true,
+                    enablePlaceholders = false,
                     initialLoadSize = PAGE_SIZE
                 ),
                 pagingSourceFactory = {
                     FilesPagingSource(sortedFiles)
                 }
             ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selection ->
-                fileToUiModelMapper(files, selection, true)
+                fileToUiModelMapper(files, selection, true, 700)
             } to sortedFiles.isNullOrEmpty()
         }
 
@@ -117,7 +126,7 @@ class FileObserverViewModel(
 
     fun onNewEvent(event: FileBrowserEvent) {
         when (event) {
-            is OnFileClicked -> onFileClicked(event.fileId, event.selectionMode)
+            is OnFileClicked -> onFileClicked(event.fileId, event.selectionMode, event.fileInfo)
             is FileBrowserEvent.RemoveSelection -> selectedCache.removeAll()
             OnBackPressed -> goBack()
             FileBrowserEvent.AddSelection -> askTransactionWithSelected()
@@ -157,12 +166,12 @@ class FileObserverViewModel(
         sourceType.value = sourceType.value.change()
     }
 
-    private fun onFileClicked(fileId: FileId, toggleMode: Boolean) {
+    private fun onFileClicked(fileId: FileId, toggleMode: Boolean, info: FileInfo) {
         if (toggleMode) {
             onSelect(fileId, selectedCache.hasSelected(fileId))
             return
         }
-        openFolder(fileId)
+        openFolder(fileId, info)
     }
 
     private fun goBack() {
@@ -172,20 +181,15 @@ class FileObserverViewModel(
     }
 
 
-    private fun openFolder(fileId: FileId) {
-        runCatching {
-            fileTreeProvider.open(fileId, sourceType.value)
-        }.fold(
-            onSuccess = { attemptsToOpenFile = 0 },
-            onFailure = {
-                if (++attemptsToOpenFile == 3) {
-                    attemptsToOpenFile = 0
-//                    viewModelScope.launch {
-//                        _uiEvents.emit(FileObserverUiCommand.ShowCantOpenFolderWarning)
-//                    }
+    private fun openFolder(fileId: FileId, info: FileInfo) {
+        when {
+            info.isViewAble() -> {
+                viewModelScope.launch{
+                    _sideEffects.send(FileBrowserSideEffect.OpenFile(info, fileId))
                 }
             }
-        )
+            else -> fileTreeProvider.open(fileId, sourceType.value)
+        }
     }
 
     private fun directFolderAdd(fileId: FileId) {
@@ -223,3 +227,13 @@ private data class RawUiModel(
     val isKeyLoaded: Boolean,
     val isPageEmpty: Boolean
 )
+
+private fun FileInfo.isViewAble(): Boolean =
+    when (this) {
+        is FileInfo.ImageFile -> true
+        is FileInfo.Other -> false
+        is FileInfo.Dir -> false
+        is FileInfo.Index -> false
+        is FileInfo.Unconfirmed -> false
+    }
+

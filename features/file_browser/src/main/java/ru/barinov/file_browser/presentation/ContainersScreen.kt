@@ -1,6 +1,7 @@
 package ru.barinov.file_browser.presentation
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -30,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -78,7 +80,8 @@ fun Containers(
                 onEvent = {},
                 isContainerCreateBsExpanded = isContainerCreateBsExpanded,
                 snackbarHostState = snackbarHostState,
-                coroutine = coroutineScope
+                coroutine = coroutineScope,
+                snackbarText = stringResource(id = ru.barinov.ui_ext.R.string.key_not_loaded_containers)
             )
         )
         LazyColumn {
@@ -116,6 +119,7 @@ private fun buildActions(
     onEvent: (ContainersEvent) -> Unit,
     isContainerCreateBsExpanded: MutableState<Boolean>,
     snackbarHostState: SnackbarHostState,
+    snackbarText: String,
     coroutine: CoroutineScope
 ): Set<@Composable (RowScope) -> Unit> = buildSet {
     add {
@@ -126,7 +130,7 @@ private fun buildActions(
                 .clickable {
                     if (state.isKeyLoaded) {
                         isContainerCreateBsExpanded.value = true
-                    } else coroutine.launch { snackbarHostState.showSnackbar("ff") }
+                    } else coroutine.launch { snackbarHostState.showSnackbar(snackbarText) }
                 }
                 .size(26.dp),
             tint = Color.Black

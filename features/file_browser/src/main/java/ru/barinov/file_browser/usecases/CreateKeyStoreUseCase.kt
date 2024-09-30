@@ -1,7 +1,7 @@
 package ru.barinov.file_browser.usecases
 
 import ru.barinov.core.FileEntity
-import ru.barinov.core.Openable
+import ru.barinov.core.Addable
 import ru.barinov.core.inputStream
 import ru.barinov.core.toInternalFileEntity
 import ru.barinov.cryptography.KeyMemoryCache
@@ -14,7 +14,7 @@ class CreateKeyStoreUseCase(
 ) {
 
     operator fun invoke(
-        folder: Openable,
+        folder: Addable,
         password: CharArray,
         name: String,
         loadInstantly: Boolean

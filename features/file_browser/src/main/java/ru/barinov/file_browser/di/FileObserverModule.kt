@@ -4,18 +4,17 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import ru.barinov.file_browser.ContainerContentViewModel
+import ru.barinov.file_browser.viewModels.ContainerContentViewModel
 import ru.barinov.file_browser.ContainersManager
 import ru.barinov.file_browser.ContainersManagerImpl
-import ru.barinov.file_browser.ContainersViewModel
-import ru.barinov.file_browser.FileInfoExtractor
-import ru.barinov.file_browser.FileObserverViewModel
-import ru.barinov.file_browser.MimeRecognizer
+import ru.barinov.file_browser.utils.FileInfoExtractor
+import ru.barinov.file_browser.viewModels.ContainersViewModel
+import ru.barinov.file_browser.viewModels.FileObserverViewModel
 import ru.barinov.file_browser.FileToUiModelMapper
 import ru.barinov.file_browser.FileTreeProvider
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.IsMSDAttachedUseCase
-import ru.barinov.file_browser.KeySelectorViewModel
+import ru.barinov.file_browser.viewModels.KeySelectorViewModel
 import ru.barinov.file_browser.RootProvider
 import ru.barinov.file_browser.RootProviderImpl
 import ru.barinov.file_browser.SelectedCache
@@ -26,15 +25,11 @@ import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 val fileObserverModule = module {
 
     factory {
-        FileToUiModelMapper(get(), get())
+        FileToUiModelMapper(get())
     }
 
     factory {
         FileInfoExtractor(androidContext())
-    }
-
-    factory {
-        MimeRecognizer()
     }
 
     factory {

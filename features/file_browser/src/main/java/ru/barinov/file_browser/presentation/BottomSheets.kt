@@ -85,9 +85,8 @@ fun CreateContainerBottomSheet(
         ) {
             when {
                 nameInput.value.isEmpty() -> inputErrors.value = setOf(InputErrors.NAME_EMPTY)
-                nameInput.value.hasNoSpecialSymbols() -> inputErrors.value =
+                nameInput.value.contains('/') -> inputErrors.value =
                     setOf(InputErrors.HAS_SPECIAL_SYMBOLS)
-
                 else -> {
                     onConfirmed(nameInput.value)
                     onDismissRequested()

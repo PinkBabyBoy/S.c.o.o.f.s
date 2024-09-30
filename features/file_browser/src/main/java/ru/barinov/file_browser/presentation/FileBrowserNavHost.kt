@@ -15,10 +15,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import ru.barinov.file_browser.ContainerContentViewModel
-import ru.barinov.file_browser.ContainersViewModel
-import ru.barinov.file_browser.FileObserverViewModel
-import ru.barinov.file_browser.KeySelectorViewModel
+import ru.barinov.file_browser.viewModels.ContainerContentViewModel
+import ru.barinov.file_browser.viewModels.ContainersViewModel
+import ru.barinov.file_browser.viewModels.FileObserverViewModel
+import ru.barinov.file_browser.viewModels.KeySelectorViewModel
 
 @Composable
 fun FileBrowserNavHost(

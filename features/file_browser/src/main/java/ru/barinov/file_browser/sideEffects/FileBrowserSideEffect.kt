@@ -3,11 +3,14 @@ package ru.barinov.file_browser.sideEffects
 import androidx.annotation.StringRes
 import ru.barinov.core.FileId
 import ru.barinov.core.Filename
+import ru.barinov.file_browser.models.FileInfo
 import java.util.UUID
 
 interface SideEffect
 
-sealed interface FileBrowserSideEffect: SideEffect {}
+sealed interface FileBrowserSideEffect: SideEffect {
+    class OpenFile(val info: FileInfo,val fileId: FileId): FileBrowserSideEffect
+}
 
 sealed interface ContainersSideEffect: SideEffect {}
 

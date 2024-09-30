@@ -22,6 +22,7 @@
     <string name="load">Load</string>
     <string name="key">Key is loaded</string>
     <string name="unbind">Unbind</string>
+    <string name="key_not_loaded_containers">No key loaded for container creation</string>
     <string name="permission_static_text">
         S.c.o.o.f.s requires permission to view and manage files,
         application does not use send any of your data by internet,

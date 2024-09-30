@@ -1,7 +1,6 @@
 package ru.barinov.file_browser
 
-import ru.barinov.core.FileEntity
-import ru.barinov.core.Openable
+import ru.barinov.core.Addable
 import ru.barinov.core.Source
 import ru.barinov.core.toInternalFileEntity
 import ru.barinov.external_data.MSDRootProvider
@@ -12,7 +11,7 @@ internal class RootProviderImpl(
     private val internalStorageProvider: InternalStorageProvider
 ) : RootProvider {
 
-    override fun getRootFile(type: Source): Openable? =
+    override fun getRootFile(type: Source): Addable? =
         when (type) {
             Source.INTERNAL
             -> getInternalRoot()
@@ -20,7 +19,7 @@ internal class RootProviderImpl(
             -> getMassStorageRoot()
         }
 
-    private fun getInternalRoot(): Openable? = internalStorageProvider.getInternalRoot()?.toInternalFileEntity()
+    private fun getInternalRoot(): Addable? = internalStorageProvider.getInternalRoot()?.toInternalFileEntity()
 
-    private fun getMassStorageRoot(): Openable? = massStorageProvider.msdRoot?.toInternalFileEntity()
+    private fun getMassStorageRoot(): Addable? = massStorageProvider.msdRoot?.toInternalFileEntity()
 }

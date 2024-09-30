@@ -47,46 +47,48 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import ru.barinov.core.topBarHeaderStyle
 import ru.barinov.file_browser.events.FileBrowserEvent
-import ru.barinov.ui_ext.bottomNavGreen
+import ru.barinov.file_browser.models.Sort
+import ru.barinov.file_browser.models.TopLevelScreen
+import ru.barinov.ui_ext.R
 import ru.barinov.ui_ext.mainGreen
 
 private val fileBrowserTopLevelScreens = setOf(
     TopLevelScreen(
         FileBrowserRout.CONTAINERS,
-        ru.barinov.ui_ext.R.string.containers_label,
+        R.string.containers_label,
         ru.barinov.core.R.drawable.baseline_storage_24
     ),
     TopLevelScreen(
         FileBrowserRout.FILE_PICKER,
-        ru.barinov.ui_ext.R.string.files_label,
+        R.string.files_label,
         ru.barinov.core.R.drawable.baseline_sd_storage_24
     ),
     TopLevelScreen(
         FileBrowserRout.KEY_PICKER,
-        ru.barinov.ui_ext.R.string.key_label,
+        R.string.key_label,
         ru.barinov.core.R.drawable.baseline_key_24
     )
 )
 
 private val sortTypes = listOf(
     Sort(
-        ru.barinov.ui_ext.R.string.sort_new_first,
+        R.string.sort_new_first,
         Sort.Type.NEW_FIRST
     ),
     Sort(
-        ru.barinov.ui_ext.R.string.sort_old_first,
+        R.string.sort_old_first,
         Sort.Type.OLD_FIRST
     ),
     Sort(
-        ru.barinov.ui_ext.R.string.sort_big_first,
+        R.string.sort_big_first,
         Sort.Type.BIG_FIRST
     ),
     Sort(
-        ru.barinov.ui_ext.R.string.sort_small_first,
+        R.string.sort_small_first,
         Sort.Type.SMALL_FIRST
     ),
     Sort(
-        ru.barinov.ui_ext.R.string.sort_default,
+        R.string.sort_default,
         Sort.Type.AS_IS
     )
 )
@@ -97,7 +99,7 @@ fun BrowserBottomNavBar(
 ) {
     val currentEntry = navController.currentBackStackEntryAsState().value
     NavigationBar(
-        containerColor = bottomNavGreen,
+        containerColor = mainGreen,
         modifier = Modifier
             .windowInsetsPadding(
                 WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)

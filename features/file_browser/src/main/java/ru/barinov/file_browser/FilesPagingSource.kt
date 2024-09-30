@@ -1,9 +1,9 @@
 package ru.barinov.file_browser
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import ru.barinov.core.FileEntity
-import ru.barinov.file_browser.models.FileUiModel
 
 const val PAGE_SIZE = 20
 
@@ -22,10 +22,11 @@ class FilesPagingSource(private val folderContent: List<FileEntity>?): PagingSou
             val pageContent = when{
                 folderContent.size < PAGE_SIZE -> folderContent
                 else -> folderContent.subList(
-                    PAGE_SIZE * pageIndex,
-                    checkIndexBounds(PAGE_SIZE * (pageIndex + 1), folderContent.size)
+                    params.loadSize * pageIndex,
+                    safeBounds(params.loadSize * (pageIndex + 1), folderContent.size)
                 )
             }
+            Log.e("@@@", "${pageContent.size == params.loadSize}")
             LoadResult.Page(
                 data = pageContent,
                 prevKey = if (pageIndex == 0) null else pageIndex - 1,
@@ -36,6 +37,6 @@ class FilesPagingSource(private val folderContent: List<FileEntity>?): PagingSou
         }
     }
 
-    private fun checkIndexBounds(calculated: Int, listLastIndex: Int): Int =
+    private fun safeBounds(calculated: Int, listLastIndex: Int): Int =
         if(calculated > listLastIndex) listLastIndex else calculated
 }

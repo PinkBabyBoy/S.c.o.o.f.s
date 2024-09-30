@@ -1,13 +1,12 @@
 package ru.barinov.cryptography
 
-import ru.barinov.core.FileEntity
-import ru.barinov.core.Openable
+import ru.barinov.core.Addable
 
 
 interface KeyManager: KeyStateProvider {
 
     fun loadKey(
-        keyFile: Openable,
+        keyFile: Addable,
         password: CharArray,
         onSuccess: () -> Unit,
         onError: (Throwable) -> Unit

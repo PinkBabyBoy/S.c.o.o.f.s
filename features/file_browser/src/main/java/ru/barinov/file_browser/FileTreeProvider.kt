@@ -1,9 +1,9 @@
 package ru.barinov.file_browser
 
-import android.graphics.Path.Op
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filepath
-import ru.barinov.core.Openable
+import ru.barinov.core.Addable
 import ru.barinov.core.Source
 import ru.barinov.external_data.MassStorageEventBus
 import java.io.Closeable
@@ -25,12 +25,12 @@ class FileTreeProvider(
     private val rootNameProvider: RootNameProvider
 ) : Closeable {
 
-    private val localCoroutine = CoroutineScope(Job() + Dispatchers.IO)
+    private val localCoroutine = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val internalRoot = rootProvider.getRootFile(Source.INTERNAL)
     private val msdRoot = rootProvider.getRootFile(Source.MASS_STORAGE)
 
-    private val innerFolderBackStack = Stack<Openable>()
-    private val massStorageFolderBackStack = Stack<Openable>()
+    private val innerFolderBackStack = Stack<Addable>()
+    private val massStorageFolderBackStack = Stack<Addable>()
 
     private val _innerFiles: MutableStateFlow<Map<FileId, FileEntity>?> =
         MutableStateFlow(internalRoot?.innerFiles())
@@ -45,20 +45,20 @@ class FileTreeProvider(
     fun getCurrentFolderInfo(source: Source): Pair<Filepath, Boolean> {
         val stack =
             if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
-        val path = if(stack.isNotEmpty()) stack.peek().path else Filepath.root("Root")
+        val path = if (stack.isNotEmpty()) stack.peek().path else Filepath.root("Root")
         return path to !stack.hasBackFolder()
     }
 
-    fun getCurrentFolder(source: Source): Openable {
+    fun getCurrentFolder(source: Source): Addable {
         val stack =
             if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
-        return if(stack.isNotEmpty()) stack.peek() as Openable else rootProvider.getRootFile(source)!!
+        return if (stack.isNotEmpty()) stack.peek() as Addable else rootProvider.getRootFile(source)!!
     }
 
     fun getCurrentList(source: Source): Collection<FileEntity>? =
         if (source == Source.INTERNAL) innerFiles.value?.values else massStorageFiles.value?.values
 
-    fun getFileByID(fileId: FileId, source: Source): Openable =
+    fun getFileByID(fileId: FileId, source: Source): Addable =
         when (source) {
             Source.INTERNAL -> innerFiles.getFileByID(fileId)
             Source.MASS_STORAGE -> massStorageFiles.getFileByID(fileId)
@@ -72,47 +72,49 @@ class FileTreeProvider(
     }
 
     fun update(source: Source) {
-        when(source){
-            Source.INTERNAL -> _innerFiles.value = getCurrentFolder(source).innerFiles()
-            Source.MASS_STORAGE -> _massStorageFiles.value = getCurrentFolder(source).innerFiles()
+        localCoroutine.launch {
+            when (source) {
+                Source.INTERNAL -> _innerFiles.value = getCurrentFolder(source).innerFilesAsync()
+                Source.MASS_STORAGE -> _massStorageFiles.value = getCurrentFolder(source).innerFilesAsync()
+            }
         }
-
     }
 
-    private fun onBack(source: Source, folder: Openable) {
+    private suspend fun onBack(source: Source, folder: Addable) {
         when (source) {
-            Source.INTERNAL -> _innerFiles.value = folder.parent?.innerFiles()
-            Source.MASS_STORAGE -> _massStorageFiles.value = folder.parent?.innerFiles()
+            Source.INTERNAL -> _innerFiles.value = folder.parent?.innerFilesAsync()
+            Source.MASS_STORAGE -> _massStorageFiles.value = folder.parent?.innerFilesAsync()
         }
     }
 
     private fun openMassStorageFolder(fileUUID: FileId) {
-        val folder = massStorageFiles.getFileByID(fileUUID)
-        if (folder == null || !folder.isDir) error("Can't open file")
-        massStorageFolderBackStack.add(folder)
         localCoroutine.launch {
-            _massStorageFiles.emit(folder.innerFiles())
+            val folder = massStorageFiles.getFileByID(fileUUID)
+            if (folder == null || !folder.isDir) error("Can't open file")
+            massStorageFolderBackStack.add(folder)
+            _massStorageFiles.emit(folder.innerFilesAsync())
         }
-
     }
 
     private fun openInternalFolder(fileUUID: FileId) {
-        val folder = innerFiles.getFileByID(fileUUID)
-        if (folder == null || !folder.isDir) error("Can't open file")
-        innerFolderBackStack.add(folder)
         localCoroutine.launch {
-            _innerFiles.emit(folder.innerFiles())
+            val folder = innerFiles.getFileByID(fileUUID)
+            if (folder == null || !folder.isDir) error("Can't open file")
+            innerFolderBackStack.add(folder)
+            _innerFiles.emit(folder.innerFilesAsync())
         }
     }
 
     fun goBack(source: Source, onEmptyStack: suspend () -> Unit) {
-        val stack =
-            if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
-        if (stack.hasBackFolder()) {
-            val last = stack.pop()
-            onBack(source, last!!)
-        } else {
-            localCoroutine.launch { onEmptyStack() }
+        localCoroutine.launch {
+            val stack =
+                if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
+            if (stack.hasBackFolder()) {
+                val last = stack.pop()
+                onBack(source, last!!)
+            } else {
+                onEmptyStack()
+            }
         }
     }
 
@@ -121,15 +123,13 @@ class FileTreeProvider(
         innerFolderBackStack.clear()
         massStorageFolderBackStack.clear()
     }
-
-
 }
 
-fun StateFlow<Map<FileId, FileEntity>?>.getFileByID(fileId: FileId): Openable? {
+fun StateFlow<Map<FileId, FileEntity>?>.getFileByID(fileId: FileId): Addable? {
     val currentFiles = value
     if (currentFiles.isNullOrEmpty()) return null
-    return currentFiles[fileId] as? Openable
+    return currentFiles[fileId] as? Addable
 }
 
-fun Stack<Openable>.hasBackFolder(): Boolean =
+fun Stack<Addable>.hasBackFolder(): Boolean =
     isNotEmpty() && peek()?.parent != null

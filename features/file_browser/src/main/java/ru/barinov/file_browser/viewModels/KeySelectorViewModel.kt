@@ -1,4 +1,4 @@
-package ru.barinov.file_browser
+package ru.barinov.file_browser.viewModels
 
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -22,6 +22,11 @@ import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
+import ru.barinov.file_browser.FileToUiModelMapper
+import ru.barinov.file_browser.FileTreeProvider
+import ru.barinov.file_browser.FilesPagingSource
+import ru.barinov.file_browser.GetMSDAttachStateProvider
+import ru.barinov.file_browser.PAGE_SIZE
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
 import ru.barinov.file_browser.events.KeySelectorEvent
@@ -36,7 +41,6 @@ import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.ui_ext.R
-import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class KeySelectorViewModel(
