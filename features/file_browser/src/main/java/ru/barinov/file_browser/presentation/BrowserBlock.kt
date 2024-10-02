@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,8 +32,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.FileBrowserEvent
@@ -42,6 +45,7 @@ import ru.barinov.ui_ext.ColorPair
 import ru.barinov.ui_ext.DecorStyle
 import ru.barinov.ui_ext.bottomNavGreen
 import ru.barinov.ui_ext.fileBrowserBackground
+import ru.barinov.ui_ext.mainGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,10 +57,11 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
     crossinline onEvent: (T) -> Unit,
     isPageEmpty: Boolean,
     isInRoot: Boolean,
+    showLoading: Boolean,
     actions: Set<@Composable (RowScope) -> Unit> = emptySet()
 ) {
     val selectionMode = remember { mutableStateOf(false) }
-    val folderFiles = files.collectAsLazyPagingItems()
+    val folderFiles = files.collectAsLazyPagingItems(Dispatchers.IO)
     BackHandler {
         if (selectionMode.value) {
             selectionMode.value = false
@@ -99,13 +104,23 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
                             selectionMode = selectionMode.value && isSelectionEnabled,
                             toggleSelection = { selectionMode.value = !selectionMode.value },
                             selectionAvailable = isSelectionEnabled,
-                            onEvent = { onEvent(it) })
+                            onEvent = { onEvent(it) },
+                            showLoading = showLoading
+                        )
                     } else LoaderPlaceholder()
                 }
             }
         }
         if (isPageEmpty) {
             Text(text = "Folder is empty", modifier = Modifier.align(Alignment.Center))
+        }
+        if (folderFiles.loadState.refresh is LoadState.Error) {
+            Text(
+                text = "Error",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center)
+            )
         }
     }
 }

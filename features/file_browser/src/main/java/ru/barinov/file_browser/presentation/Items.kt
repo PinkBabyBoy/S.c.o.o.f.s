@@ -17,8 +17,8 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -51,10 +51,10 @@ inline fun <reified T : FieObserverEvent> FileItem(
     selectionMode: Boolean,
     selectionAvailable: Boolean,
     crossinline toggleSelection: () -> Unit = {},
-    crossinline onEvent: (T) -> Unit
+    crossinline onEvent: (T) -> Unit,
+    showLoading: Boolean
 ) {
     val interactSource = remember { mutableStateOf(MutableInteractionSource()) }
-    val type = file.info.value
     Card(
         colors = CardDefaults.cardColors(
             containerColor = fileItemColor
@@ -79,33 +79,17 @@ inline fun <reified T : FieObserverEvent> FileItem(
                         toggleSelection()
                     }
                 },
-                onClick = { onEvent(OnFileClicked(file.fileId, selectionMode, type) as T) }
+                onClick = { onEvent(OnFileClicked(file.fileId, selectionMode, file.info.value) as T) }
             )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            if (type !is FileInfo.ImageFile)
-                Image(
-                    painter = painterResource(id = file.placeholderRes),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .padding(16.dp)
-                )
-            else
-                Image(
-                    bitmap = type.bitmapPreview.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(72.dp)
-                        .padding(16.dp)
-                        .border(1.dp, Color.Gray)
-                )
+            FilePreview(file, showLoading)
             Column(modifier = Modifier.padding(start = 4.dp)) {
                 Text(text = file.name)
-                Text(text = type.getText(), fontSize = 10.sp, color = Color.Gray)
+                Text(text = file.info.value.getText(), fontSize = 10.sp, color = Color.Gray)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -117,16 +101,69 @@ inline fun <reified T : FieObserverEvent> FileItem(
                 AnimatedVisibility(visible = selectionMode) {
                     Checkbox(
                         colors = CheckboxDefaults.colors().copy(checkedBoxColor = mainGreen),
-                        checked =  file.isSelected,
-                        onCheckedChange = { onEvent(OnFileClicked(file.fileId, selectionMode, type) as T) })
+                        checked = file.isSelected,
+                        onCheckedChange = {
+                            onEvent(
+                                OnFileClicked(
+                                    fileId = file.fileId,
+                                    selectionMode = selectionMode,
+                                    fileInfo = file.info.value
+                                ) as T
+                            )
+                        })
                 }
             }
         }
     }
 }
 
+@Composable
+fun FilePreview(file: FileUiModel, showLoading: Boolean) {
+    when (val info = file.info.value) {
+        is FileInfo.ImageFile -> {
+            Image(
+                bitmap = info.bitmapPreview.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(72.dp)
+                    .padding(16.dp)
+                    .border(1.dp, Color.Gray)
+            )
+        }
+
+        is FileInfo.Index -> {}
+        is FileInfo.Other, is FileInfo.Dir -> {
+            Image(
+                painter = painterResource(id = file.placeholderRes),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(16.dp)
+            )
+        }
+
+        FileInfo.Unconfirmed -> {
+            if (showLoading)
+                CircularProgressIndicator(
+                    color = mainGreen,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(16.dp)
+                )
+            else
+                Image(
+                    painter = painterResource(id = file.placeholderRes),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(16.dp)
+                )
+        }
+    }
+}
+
 fun FileInfo.getText(): String =
-    when(this){
+    when (this) {
         is FileInfo.Dir -> contentText
         is FileInfo.ImageFile -> size
         is FileInfo.Index -> creationDate
@@ -153,6 +190,6 @@ fun FileItemPreview() {
                 mutableStateOf(FileInfo.Other(false, ""))
             }
         ),
-        true, true, {}, {},
+        true, true, {}, {}, false,
     )
 }

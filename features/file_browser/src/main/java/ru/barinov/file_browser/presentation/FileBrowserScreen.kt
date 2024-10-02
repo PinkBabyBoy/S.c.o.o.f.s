@@ -135,7 +135,8 @@ fun FileBrowserScreen(
             onEvent = { onEvent(it) },
             actions = buildActions(state, onEvent, deleteDialogVisible),
             isPageEmpty = state.isPageEmpty,
-            isInRoot = state.isInRoot
+            isInRoot = state.isInRoot,
+            showLoading = true
         )
     }
 

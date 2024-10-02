@@ -7,6 +7,7 @@ android {
     namespace = "ru.barinov.scoof"
     compileSdk = 34
 
+
     defaultConfig {
         applicationId = "ru.barinov.scoof"
         minSdk = 29
@@ -40,6 +41,12 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) {
+        it.packaging.resources.excludes.add("META-INF/**")
     }
 }
 

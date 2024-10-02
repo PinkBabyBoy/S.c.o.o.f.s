@@ -125,7 +125,8 @@ fun KeySelector(
                     )
                 }
                 add { Spacer(modifier = Modifier.width(16.dp)) }
-            }
+            },
+            showLoading = false
         )
     }
     if (isKeystoreCreatorBsVisible.value) {

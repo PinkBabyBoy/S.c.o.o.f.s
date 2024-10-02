@@ -54,8 +54,6 @@ class FileObserverViewModel(
     keyManager: KeyManager
 ) : FileWalkViewModel<FileBrowserSideEffect>(fileTreeProvider, getMSDAttachStateProvider, false) {
 
-    private var attemptsToOpenFile = 0
-
     private val _uiState: MutableStateFlow<FileBrowserUiState> =
         MutableStateFlow(FileBrowserUiState.idle())
     val uiState = _uiState.asStateFlow()
@@ -169,9 +167,9 @@ class FileObserverViewModel(
     private fun onFileClicked(fileId: FileId, toggleMode: Boolean, info: FileInfo) {
         if (toggleMode) {
             onSelect(fileId, selectedCache.hasSelected(fileId))
-            return
+        } else {
+            openFolder(fileId, info)
         }
-        openFolder(fileId, info)
     }
 
     private fun goBack() {
@@ -182,13 +180,16 @@ class FileObserverViewModel(
 
 
     private fun openFolder(fileId: FileId, info: FileInfo) {
-        when {
-            info.isViewAble() -> {
+        when(info) {
+            is FileInfo.Dir -> fileTreeProvider.open(fileId, sourceType.value)
+            is FileInfo.ImageFile -> {
                 viewModelScope.launch{
                     _sideEffects.send(FileBrowserSideEffect.OpenFile(info, fileId))
                 }
             }
-            else -> fileTreeProvider.open(fileId, sourceType.value)
+            is FileInfo.Index -> error("")
+            is FileInfo.Other -> {}
+            FileInfo.Unconfirmed -> {}
         }
     }
 
@@ -227,13 +228,3 @@ private data class RawUiModel(
     val isKeyLoaded: Boolean,
     val isPageEmpty: Boolean
 )
-
-private fun FileInfo.isViewAble(): Boolean =
-    when (this) {
-        is FileInfo.ImageFile -> true
-        is FileInfo.Other -> false
-        is FileInfo.Dir -> false
-        is FileInfo.Index -> false
-        is FileInfo.Unconfirmed -> false
-    }
-

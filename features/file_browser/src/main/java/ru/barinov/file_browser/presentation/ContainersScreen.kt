@@ -100,7 +100,8 @@ fun Containers(
                                     snackbarHostState.showSnackbar("Can't open without key")
                                 }
                             }
-                        }
+                        },
+                        showLoading = false
                     )
                 }
             }
