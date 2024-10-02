@@ -84,9 +84,9 @@ class FileObserverViewModel(
                 pagingSourceFactory = {
                     FilesPagingSource(sortedFiles)
                 }
-            ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selection ->
+            ).flow.combine(selectedCache.cacheFlow) { files, selection ->
                 fileToUiModelMapper(files, selection, true, 700)
-            } to sortedFiles.isNullOrEmpty()
+            }.cachedIn(viewModelScope) to sortedFiles.isNullOrEmpty()
         }
 
         viewModelScope.launch(Dispatchers.Default) {

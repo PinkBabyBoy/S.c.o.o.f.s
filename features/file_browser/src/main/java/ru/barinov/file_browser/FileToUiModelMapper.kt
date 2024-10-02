@@ -4,6 +4,8 @@ import androidx.annotation.DrawableRes
 import androidx.compose.runtime.MutableState
 import androidx.paging.PagingData
 import androidx.paging.map
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Source
@@ -65,3 +67,8 @@ class FileToUiModelMapper(
         }
     }
 }
+
+//Research why doesn't work
+//suspend fun PagingData<FileEntity>.mapAsync(block: ((FileEntity) -> FileUiModel)) = coroutineScope {
+//    map { async { block(it) } }.map { it.await() }
+//}
