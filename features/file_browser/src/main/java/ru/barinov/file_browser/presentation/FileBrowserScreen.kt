@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +52,7 @@ import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
-import ru.barinov.ui_ext.BottomSheetPolicy
+import ru.barinov.file_browser.toImageDetails
 import ru.barinov.ui_ext.SingleEventEffect
 
 @Composable
@@ -64,13 +65,17 @@ fun FileBrowserScreen(
     snackbarHostState: SnackbarHostState
 ) {
     val confirmBsExpanded =
-        remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
+        remember { mutableStateOf(false) }
     val deleteDialogVisible = remember { mutableStateOf(false) }
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
             CanGoBack -> navController.navigateUp()
             is ShowInfo -> TODO()
-            is FileBrowserSideEffect.OpenFile -> TODO()
+            is FileBrowserSideEffect.OpenImageFile
+            -> navController.navigate(toImageDetails(sideEffect.fileId, sideEffect.source))
+            FileBrowserSideEffect.ShowAddFilesDialog -> {
+                confirmBsExpanded.value = true
+            }
         }
     }
 
@@ -140,9 +145,9 @@ fun FileBrowserScreen(
         )
     }
 
-//    ((confirmBsExpanded.value as? BottomSheetPolicy.Expanded<*>)?.args as? ConfirmBottomSheetArgs)?.let {
-//
-//    }
+    if (confirmBsExpanded.value) {
+        FilesLoadInitialization{ confirmBsExpanded.value = false }
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -171,7 +176,7 @@ private fun buildActions(
                     modifier = Modifier
                         .combinedClickable(
                             interactionSource = remember { mutableStateOf(MutableInteractionSource()) }.value,
-                            indication = rememberRipple(),
+                            indication = ripple(),
                             onLongClick = {
                                 onEvent(FileBrowserEvent.RemoveSelection)
                             },
@@ -219,7 +224,7 @@ private fun buildActions(
         }
         add { Spacer(modifier = Modifier.width(16.dp)) }
     }
-    if(!state.isPageEmpty) {
+    if (!state.isPageEmpty) {
         add {
             val sortDropDownExpanded = remember { mutableStateOf(false) }
             Box {

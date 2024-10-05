@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import ru.barinov.cryptography.factories.PrKeyAllias
 import ru.barinov.cryptography.factories.PubKeyAllias
 import java.io.InputStream
+import java.security.KeyPair
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.PublicKey

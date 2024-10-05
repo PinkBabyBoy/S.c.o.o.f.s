@@ -1,12 +1,8 @@
-package ru.barinov.password_manager
+package ru.barinov.cryptography.hash
 
-import android.util.Log
 import com.lambdapioneer.argon2kt.Argon2Kt
 import com.lambdapioneer.argon2kt.Argon2Mode
 import ru.barinov.core.toByteArray
-import java.nio.CharBuffer
-import java.nio.charset.StandardCharsets
-import kotlin.text.Charsets.UTF_8
 
 private const val SALT = "FFD6F5E1"
 private const val ITERATIONS_COST = 10
@@ -14,20 +10,26 @@ private const val MEMORY_COST = 1024 * 42
 
 internal class HashCreatorImpl: HashCreator {
 
-    override fun createHash(password: CharArray): ByteArray {
-        val argon = Argon2Kt()
+    private val argon = Argon2Kt()
+
+    override fun createHash(input: CharArray): ByteArray =
+        createHash(input.toByteArray())
+
+    override fun createHash(input: ByteArray): ByteArray {
         val result = argon.hash(
             Argon2Mode.ARGON2_ID,
-            password.toByteArray(),
+            input,
             SALT.toByteArray(),
             ITERATIONS_COST,
             MEMORY_COST
         )
-       return result.encodedOutputAsByteArray()
+        return result.encodedOutputAsByteArray()
     }
 }
 
-fun interface HashCreator{
+interface HashCreator{
 
-    fun createHash(password: CharArray): ByteArray
+    fun createHash(input: CharArray): ByteArray
+
+    fun createHash(input: ByteArray): ByteArray
 }

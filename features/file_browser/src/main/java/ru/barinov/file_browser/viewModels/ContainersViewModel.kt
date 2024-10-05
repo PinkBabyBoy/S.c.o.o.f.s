@@ -67,8 +67,9 @@ class ContainersViewModel(
         when (event) {
             is OnFileClicked -> TODO()
             is ContainersEvent.ContainerCreateConfirmed ->
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     createContainerUseCase(event.name)
+                    _sideEffects.send(ContainersSideEffect.ContainerCreated)
                 }
         }
     }

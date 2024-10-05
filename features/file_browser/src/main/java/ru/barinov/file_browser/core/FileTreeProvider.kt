@@ -1,8 +1,7 @@
-package ru.barinov.file_browser
+package ru.barinov.file_browser.core
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +14,8 @@ import ru.barinov.core.Filepath
 import ru.barinov.core.Addable
 import ru.barinov.core.Source
 import ru.barinov.external_data.MassStorageEventBus
+import ru.barinov.file_browser.RootNameProvider
+import ru.barinov.file_browser.RootProvider
 import java.io.Closeable
 import java.util.Stack
 
@@ -23,7 +24,7 @@ class FileTreeProvider(
     private val rootProvider: RootProvider,
     private val massStorageEventBus: MassStorageEventBus,
     private val rootNameProvider: RootNameProvider
-) : Closeable {
+) : Closeable, FileProvider {
 
     private val localCoroutine = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val internalRoot = rootProvider.getRootFile(Source.INTERNAL)
@@ -58,7 +59,7 @@ class FileTreeProvider(
     fun getCurrentList(source: Source): Collection<FileEntity>? =
         if (source == Source.INTERNAL) innerFiles.value?.values else massStorageFiles.value?.values
 
-    fun getFileByID(fileId: FileId, source: Source): Addable =
+    override fun getFileByID(fileId: FileId, source: Source): Addable =
         when (source) {
             Source.INTERNAL -> innerFiles.getFileByID(fileId)
             Source.MASS_STORAGE -> massStorageFiles.getFileByID(fileId)

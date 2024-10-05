@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -30,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -40,13 +43,20 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import ru.barinov.core.topBarHeaderStyle
 import ru.barinov.file_browser.R
+import ru.barinov.file_browser.args.KeyLoadBottomSheetArgs
 import ru.barinov.file_browser.events.ContainersEvent
 import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnFileClicked
+import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.ContainersSideEffect
+import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
 import ru.barinov.file_browser.states.ContainersUiState
 import ru.barinov.file_browser.states.FileBrowserUiState
+import ru.barinov.file_browser.toContainerContent
+import ru.barinov.ui_ext.BottomSheetPolicy
+import ru.barinov.ui_ext.SingleEventEffect
+import ru.barinov.ui_ext.getActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,12 +67,20 @@ fun Containers(
     sideEffects: Flow<ContainersSideEffect>,
     onEvent: (ContainersEvent) -> Unit
 ) {
+    val context = LocalContext.current
     val exitConfirmDialogVisible = remember { mutableStateOf(false) }
     val isContainerCreateBsExpanded = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     BackHandler {
         exitConfirmDialogVisible.value = true
     }
+
+    SingleEventEffect(sideEffects) { sideEffect ->
+        when (sideEffect) {
+            ContainersSideEffect.ContainerCreated -> isContainerCreateBsExpanded.value = false
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -95,7 +113,7 @@ fun Containers(
                         onEvent = {
                             if (it is OnFileClicked) {
                                 if (state.isKeyLoaded)
-                                    navController.navigate("${FileBrowserRout.CONTAINER_CONTENT}/{${it.fileId}}")
+                                    navController.navigate(toContainerContent(it.fileId))
                                 else coroutineScope.launch {
                                     snackbarHostState.showSnackbar("Can't open without key")
                                 }
@@ -107,6 +125,14 @@ fun Containers(
             }
         }
     }
+
+    if(exitConfirmDialogVisible.value) {
+        ExitDialog(
+            onExit = { context.getActivity()?.finish() },
+            onDismissRequest = { exitConfirmDialogVisible.value = false }
+        )
+    }
+
     if (isContainerCreateBsExpanded.value) {
         CreateContainerBottomSheet(
             onDismissRequested = { isContainerCreateBsExpanded.value = false },

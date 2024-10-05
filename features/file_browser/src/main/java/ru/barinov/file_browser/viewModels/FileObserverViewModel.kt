@@ -23,7 +23,7 @@ import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
 import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.file_browser.FileTreeProvider
+import ru.barinov.file_browser.core.FileTreeProvider
 import ru.barinov.file_browser.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.PAGE_SIZE
@@ -42,7 +42,6 @@ import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.utils.sort
 import ru.barinov.file_browser.states.FileBrowserUiState
-import ru.barinov.transaction_manager.FileWriter
 
 @Suppress("OPT_IN_USAGE")
 class FileObserverViewModel(
@@ -50,7 +49,6 @@ class FileObserverViewModel(
     fileTreeProvider: FileTreeProvider,
     private val fileToUiModelMapper: FileToUiModelMapper,
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
-    fileWriter: FileWriter,
     keyManager: KeyManager
 ) : FileWalkViewModel<FileBrowserSideEffect>(fileTreeProvider, getMSDAttachStateProvider, false) {
 
@@ -84,9 +82,9 @@ class FileObserverViewModel(
                 pagingSourceFactory = {
                     FilesPagingSource(sortedFiles)
                 }
-            ).flow.combine(selectedCache.cacheFlow) { files, selection ->
+            ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selection ->
                 fileToUiModelMapper(files, selection, true, 700)
-            }.cachedIn(viewModelScope) to sortedFiles.isNullOrEmpty()
+            } to sortedFiles.isNullOrEmpty()
         }
 
         viewModelScope.launch(Dispatchers.Default) {
@@ -168,7 +166,7 @@ class FileObserverViewModel(
         if (toggleMode) {
             onSelect(fileId, selectedCache.hasSelected(fileId))
         } else {
-            openFolder(fileId, info)
+            openFile(fileId, info)
         }
     }
 
@@ -179,12 +177,12 @@ class FileObserverViewModel(
     }
 
 
-    private fun openFolder(fileId: FileId, info: FileInfo) {
+    private fun openFile(fileId: FileId, info: FileInfo) {
         when(info) {
             is FileInfo.Dir -> fileTreeProvider.open(fileId, sourceType.value)
             is FileInfo.ImageFile -> {
                 viewModelScope.launch{
-                    _sideEffects.send(FileBrowserSideEffect.OpenFile(info, fileId))
+                    _sideEffects.send(FileBrowserSideEffect.OpenImageFile(sourceType.value, fileId))
                 }
             }
             is FileInfo.Index -> error("")
@@ -208,15 +206,13 @@ class FileObserverViewModel(
 
     private fun askTransactionWithSelected() {
         viewModelScope.launch {
-//            val selectedData = selectedCache.getCache().values.map { file ->
-//                FileObserverUiCommand.ConfirmFilesTransaction.TransactionConfirmationArgs(
-//                    file.uuid,
-//                    file.name.value,
-//                    file.isDir,
-//                    file.size.value.bytesToMbSting()
-//                )
-//            }
+            _sideEffects.send(FileBrowserSideEffect.ShowAddFilesDialog)
         }
+    }
+
+    override fun onCleared() {
+        fileTreeProvider.close()
+        fileToUiModelMapper.clear()
     }
 }
 

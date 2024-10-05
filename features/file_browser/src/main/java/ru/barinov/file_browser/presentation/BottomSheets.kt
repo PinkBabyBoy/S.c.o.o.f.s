@@ -76,11 +76,13 @@ fun CreateContainerBottomSheet(
             onValueChanged = { nameInput.value = it },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
-        ScoofButton(
-            isEnabled = true,
+        val isInProgress = remember { mutableStateOf(false) }
+        ProgressButton(
+            isEnabled = !isInProgress.value,
             modifier = Modifier
                 .padding(8.dp)
                 .align(Alignment.CenterHorizontally),
+            isProgress = isInProgress,
             buttonText = ru.barinov.ui_ext.R.string.create,
         ) {
             when {
@@ -88,12 +90,12 @@ fun CreateContainerBottomSheet(
                 nameInput.value.contains('/') -> inputErrors.value =
                     setOf(InputErrors.HAS_SPECIAL_SYMBOLS)
                 else -> {
+                    isInProgress.value = true
                     onConfirmed(nameInput.value)
-                    onDismissRequested()
                 }
             }
         }
-
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 

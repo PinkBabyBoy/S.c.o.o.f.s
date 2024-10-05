@@ -7,6 +7,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,8 +27,12 @@ class FileInfoExtractor(
     private val appContext: Context
 ) {
 
-    private val recognizerCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val recognizerCoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     private val savedInfos = mutableMapOf<FileId, MutableState<FileInfo>>()
+
+    fun clear() {
+        savedInfos.clear()
+    }
 
     operator fun invoke(
         fileEntity: FileEntity,
@@ -78,8 +83,8 @@ class FileInfoExtractor(
                                 FileInfo.Other(false, fileEntity.size.value.bytesToMbSting())
                             } else {
                                 FileInfo.ImageFile(
-                                    preview,
-                                    fileEntity.size.value.bytesToMbSting()
+                                    bitmapPreview = preview,
+                                    size = fileEntity.size.value.bytesToMbSting()
                                 )
                             }
                         }
@@ -96,11 +101,11 @@ class FileInfoExtractor(
         return state
     }
 
-    private fun InputStream.getBitMapPreview(): Bitmap? = runCatching {
+    private suspend fun InputStream.getBitMapPreview(): Bitmap? = runCatching {
         BitmapFactory.decodeStream(this)?.let { Bitmap.createScaledBitmap(it, 100, 100, true) }
     }.getOrNull()
 
-    private fun InputStream.isImage(): Boolean = runCatching {
+    private suspend fun InputStream.isImage(): Boolean = runCatching {
         val bitmapOptions = BitmapFactory.Options().also { it.inJustDecodeBounds = true }
         BitmapFactory.decodeStream(this, null, bitmapOptions)
         return (bitmapOptions.outWidth != -1 && bitmapOptions.outHeight != -1).also { close() }

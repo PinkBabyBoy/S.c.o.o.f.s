@@ -7,7 +7,7 @@ interface ContainersManager {
 
     val indexes: StateFlow<List<FileEntity.Index>>
 
-    fun addContainer(name: String)
+    suspend fun addContainer(name: String,  keysHash: ByteArray)
 
     fun removeContainer(name: String)
 }

@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -92,6 +94,29 @@ private val sortTypes = listOf(
         Sort.Type.AS_IS
     )
 )
+
+@Composable
+fun ExitDialog(onExit: () -> Unit, onDismissRequest: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(text = "Exit the application?")
+        },
+        text = {
+            Text(text  = "Key should be loaded again on next start")
+        },
+        dismissButton = {
+            Button(onClick = onDismissRequest) {
+                Text(text = stringResource(id = android.R.string.cancel))
+            }
+        },
+        confirmButton = {
+            Button(onClick = onExit) {
+                Text(text = stringResource(id = android.R.string.ok))
+            }
+        }
+    )
+}
 
 @Composable
 fun BrowserBottomNavBar(

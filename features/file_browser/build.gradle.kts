@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    kotlin("plugin.serialization") version libs.versions.kotlin
 }
 
 android {
@@ -31,7 +32,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
     kotlinOptions {
         jvmTarget = "1.8"
@@ -41,6 +42,7 @@ android {
 dependencies {
     implementation("androidx.paging:paging-compose:3.3.2")
     implementation("androidx.paging:paging-runtime-ktx:3.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
 //    implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
     implementation(libs.libaums)
     implementation(libs.androidx.ui)

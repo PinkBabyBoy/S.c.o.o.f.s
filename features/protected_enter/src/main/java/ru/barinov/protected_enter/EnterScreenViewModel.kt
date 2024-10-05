@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import ru.barinov.password_manager.HashCreator
-import ru.barinov.password_manager.HashValidator
+import ru.barinov.cryptography.hash.HashCreator
+import ru.barinov.cryptography.hash.HashValidator
 import ru.barinov.password_manager.PType
 import ru.barinov.password_manager.PasswordStorage
 import ru.barinov.permission_manager.PermissionChecker

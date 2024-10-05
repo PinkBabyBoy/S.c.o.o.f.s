@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import ru.barinov.core.Source
 import ru.barinov.external_data.MassStorageState
-import ru.barinov.file_browser.FileTreeProvider
+import ru.barinov.file_browser.core.FileTreeProvider
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.sideEffects.SideEffect
 

@@ -23,7 +23,7 @@ import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
 import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.file_browser.FileTreeProvider
+import ru.barinov.file_browser.core.FileTreeProvider
 import ru.barinov.file_browser.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.PAGE_SIZE

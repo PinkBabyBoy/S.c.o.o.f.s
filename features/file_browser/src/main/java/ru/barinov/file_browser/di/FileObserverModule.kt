@@ -11,15 +11,19 @@ import ru.barinov.file_browser.utils.FileInfoExtractor
 import ru.barinov.file_browser.viewModels.ContainersViewModel
 import ru.barinov.file_browser.viewModels.FileObserverViewModel
 import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.file_browser.FileTreeProvider
+import ru.barinov.file_browser.core.FileTreeProvider
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.IsMSDAttachedUseCase
 import ru.barinov.file_browser.viewModels.KeySelectorViewModel
 import ru.barinov.file_browser.RootProvider
 import ru.barinov.file_browser.RootProviderImpl
 import ru.barinov.file_browser.SelectedCache
+import ru.barinov.file_browser.core.FileProvider
 import ru.barinov.file_browser.usecases.CreateContainerUseCase
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
+import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
+import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
+import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
 
 
 val fileObserverModule = module {
@@ -36,9 +40,13 @@ val fileObserverModule = module {
         SelectedCache()
     }
 
-    factory {
+    factory(qualifier = Qualifiers.nonSharedFileTreeProvider) {
         FileTreeProvider(get(), get()) { androidContext().resources.getString(-1) }
-    }
+    } bind FileProvider::class
+
+    single(qualifier = Qualifiers.sharedFileTreeProvider) {
+        FileTreeProvider(get(), get()) { androidContext().resources.getString(-1) }
+    } bind FileProvider::class
 
     factory {
         GetMSDAttachStateProvider(get())
@@ -52,16 +60,6 @@ val fileObserverModule = module {
         RootProviderImpl(get(), get())
     } bind RootProvider::class
 
-    viewModel {
-        FileObserverViewModel(
-            selectedCache = get(),
-            fileTreeProvider = get(),
-            fileToUiModelMapper = get(),
-            getMSDAttachStateProvider = get(),
-            fileWriter = get(),
-            keyManager = get()
-        )
-    }
 
     factory {
         CreateKeyStoreUseCase(get(), get())
@@ -75,7 +73,31 @@ val fileObserverModule = module {
     } bind ContainersManager::class
 
     factory {
-        CreateContainerUseCase(get())
+        CreateContainerUseCase(get(), get())
+    }
+
+
+    factory {
+        GetCurrentKeyHashUseCase(keyCache = get(), keySnapshotCreator = get())
+    }
+
+    viewModel { params ->
+        ImageFileDetailsViewModel(
+            fileProvider = get(Qualifiers.sharedFileTreeProvider),
+            fileId = params.get(),
+            source = params.get(),
+        )
+    }
+
+    viewModel {
+        FilesLoadInitializationViewModel(
+            selectedCache = get(),
+            containersManager = get(),
+            hashValidator = get(),
+            getCurrentKeyHashUseCase = get(),
+            containerHashExtractor = get(),
+            fileToUiModelMapper = get(),
+        )
     }
 
     viewModel { params ->
@@ -94,10 +116,20 @@ val fileObserverModule = module {
     viewModel {
         KeySelectorViewModel(
             getMSDAttachStateProvider = get(),
-            fileTreeProvider = get(),
+            fileTreeProvider = get(Qualifiers.nonSharedFileTreeProvider),
             fileToUiModelMapper = get(),
             keyManager = get(),
             createKeyStoreUseCase = get()
+        )
+    }
+
+    viewModel {
+        FileObserverViewModel(
+            selectedCache = get(),
+            fileTreeProvider = get(Qualifiers.sharedFileTreeProvider),
+            fileToUiModelMapper = get(),
+            getMSDAttachStateProvider = get(),
+            keyManager = get()
         )
     }
 }

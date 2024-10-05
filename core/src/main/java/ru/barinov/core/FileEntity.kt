@@ -8,6 +8,7 @@ import me.jahnen.libaums.core.fs.UsbFileOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.io.Serializable
 
 //Вынести в домейн
 
@@ -69,9 +70,7 @@ sealed class FileEntity(
             }.getOrNull().orEmpty()
         }
 
-        override fun containsCount(): Int {
-            TODO("Not yet implemented")
-        }
+        override fun containsCount(): Int = attachedOrigin.list().size
     }
 
     class InternalFile internal constructor(
@@ -121,7 +120,7 @@ sealed class FileEntity(
 }
 
 @JvmInline
-value class FileId private constructor(val path: String) {
+value class FileId private constructor(val value: String): Serializable {
 
     companion object {
         fun byFilePath(filepath: Filepath): FileId {
@@ -131,6 +130,8 @@ value class FileId private constructor(val path: String) {
         fun byName(name: String): FileId {
             return FileId(name)
         }
+
+        fun restore(fileId: String) = FileId(fileId)
     }
 }
 
