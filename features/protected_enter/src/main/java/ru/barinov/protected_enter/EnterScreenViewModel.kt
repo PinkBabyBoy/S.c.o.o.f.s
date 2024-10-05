@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.barinov.cryptography.hash.HashCreator
+import ru.barinov.cryptography.hash.HashMode
 import ru.barinov.cryptography.hash.HashValidator
 import ru.barinov.password_manager.PType
 import ru.barinov.password_manager.PasswordStorage
@@ -85,7 +86,7 @@ internal class EnterScreenViewModel(
             }
             return
         }
-        val hash = hashCreator.createHash(password!!)
+        val hash = hashCreator.createHash(password!!, HashMode.PASSWORD)
         passwordStorage.store(hash, PType.REAL)
         _sideEffects.send(SideEffects.EnterGranted)
     }
