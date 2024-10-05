@@ -29,7 +29,6 @@ internal class CipherFactoryImpl(
     override fun createDecryptionInnerCipher(key: SecretKey, iv: ByteArray?): Cipher {
         return Cipher.getInstance(AES_MODE).also {
             it.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, iv ?: ivLocal))
-            it.updateAAD("Hello AES-GCM World!".encodeToByteArray())
         }
     }
 
@@ -50,7 +49,6 @@ internal class CipherFactoryImpl(
     override fun createEncryptionInnerCipher(key: SecretKey): Cipher {
         return Cipher.getInstance(AES_MODE).also {
             it.init(Cipher.ENCRYPT_MODE, key, AlgorithmParameters.getInstance("GCM"))
-            it.updateAAD("Hello AES-GCM World!".encodeToByteArray())
         }
     }
 }

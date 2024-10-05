@@ -1,5 +1,6 @@
 package ru.barinov.cryptography.hash
 
+import android.util.Log
 import com.lambdapioneer.argon2kt.Argon2Kt
 import com.lambdapioneer.argon2kt.Argon2Mode
 import ru.barinov.core.toByteArray

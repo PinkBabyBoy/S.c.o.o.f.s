@@ -1,5 +1,7 @@
 package ru.barinov.cryptography
 
+import android.util.Log
+import ru.barinov.core.getBytes
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.keygens.SecretKeyGenerator
 import java.security.KeyStore
@@ -9,7 +11,7 @@ private const val KEY_ALIAS = "hash_key"
 internal class SnapshotKeyStorageImpl(
     private val secretKeyGen: SecretKeyGenerator,
     private val cipherFactory: CipherFactory
-): SnapshotKeyStorage {
+) : SnapshotKeyStorage {
 
     private val keyStore = KeyStore.getInstance("AndroidKeyStore").also {
         it.load(null)
@@ -26,12 +28,14 @@ internal class SnapshotKeyStorageImpl(
     override fun encrypt(hash: ByteArray): ByteArray {
         val key =
             (keyStore.getEntry(KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
-        return cipherFactory.createEncryptionInnerCipher(key).doFinal(hash)
+        val cipher = cipherFactory.createEncryptionInnerCipher(key)
+        val encHash = cipher.doFinal(hash)
+        return  (cipher.iv.size.getBytes() + cipher.iv + encHash.size.getBytes() + encHash)
     }
 
-    override fun decrypt(encryptedHash: ByteArray): ByteArray {
+    override fun decrypt(encryptedHash: ByteArray, iv: ByteArray): ByteArray {
         val key =
             (keyStore.getEntry(KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
-        return cipherFactory.createDecryptionInnerCipher(key, null).doFinal(encryptedHash) //TODO IV?
+        return cipherFactory.createDecryptionInnerCipher(key, iv).doFinal(encryptedHash) //TODO IV?
     }
 }

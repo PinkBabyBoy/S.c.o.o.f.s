@@ -4,5 +4,5 @@ interface SnapshotKeyStorage {
 
     fun encrypt(hash: ByteArray): ByteArray
 
-    fun decrypt(encryptedHash: ByteArray): ByteArray
+    fun decrypt(encryptedHash: ByteArray, iv: ByteArray): ByteArray
 }

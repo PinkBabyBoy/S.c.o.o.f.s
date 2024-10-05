@@ -28,8 +28,7 @@ internal class ContainersManagerImpl(
             if (it.exists()) error("Already Exist")
             it.createNewFile()
             it.outputStream().use { `is`->
-                `is`.write(keysHash.size.getBytes())
-                `is`.write(keysHash)
+                `is`.write(keysHash.size.getBytes() + keysHash)
             }
         }
         _indexes.value = indexesProvider.provideIndexesRoot().listFiles().orEmpty().map {

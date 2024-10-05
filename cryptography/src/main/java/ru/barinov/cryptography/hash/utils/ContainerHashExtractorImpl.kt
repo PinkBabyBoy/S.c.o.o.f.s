@@ -12,9 +12,14 @@ internal class ContainerHashExtractorImpl(
         index.attachedOrigin.inputStream().use {
             val sizeBuffer = ByteArray(Int.SIZE_BYTES)
             it.read(sizeBuffer)
-            val hash = ByteArray(ByteBuffer.wrap(sizeBuffer).getInt())
-            it.read(hash)
-            snapshotKeyStorage.decrypt(hash)
+            val payload = ByteArray(ByteBuffer.wrap(sizeBuffer).getInt())
+            it.read(payload)
+            val hashBuffer = ByteBuffer.wrap(payload)
+            val ivSize = hashBuffer.getInt()
+            val iv = ByteArray(ivSize).also { hashBuffer.get(it) }
+            val encHashSize = hashBuffer.getInt()
+            val encHash = ByteArray(encHashSize).also { hashBuffer.get(it) }
+            snapshotKeyStorage.decrypt(encHash, iv)
         }
 }
 

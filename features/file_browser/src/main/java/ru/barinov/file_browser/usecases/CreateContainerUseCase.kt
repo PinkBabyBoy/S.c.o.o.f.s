@@ -4,7 +4,7 @@ import ru.barinov.file_browser.ContainersManager
 
 class CreateContainerUseCase(
     private val containersManager: ContainersManager,
-    private val getCurrentKeyHashUseCase: GetCurrentKeyHashUseCase
+    private val getCurrentKeyHashUseCase: GetSerializableCurrentKeyHashUseCase
 ) {
 
     suspend operator fun invoke(name: String): Result<Unit> = runCatching {

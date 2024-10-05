@@ -12,14 +12,13 @@ internal class KeySnapshotCreatorImpl(
     private val hashCreator: HashCreator
 ): KeySnapshotCreator {
 
-    override fun createFrom(public: PublicKey, private: PrivateKey): ByteArray =
+    override fun createFrom(public: PublicKey): ByteArray =
         snapshotKeyStorage.encrypt(
-            hashCreator.createHash(public.encoded, HashMode.KEY_HASH) +
-                    hashCreator.createHash(private.encoded,  HashMode.KEY_HASH)
+            hashCreator.createHash(public.encoded, HashMode.KEY_HASH)
         )
 }
 
 fun interface KeySnapshotCreator{
 
-    fun createFrom(public: PublicKey, private: PrivateKey): ByteArray
+    fun createFrom(public: PublicKey): ByteArray
 }

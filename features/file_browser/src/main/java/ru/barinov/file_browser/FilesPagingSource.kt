@@ -26,7 +26,6 @@ class FilesPagingSource(private val folderContent: List<FileEntity>?): PagingSou
                     safeBounds(params.loadSize * (pageIndex + 1), folderContent.size)
                 )
             }
-            Log.e("@@@", "${pageContent.size == params.loadSize}")
             LoadResult.Page(
                 data = pageContent,
                 prevKey = if (pageIndex == 0) null else pageIndex - 1,

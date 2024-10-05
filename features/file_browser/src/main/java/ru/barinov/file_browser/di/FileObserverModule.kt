@@ -22,6 +22,7 @@ import ru.barinov.file_browser.core.FileProvider
 import ru.barinov.file_browser.usecases.CreateContainerUseCase
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
+import ru.barinov.file_browser.usecases.GetSerializableCurrentKeyHashUseCase
 import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
 
@@ -78,7 +79,11 @@ val fileObserverModule = module {
 
 
     factory {
-        GetCurrentKeyHashUseCase(keyCache = get(), keySnapshotCreator = get())
+        GetSerializableCurrentKeyHashUseCase(keyCache = get(), keySnapshotCreator = get())
+    }
+
+    factory {
+        GetCurrentKeyHashUseCase(get(), get())
     }
 
     viewModel { params ->
@@ -96,7 +101,7 @@ val fileObserverModule = module {
             selectedCache = get(),
             containersManager = get(),
             hashValidator = get(),
-            getCurrentKeyHashUseCase = get(),
+            keyMemoryCache = get(),
             containerHashExtractor = get(),
             fileToUiModelMapper = get(),
         )
