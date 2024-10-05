@@ -175,7 +175,7 @@ fun ProgressButton(
 @Composable
 fun ScoofButton(
     isEnabled: Boolean = true,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     @StringRes buttonText: Int,
     onClick: () -> Unit
 ) {

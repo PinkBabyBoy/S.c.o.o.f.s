@@ -1,9 +1,11 @@
 package ru.barinov.file_browser.core
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,19 +29,16 @@ class FileTreeProvider(
 ) : Closeable, FileProvider {
 
     private val localCoroutine = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val internalRoot = rootProvider.getRootFile(Source.INTERNAL)
-    private val msdRoot = rootProvider.getRootFile(Source.MASS_STORAGE)
-
     private val innerFolderBackStack = Stack<Addable>()
     private val massStorageFolderBackStack = Stack<Addable>()
 
     private val _innerFiles: MutableStateFlow<Map<FileId, FileEntity>?> =
-        MutableStateFlow(internalRoot?.innerFiles())
+        MutableStateFlow(rootProvider.getRootFile(Source.INTERNAL)?.innerFiles())
 
     val innerFiles = _innerFiles.asStateFlow()
 
     private val _massStorageFiles: MutableStateFlow<Map<FileId, FileEntity>?> =
-        MutableStateFlow(msdRoot?.innerFiles())
+        MutableStateFlow(rootProvider.getRootFile(Source.MASS_STORAGE)?.innerFiles())
 
     val massStorageFiles = _massStorageFiles.asStateFlow()
 
@@ -97,9 +96,9 @@ class FileTreeProvider(
         }
     }
 
-    private fun openInternalFolder(fileUUID: FileId) {
+    private fun openInternalFolder(fileId: FileId) {
         localCoroutine.launch {
-            val folder = innerFiles.getFileByID(fileUUID)
+            val folder = innerFiles.getFileByID(fileId)
             if (folder == null || !folder.isDir) error("Can't open file")
             innerFolderBackStack.add(folder)
             _innerFiles.emit(folder.innerFilesAsync())
@@ -120,9 +119,11 @@ class FileTreeProvider(
     }
 
     override fun close() {
-        localCoroutine.cancel()
+        localCoroutine.coroutineContext.cancelChildren()
         innerFolderBackStack.clear()
         massStorageFolderBackStack.clear()
+        _innerFiles.value = rootProvider.getRootFile(Source.INTERNAL)?.innerFiles()
+        _massStorageFiles.value = rootProvider.getRootFile(Source.MASS_STORAGE)?.innerFiles()
     }
 }
 

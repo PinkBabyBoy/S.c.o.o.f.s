@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
@@ -33,6 +34,7 @@ fun FileBrowserNavHost(
     startDestination: String,
     scaffoldPaddings: PaddingValues,
     snackbarHostState: SnackbarHostState,
+    bottomNavBarVisibility: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -64,7 +66,7 @@ fun FileBrowserNavHost(
         composable<ImageDetails> {
             val args: ImageDetails = it.toRoute()
             val vm: ImageFileDetailsViewModel = koinViewModel(parameters = { parametersOf(FileId.restore(args.fileId), args.source) })
-            ImageFileScreen(navController, vm.uiState.collectAsState().value)
+            ImageFileScreen(scaffoldPaddings, navController, vm.uiState.collectAsState().value, vm::handleEven, bottomNavBarVisibility)
         }
 
         composable(

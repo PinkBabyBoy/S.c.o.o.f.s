@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.viewModels
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -27,6 +28,7 @@ import ru.barinov.file_browser.core.FileTreeProvider
 import ru.barinov.file_browser.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.PAGE_SIZE
+import ru.barinov.file_browser.R
 import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
@@ -40,6 +42,7 @@ import ru.barinov.file_browser.models.SourceState
 import ru.barinov.file_browser.models.Sort
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
+import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.utils.sort
 import ru.barinov.file_browser.states.FileBrowserUiState
 
@@ -146,10 +149,13 @@ class FileObserverViewModel(
     }
 
 
-    private fun onSelect(fileId: FileId, selected: Boolean) {
+    private fun onSelect(fileId: FileId, selected: Boolean, info: FileInfo) {
         viewModelScope.launch {
             val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
             if (!selected) {
+                if(file.isDir && info is FileInfo.Dir) {
+                    _sideEffects.send(ShowInfo(ru.barinov.ui_ext.R.string.select_folder_warning))
+                }
                 selectedCache.add(fileId, file as FileEntity)
             } else {
                 selectedCache.remove(fileId)
@@ -164,7 +170,7 @@ class FileObserverViewModel(
 
     private fun onFileClicked(fileId: FileId, toggleMode: Boolean, info: FileInfo) {
         if (toggleMode) {
-            onSelect(fileId, selectedCache.hasSelected(fileId))
+            onSelect(fileId, selectedCache.hasSelected(fileId), info)
         } else {
             openFile(fileId, info)
         }

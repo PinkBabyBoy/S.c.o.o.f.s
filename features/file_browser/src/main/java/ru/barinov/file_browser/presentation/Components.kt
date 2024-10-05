@@ -52,6 +52,7 @@ import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.models.Sort
 import ru.barinov.file_browser.models.TopLevelScreen
 import ru.barinov.ui_ext.R
+import ru.barinov.ui_ext.ScoofButton
 import ru.barinov.ui_ext.mainGreen
 
 private val fileBrowserTopLevelScreens = setOf(
@@ -106,14 +107,16 @@ fun ExitDialog(onExit: () -> Unit, onDismissRequest: () -> Unit) {
             Text(text  = "Key should be loaded again on next start")
         },
         dismissButton = {
-            Button(onClick = onDismissRequest) {
-                Text(text = stringResource(id = android.R.string.cancel))
-            }
+            ScoofButton(
+                buttonText = android.R.string.cancel,
+                onClick = onDismissRequest
+            )
         },
         confirmButton = {
-            Button(onClick = onExit) {
-                Text(text = stringResource(id = android.R.string.ok))
-            }
+            ScoofButton(
+                buttonText = android.R.string.ok,
+                onClick = onExit
+            )
         }
     )
 }

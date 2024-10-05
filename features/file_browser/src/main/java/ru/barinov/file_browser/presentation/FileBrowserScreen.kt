@@ -34,26 +34,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import ru.barinov.core.Source
 
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
+import ru.barinov.file_browser.sideEffects.ImageFileDetailsSideEffects
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.file_browser.toImageDetails
+import ru.barinov.file_browser.viewModels.InitializationMode
+import ru.barinov.ui_ext.BottomSheetPolicy
 import ru.barinov.ui_ext.SingleEventEffect
+import ru.barinov.ui_ext.getArgs
+import ru.barinov.ui_ext.shouldShow
 
 @Composable
 fun FileBrowserScreen(
@@ -65,16 +73,19 @@ fun FileBrowserScreen(
     snackbarHostState: SnackbarHostState
 ) {
     val confirmBsExpanded =
-        remember { mutableStateOf(false) }
+        remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
     val deleteDialogVisible = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val localCoroutine = rememberCoroutineScope()
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
             CanGoBack -> navController.navigateUp()
-            is ShowInfo -> TODO()
+            is ShowInfo -> localCoroutine.launch {  snackbarHostState.showSnackbar(context.getString(sideEffect.text), withDismissAction = true) }
             is FileBrowserSideEffect.OpenImageFile
             -> navController.navigate(toImageDetails(sideEffect.fileId, sideEffect.source))
-            FileBrowserSideEffect.ShowAddFilesDialog -> {
-                confirmBsExpanded.value = true
+
+            is FileBrowserSideEffect.ShowAddFilesDialog -> {
+                confirmBsExpanded.value = BottomSheetPolicy.Expanded(InitializationMode.Selected)
             }
         }
     }
@@ -145,9 +156,11 @@ fun FileBrowserScreen(
         )
     }
 
-    if (confirmBsExpanded.value) {
-        FilesLoadInitialization{ confirmBsExpanded.value = false }
-    }
+    val bsState = confirmBsExpanded.value
+    if (bsState.shouldShow())
+        FilesLoadInitialization(bsState.getArgs()) {
+            confirmBsExpanded.value = BottomSheetPolicy.Collapsed
+        }
 }
 
 @OptIn(ExperimentalFoundationApi::class)

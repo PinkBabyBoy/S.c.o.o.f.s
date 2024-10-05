@@ -8,6 +8,7 @@
     <string name="containers_label">Containers</string>
     <string name="files_label">Files</string>
     <string name="contains_files_info">Contains %d files</string>
+    <string name="select_folder_warning">Processing big folder can take too much time</string>
     <string name="key_label">Key</string>
     <string name="key_load_fail">Key load failed</string>
     <string name="key_loaded">Key is loaded</string>

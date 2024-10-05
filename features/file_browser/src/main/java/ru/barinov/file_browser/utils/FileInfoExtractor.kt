@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.barinov.core.Addable
@@ -31,7 +32,13 @@ class FileInfoExtractor(
     private val savedInfos = mutableMapOf<FileId, MutableState<FileInfo>>()
 
     fun clear() {
-        savedInfos.clear()
+        recognizerCoroutineScope.coroutineContext.cancelChildren()
+        recognizerCoroutineScope.launch {
+            savedInfos.forEach {
+                (it.value.value as? FileInfo.ImageFile)?.bitmapPreview?.recycle()
+            }
+            savedInfos.clear()
+        }
     }
 
     operator fun invoke(

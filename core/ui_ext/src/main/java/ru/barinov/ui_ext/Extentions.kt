@@ -51,7 +51,8 @@ fun Context.getActivity(): Activity? = when (this) {
 fun RegisterLifecycleCallbacks(
     onResume: () -> Unit = {},
     onPause: () -> Unit = {},
-    onDestroy: () -> Unit = {}
+    onDestroy: () -> Unit = {},
+    onDispose: () -> Unit = {}
 ) {
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 
@@ -82,6 +83,7 @@ fun RegisterLifecycleCallbacks(
 
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            onDispose()
         }
     }
 }

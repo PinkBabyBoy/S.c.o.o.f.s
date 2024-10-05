@@ -1,20 +1,32 @@
 package ru.barinov.file_browser.presentation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ru.barinov.core.R
@@ -32,19 +44,36 @@ fun FileBrowserHomeScreen(mainController: NavController) {
         context.getActivity()?.finish()
     }
     val snackbarHostState = remember { SnackbarHostState() }
+    val bottomBarVisibility = remember { mutableStateOf(true) }
 
 
     Scaffold(
         snackbarHost = {
             SnackbarHost(snackbarHostState) {
                 Snackbar(
-                    snackbarData = it,
+                    modifier = Modifier.padding(16.dp),
                     containerColor = mainGreen,
-                    contentColor = Color.White
-                )
+                    contentColor = Color.White,
+                ){
+                    Row {
+                        Icon(painter = painterResource(id = ru.barinov.ui_ext.R.drawable.info), contentDescription = null)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = it.visuals.message)
+                    }
+
+                }
             }
         },
-        bottomBar = { BrowserBottomNavBar(navController = localNavController) },
+        bottomBar = {
+            AnimatedVisibility(
+                visible = bottomBarVisibility.value,
+                enter = fadeIn(),
+                exit = fadeOut()
+                ) {
+                BrowserBottomNavBar(navController = localNavController)
+            }
+
+        },
     ) {
         DecorStyle(
             ColorPair((0xFFFCFFFD).toInt(), (0xFFFCFFFD).toInt()),
@@ -56,10 +85,11 @@ fun FileBrowserHomeScreen(mainController: NavController) {
                 .padding(top = it.calculateTopPadding())
         ) {
             FileBrowserNavHost(
-                localNavController,
-                FileBrowserRout.CONTAINERS.name,
-                it,
-                snackbarHostState
+                navController = localNavController,
+                startDestination = FileBrowserRout.CONTAINERS.name,
+                scaffoldPaddings = it,
+                snackbarHostState = snackbarHostState,
+                bottomNavBarVisibility = { bottomBarVisibility.value = it }
             )
         }
 

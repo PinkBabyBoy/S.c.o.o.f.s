@@ -8,6 +8,11 @@ import ru.barinov.file_browser.models.FileInfo
 
 interface SideEffect
 
+sealed interface ImageFileDetailsSideEffects : SideEffect {
+
+    class ShowAddFilesDialog(val source: Source, val fileId: FileId) : ImageFileDetailsSideEffects
+}
+
 sealed interface FileBrowserSideEffect : SideEffect {
     class OpenImageFile(val source: Source, val fileId: FileId) : FileBrowserSideEffect
     data object ShowAddFilesDialog : FileBrowserSideEffect
@@ -19,7 +24,7 @@ sealed interface FilesLoadInitializationSideEffects : SideEffect {
 
 sealed interface ContainersSideEffect : SideEffect {
 
-    data object ContainerCreated: ContainersSideEffect
+    data object ContainerCreated : ContainersSideEffect
 }
 
 sealed interface KeySelectorSideEffect : SideEffect {
