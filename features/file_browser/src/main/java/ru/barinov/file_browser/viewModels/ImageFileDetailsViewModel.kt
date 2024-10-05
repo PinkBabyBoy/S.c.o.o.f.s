@@ -20,8 +20,8 @@ import ru.barinov.file_browser.states.ImageFileScreenUiState
 
 class ImageFileDetailsViewModel(
     fileProvider: FileProvider,
-    fileId: FileId,
-    source: Source
+    private val fileId: FileId,
+    private val source: Source
 ) : SideEffectViewModel<ImageFileDetailsSideEffects>() {
 
     private val _uiState = MutableStateFlow(ImageFileScreenUiState.idle())
@@ -39,7 +39,8 @@ class ImageFileDetailsViewModel(
         when(event){
             ImageDetailsEvent.RotateLeft -> rotate90Left()
             ImageDetailsEvent.RotateRight -> rotate90Right()
-            ImageDetailsEvent.SaveToContainer -> TODO()
+            ImageDetailsEvent.SaveToContainer
+            -> viewModelScope.launch { _sideEffects.send(ImageFileDetailsSideEffects.ShowAddFilesDialog(source, fileId)) }
         }
     }
 

@@ -59,14 +59,23 @@ fun FileBrowserNavHost(
 
         composable<ContainersContent> {
             val args: ContainersContent = it.toRoute()
-            val vm: ContainerContentViewModel = koinViewModel(parameters = { parametersOf(FileId.restore(args.fileId)) })
+            val vm: ContainerContentViewModel =
+                koinViewModel(parameters = { parametersOf(FileId.restore(args.fileId)) })
             ContainerContent()
         }
 
         composable<ImageDetails> {
             val args: ImageDetails = it.toRoute()
-            val vm: ImageFileDetailsViewModel = koinViewModel(parameters = { parametersOf(FileId.restore(args.fileId), args.source) })
-            ImageFileScreen(scaffoldPaddings, navController, vm.uiState.collectAsState().value, vm::handleEven, bottomNavBarVisibility)
+            val vm: ImageFileDetailsViewModel =
+                koinViewModel(parameters = { parametersOf(FileId.restore(args.fileId), args.source) })
+            ImageFileScreen(
+                paddingValues = scaffoldPaddings,
+                sideEffects = vm.sideEffects,
+                navController = navController,
+                state = vm.uiState.collectAsState().value,
+                onEvent = vm::handleEven,
+                bottomNavBarVisibility = bottomNavBarVisibility
+            )
         }
 
         composable(
