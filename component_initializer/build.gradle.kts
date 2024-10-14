@@ -52,5 +52,6 @@ dependencies {
     implementation(project(":features:file_browser"))
     implementation(project(":file_works:read_worker"))
     implementation(project(":file_works:write_worker"))
+    implementation(project(":file_process_worker"))
 
 }

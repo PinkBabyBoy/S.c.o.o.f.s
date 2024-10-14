@@ -23,15 +23,17 @@ import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.sideEffects.ContainersSideEffect
 import ru.barinov.file_browser.states.ContainersUiState
 import ru.barinov.file_browser.usecases.CreateContainerUseCase
+import ru.barinov.file_process_worker.WorkersManager
 
 class ContainersViewModel(
     private val containersManager: ContainersManager,
     private val fileToUiModelMapper: FileToUiModelMapper,
     private val createContainerUseCase: CreateContainerUseCase,
+    private val workersManager: WorkersManager,
     keyManager: KeyManager
 ) : SideEffectViewModel<ContainersSideEffect>() {
 
-    private val _uiState = MutableStateFlow(ContainersUiState.idle())
+    private val _uiState = MutableStateFlow(ContainersUiState.idle(workersManager.hasActiveWork.value))
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -46,18 +48,19 @@ class ContainersViewModel(
                     pagingSourceFactory = {
                         FilesPagingSource(it)
                     }
-                ).flow.cachedIn(viewModelScope).map { fileToUiModelMapper(it, hashSetOf(), false) } to it.isEmpty()
+                ).flow.cachedIn(viewModelScope).map { fileToUiModelMapper(it, hashSetOf(), true) } to it.isEmpty()
             }
-            combine(containersPages, keyManager.isKeyLoaded, ::Pair).catch {
+            combine(containersPages, keyManager.isKeyLoaded, workersManager.hasActiveWork, ::Triple).catch {
 
             }.collectLatest {
-                val (containersPageAndKey, isKeyLoaded) = it
+                val (containersPageAndKey, isKeyLoaded, hasActiveWork) = it
                 val (containers, isPageEmpty) = containersPageAndKey
                 _uiState.value =
                     uiState.value.copy(
+                        hasActiveWork = hasActiveWork,
                         isPageEmpty = isPageEmpty,
                         containers = containers,
-                        state = if (isKeyLoaded) ContainersUiState.State.LOADED else ContainersUiState.State.KEY_UNLOADED
+                        state = if (isKeyLoaded) ContainersUiState.State.LOADED else ContainersUiState.State.KEY_UNLOADED,
                     )
             }
         }

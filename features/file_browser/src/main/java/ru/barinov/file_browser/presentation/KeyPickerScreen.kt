@@ -1,26 +1,18 @@
 package ru.barinov.file_browser.presentation
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -36,17 +28,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import ru.barinov.file_browser.R
 import ru.barinov.file_browser.args.KeyLoadBottomSheetArgs
 import ru.barinov.file_browser.events.KeySelectorEvent
-import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.KeyPickerUiState
-import ru.barinov.ui_ext.BottomSheetPolicy
-import ru.barinov.ui_ext.ScoofButton
-import ru.barinov.ui_ext.SingleEventEffect
+import ru.barinov.core.ui.BottomSheetPolicy
+import ru.barinov.core.ui.ScoofButton
+import ru.barinov.core.ui.SingleEventEffect
 
 @Composable
 fun KeySelector(
@@ -91,7 +81,7 @@ fun KeySelector(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center)
             ) {
-                Text(text = stringResource(id = ru.barinov.ui_ext.R.string.key_loaded))
+                Text(text = stringResource(id = ru.barinov.core.R.string.key_loaded))
                 Image(
                     painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
                     contentDescription = null
@@ -103,7 +93,7 @@ fun KeySelector(
                 ScoofButton(
                     onClick = { onEvent(KeySelectorEvent.UnbindKey) },
                     modifier = Modifier.padding(8.dp),
-                    buttonText = ru.barinov.ui_ext.R.string.unbind
+                    buttonText = ru.barinov.core.R.string.unbind
                 )
             }
         }
@@ -126,7 +116,8 @@ fun KeySelector(
                 }
                 add { Spacer(modifier = Modifier.width(16.dp)) }
             },
-            showLoading = false
+            showLoading = false,
+            additionalInfoEnabled = false
         )
     }
     if (isKeystoreCreatorBsVisible.value) {

@@ -7,59 +7,41 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import ru.barinov.permission_manager.Permission
 import ru.barinov.permission_manager.PermissionRequestManager
-import ru.barinov.routes.EnterScreenRoute
-import ru.barinov.ui_ext.InformationalBlock
-import ru.barinov.ui_ext.InformationalBlockType
-import ru.barinov.ui_ext.Keyboard
-import ru.barinov.ui_ext.PasswordTextField
-import ru.barinov.ui_ext.ProgressButton
-import ru.barinov.ui_ext.RegisterLifecycleCallbacks
-import ru.barinov.ui_ext.SingleEventEffect
-import ru.barinov.ui_ext.bottomNavGreen
-import ru.barinov.ui_ext.darkGreen
-import ru.barinov.ui_ext.enterScreenBackground
-import ru.barinov.ui_ext.keyboardAsState
-import ru.barinov.ui_ext.lightGreen
-import ru.barinov.ui_ext.mainGreen
+import ru.barinov.core.ui.InformationalBlock
+import ru.barinov.core.ui.InformationalBlockType
+import ru.barinov.core.ui.Keyboard
+import ru.barinov.core.ui.PasswordTextField
+import ru.barinov.core.ui.ProgressButton
+import ru.barinov.core.ui.RegisterLifecycleCallbacks
+import ru.barinov.core.ui.ScoofAlertDialog
+import ru.barinov.core.ui.SingleEventEffect
+import ru.barinov.core.ui.darkGreen
+import ru.barinov.core.ui.enterScreenBackground
+import ru.barinov.core.ui.keyboardAsState
 
 @Composable
 internal fun EnterScreen(
@@ -134,7 +116,7 @@ internal fun EnterScreen(
             supportText = {
                 SupportText(
                     errors = errors,
-                    hint = ru.barinov.ui_ext.R.string.password_enter_helper_text
+                    hint = ru.barinov.core.R.string.password_enter_helper_text
                 )
             },
             modifier = Modifier
@@ -154,12 +136,14 @@ internal fun EnterScreen(
                     .clickable { alertDialogVisible.value = true }
             )
             if (alertDialogVisible.value) {
-                PasswordResetAlertDialog(
+                ScoofAlertDialog(
+                    title = " Reset the password?",
+                    message =  "All stored data will be removed",
                     onConfirmed = {
                         enterScreenEvent(EnterScreenEvent.ResetConfirmed)
                         alertDialogVisible.value = false
                     },
-                    dismiss = { alertDialogVisible.value = false }
+                    onDismissRequest = { alertDialogVisible.value = false }
                 )
             }
         }
@@ -230,10 +214,10 @@ private fun SupportText(errors: List<ErrorType>, @StringRes hint: Int) {
         return
     }
     val text = when (errors.first()) {
-        ErrorType.READ_HASH_ERROR -> ru.barinov.ui_ext.R.string.empty_password_text
+        ErrorType.READ_HASH_ERROR -> ru.barinov.core.R.string.empty_password_text
         ErrorType.WRONG_PASSWORD -> R.string.wrong_password_err_text
         ErrorType.CREATE_NOT_EQUALS -> R.string.not_equals_passwords_err_text
-        ErrorType.PASSWORD_EMPTY -> ru.barinov.ui_ext.R.string.empty_password_text
+        ErrorType.PASSWORD_EMPTY -> ru.barinov.core.R.string.empty_password_text
         ErrorType.CHECK_EMPTY -> R.string.empty_check_password_text
     }.let { stringResource(id = it) }
     Text(text = text, color = MaterialTheme.colorScheme.error)

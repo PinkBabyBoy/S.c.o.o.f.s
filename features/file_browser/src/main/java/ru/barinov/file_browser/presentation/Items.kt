@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -42,8 +41,8 @@ import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.models.FileInfo
 import ru.barinov.file_browser.models.FileUiModel
-import ru.barinov.ui_ext.fileItemColor
-import ru.barinov.ui_ext.mainGreen
+import ru.barinov.core.ui.fileItemColor
+import ru.barinov.core.ui.mainGreen
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -51,9 +50,10 @@ inline fun <reified T : FieObserverEvent> FileItem(
     file: FileUiModel,
     selectionMode: Boolean,
     selectionAvailable: Boolean,
+    showLoading: Boolean,
     crossinline toggleSelection: () -> Unit = {},
-    crossinline onEvent: (T) -> Unit,
-    showLoading: Boolean
+    crossinline onEvent: (T) -> Unit = {},
+    additionalInfoEnabled: Boolean
 ) {
     val interactSource = remember { mutableStateOf(MutableInteractionSource()) }
     Card(
@@ -80,7 +80,15 @@ inline fun <reified T : FieObserverEvent> FileItem(
                         toggleSelection()
                     }
                 },
-                onClick = { onEvent(OnFileClicked(file.fileId, selectionMode, file.info.value) as T) }
+                onClick = {
+                    onEvent(
+                        OnFileClicked(
+                            fileId = file.fileId,
+                            selectionMode = selectionMode,
+                            fileInfo = file.info.value
+                        ) as T
+                    )
+                }
             )
     ) {
         Row(
@@ -90,7 +98,9 @@ inline fun <reified T : FieObserverEvent> FileItem(
             FilePreview(file, showLoading)
             Column(modifier = Modifier.padding(start = 4.dp)) {
                 Text(text = file.name)
-                Text(text = file.info.value.getText(), fontSize = 10.sp, color = Color.Gray)
+                if (additionalInfoEnabled) {
+                    Text(text = file.info.value.getText(), fontSize = 10.sp, color = Color.Gray)
+                }
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -132,8 +142,7 @@ fun FilePreview(file: FileUiModel, showLoading: Boolean) {
             )
         }
 
-        is FileInfo.Index -> {}
-        is FileInfo.Other, is FileInfo.Dir -> {
+        is FileInfo.Index, is FileInfo.Other, is FileInfo.Dir -> {
             Image(
                 painter = painterResource(id = file.placeholderRes),
                 contentDescription = null,
@@ -191,6 +200,6 @@ fun FileItemPreview() {
                 mutableStateOf(FileInfo.Other(false, ""))
             }
         ),
-        true, true, {}, {}, false,
+        true, true, false, {}, {}, true
     )
 }

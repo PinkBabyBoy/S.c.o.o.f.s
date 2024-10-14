@@ -4,8 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +16,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,11 +26,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import ru.barinov.core.R
-import ru.barinov.ui_ext.ColorPair
-import ru.barinov.ui_ext.DecorStyle
-import ru.barinov.ui_ext.getActivity
-import ru.barinov.ui_ext.mainGreen
+import ru.barinov.core.ui.ColorPair
+import ru.barinov.core.ui.DecorStyle
+import ru.barinov.core.ui.getActivity
+import ru.barinov.core.ui.mainGreen
 
 @Composable
 fun FileBrowserHomeScreen(mainController: NavController) {
@@ -56,7 +52,7 @@ fun FileBrowserHomeScreen(mainController: NavController) {
                     contentColor = Color.White,
                 ){
                     Row {
-                        Icon(painter = painterResource(id = ru.barinov.ui_ext.R.drawable.info), contentDescription = null)
+                        Icon(painter = painterResource(id = ru.barinov.core.R.drawable.info), contentDescription = null)
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(text = it.visuals.message)
                     }

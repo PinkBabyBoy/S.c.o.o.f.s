@@ -40,7 +40,6 @@ import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
-import ru.barinov.ui_ext.R
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class KeySelectorViewModel(
@@ -125,12 +124,12 @@ class KeySelectorViewModel(
                 password = event.password,
                 onSuccess = {
                     viewModelScope.launch {
-                        _sideEffects.send(ShowInfo(R.string.key_loaded))
+                        _sideEffects.send(ShowInfo(ru.barinov.core.R.string.key_loaded))
                     }
                 },
                 onError = {
                     viewModelScope.launch {
-                        _sideEffects.send(ShowInfo(R.string.key_load_fail))
+                        _sideEffects.send(ShowInfo(ru.barinov.core.R.string.key_load_fail))
                     }
                 }
             )
@@ -146,10 +145,10 @@ class KeySelectorViewModel(
                     ).fold(
                         onSuccess = {
                             fileTreeProvider.update(sourceType.value)
-                            _sideEffects.send(ShowInfo(R.string.keystore_create_success))
+                            _sideEffects.send(ShowInfo(ru.barinov.core.R.string.keystore_create_success))
                         },
                         onFailure = {
-                            _sideEffects.send(ShowInfo(R.string.keystore_create_fail))
+                            _sideEffects.send(ShowInfo(ru.barinov.core.R.string.keystore_create_fail))
                         }
                     )
                 }

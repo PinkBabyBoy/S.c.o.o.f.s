@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -26,18 +25,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
-import ru.barinov.core.FileId
-import ru.barinov.core.Source
 import ru.barinov.file_browser.events.ImageDetailsEvent
 import ru.barinov.file_browser.sideEffects.ImageFileDetailsSideEffects
 import ru.barinov.file_browser.states.ImageFileScreenUiState
 import ru.barinov.file_browser.viewModels.InitializationMode
-import ru.barinov.ui_ext.BottomSheetPolicy
-import ru.barinov.ui_ext.RegisterLifecycleCallbacks
-import ru.barinov.ui_ext.SingleEventEffect
-import ru.barinov.ui_ext.getArgs
-import ru.barinov.ui_ext.mainGreen
-import ru.barinov.ui_ext.shouldShow
+import ru.barinov.core.ui.BottomSheetPolicy
+import ru.barinov.core.ui.RegisterLifecycleCallbacks
+import ru.barinov.core.ui.SingleEventEffect
+import ru.barinov.core.ui.getArgs
+import ru.barinov.core.ui.mainGreen
+import ru.barinov.core.ui.shouldShow
 
 @Composable
 fun ImageFileScreen(

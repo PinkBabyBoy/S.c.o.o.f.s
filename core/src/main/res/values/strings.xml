@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sort_new_first">New first</string>
+    <string name="encryption_notification_title">Encryption in process</string>
+    <string name="decryption_notification_title">Decryption in process</string>
+    <string name="sort_old_first">Old first</string>
+    <string name="sort_big_first">By size</string>
+    <string name="sort_small_first">By size</string>
+    <string name="sort_default">Default</string>
+    <string name="containers_label">Containers</string>
+    <string name="files_label">Files</string>
+    <string name="contains_files_info">Contains %d files</string>
+    <string name="select_folder_warning">Processing big folder can take too much time</string>
+    <string name="key_label">Key</string>
+    <string name="key_load_fail">Key load failed</string>
+    <string name="key_loaded">Key is loaded</string>
+    <string name="keystore_create_success">Keystore created</string>
+    <string name="keystore_create_fail">Keystore create failed</string>
+    <string name="password_enter_helper_text">Please, enter the password</string>
+    <string name="create">Create</string>
+    <string name="empty_password_text">Password is empty</string>
+    <string name="empty_keystore_name">Name is empty</string>
+    <string name="keystore_name_hint">Please, enter key store name</string>
+    <string name="container_name_hint">Please, enter container store name</string>
+    <string name="load">Load</string>
+    <string name="start">Start</string>
+    <string name="key">Key is loaded</string>
+    <string name="unbind">Unbind</string>
+    <string name="key_not_loaded_containers">No key loaded for container creation</string>
+    <string name="permission_static_text">
+        S.c.o.o.f.s requires permission to view and manage files,
+        application does not use send any of your data by internet,
+        the only use of internet is to send bug or crash reports.
+        The source code of the application is in open source.
+    </string>
+    <string name="usb_static_text">
+        S.c.o.o.f.s can store keys or copy data from mass storage devices with FAT32 file system.
+        For proper work strongly recommended to use simple usb type-c adapters with 1 to 1 connection,
+        and do not use USB hubs.
+    </string>
+</resources>

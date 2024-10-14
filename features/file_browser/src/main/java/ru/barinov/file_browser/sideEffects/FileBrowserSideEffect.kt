@@ -1,6 +1,7 @@
 package ru.barinov.file_browser.sideEffects
 
 import androidx.annotation.StringRes
+import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filename
 import ru.barinov.core.Source
@@ -15,7 +16,7 @@ sealed interface ImageFileDetailsSideEffects : SideEffect {
 
 sealed interface FileBrowserSideEffect : SideEffect {
     class OpenImageFile(val source: Source, val fileId: FileId) : FileBrowserSideEffect
-    data object ShowAddFilesDialog : FileBrowserSideEffect
+    class ShowAddFilesDialog(val selectedFiles: Collection<FileEntity>) : FileBrowserSideEffect
 }
 
 sealed interface FilesLoadInitializationSideEffects : SideEffect {

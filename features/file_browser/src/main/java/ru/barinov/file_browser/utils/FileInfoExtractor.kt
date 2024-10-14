@@ -70,7 +70,7 @@ class FileInfoExtractor(
                         val contentCount = fileEntity.containsCount() ?: 0
                         FileInfo.Dir(
                             appContext.getString(
-                                ru.barinov.ui_ext.R.string.contains_files_info,
+                                ru.barinov.core.R.string.contains_files_info,
                                 contentCount
                             ),
                             contentCount

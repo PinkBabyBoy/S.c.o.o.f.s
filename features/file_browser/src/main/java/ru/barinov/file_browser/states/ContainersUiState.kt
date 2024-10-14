@@ -7,6 +7,7 @@ import ru.barinov.file_browser.models.FileUiModel
 
 data class ContainersUiState(
     val isPageEmpty: Boolean,
+    val hasActiveWork: Boolean,
     val containers: Flow<PagingData<FileUiModel>>,
     val state: State
 ) {
@@ -18,11 +19,12 @@ data class ContainersUiState(
     }
 
     companion object {
-        fun idle() =
+        fun idle(hasActiveWork: Boolean) =
             ContainersUiState(
                 containers = flowOf(PagingData.empty()),
                 state = State.IDLE,
-                isPageEmpty = true
+                isPageEmpty = true,
+                hasActiveWork = hasActiveWork
             )
     }
 }

@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,79 +45,52 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import ru.barinov.core.topBarHeaderStyle
+import ru.barinov.core.topBarHeader
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.models.Sort
 import ru.barinov.file_browser.models.TopLevelScreen
-import ru.barinov.ui_ext.R
-import ru.barinov.ui_ext.ScoofButton
-import ru.barinov.ui_ext.mainGreen
+import ru.barinov.core.ui.mainGreen
 
 private val fileBrowserTopLevelScreens = setOf(
     TopLevelScreen(
         FileBrowserRout.CONTAINERS,
-        R.string.containers_label,
+        ru.barinov.core.R.string.containers_label,
         ru.barinov.core.R.drawable.baseline_storage_24
     ),
     TopLevelScreen(
         FileBrowserRout.FILE_PICKER,
-        R.string.files_label,
+        ru.barinov.core.R.string.files_label,
         ru.barinov.core.R.drawable.baseline_sd_storage_24
     ),
     TopLevelScreen(
         FileBrowserRout.KEY_PICKER,
-        R.string.key_label,
+        ru.barinov.core.R.string.key_label,
         ru.barinov.core.R.drawable.baseline_key_24
     )
 )
 
 private val sortTypes = listOf(
     Sort(
-        R.string.sort_new_first,
+        ru.barinov.core.R.string.sort_new_first,
         Sort.Type.NEW_FIRST
     ),
     Sort(
-        R.string.sort_old_first,
+        ru.barinov.core.R.string.sort_old_first,
         Sort.Type.OLD_FIRST
     ),
     Sort(
-        R.string.sort_big_first,
+        ru.barinov.core.R.string.sort_big_first,
         Sort.Type.BIG_FIRST
     ),
     Sort(
-        R.string.sort_small_first,
+        ru.barinov.core.R.string.sort_small_first,
         Sort.Type.SMALL_FIRST
     ),
     Sort(
-        R.string.sort_default,
+        ru.barinov.core.R.string.sort_default,
         Sort.Type.AS_IS
     )
 )
-
-@Composable
-fun ExitDialog(onExit: () -> Unit, onDismissRequest: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = {
-            Text(text = "Exit the application?")
-        },
-        text = {
-            Text(text  = "Key should be loaded again on next start")
-        },
-        dismissButton = {
-            ScoofButton(
-                buttonText = android.R.string.cancel,
-                onClick = onDismissRequest
-            )
-        },
-        confirmButton = {
-            ScoofButton(
-                buttonText = android.R.string.ok,
-                onClick = onExit
-            )
-        }
-    )
-}
 
 @Composable
 fun BrowserBottomNavBar(
@@ -178,7 +149,7 @@ fun FileBrowserAppBar(
             Text(
                 text = titleString,
                 modifier = Modifier.padding(start = 16.dp),
-                style = topBarHeaderStyle
+                style = topBarHeader()
             )
         }
     val navigationIcon = @Composable {

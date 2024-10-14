@@ -1,54 +1,37 @@
 package ru.barinov.file_browser.presentation
 
 import android.annotation.SuppressLint
-import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetDefaults
-import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import ru.barinov.core.Filename
 import ru.barinov.core.hasNoSpecialSymbols
-import ru.barinov.file_browser.R
-import ru.barinov.file_browser.events.KeySelectorEvent
-import ru.barinov.ui_ext.BottomSheetPolicy
-import ru.barinov.ui_ext.Keyboard
-import ru.barinov.ui_ext.PasswordTextField
-import ru.barinov.ui_ext.ProgressButton
-import ru.barinov.ui_ext.ScoofButton
-import ru.barinov.ui_ext.TextEnter
-import ru.barinov.ui_ext.keyboardAsState
+import ru.barinov.core.ui.PasswordTextField
+import ru.barinov.core.ui.ProgressButton
+import ru.barinov.core.ui.ScoofButton
+import ru.barinov.core.ui.TextEnter
+import ru.barinov.core.ui.bsContainerColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +43,7 @@ fun CreateContainerBottomSheet(
     ModalBottomSheet(
         onDismissRequest = { onDismissRequested() },
         sheetState = bsState,
-        containerColor = Color.White
+        containerColor = bsContainerColor
     ) {
         val nameInput = remember { mutableStateOf("") }
         val inputErrors = remember { mutableStateOf(emptySet<InputErrors>()) }
@@ -70,7 +53,7 @@ fun CreateContainerBottomSheet(
             supportText = {
                 SupportText(
                     errors = inputErrors.value.filter { it == InputErrors.NAME_EMPTY },
-                    hint = ru.barinov.ui_ext.R.string.container_name_hint
+                    hint = ru.barinov.core.R.string.container_name_hint
                 )
             },
             onValueChanged = { nameInput.value = it },
@@ -83,7 +66,7 @@ fun CreateContainerBottomSheet(
                 .padding(8.dp)
                 .align(Alignment.CenterHorizontally),
             isProgress = isInProgress,
-            buttonText = ru.barinov.ui_ext.R.string.create,
+            buttonText = ru.barinov.core.R.string.create,
         ) {
             when {
                 nameInput.value.isEmpty() -> inputErrors.value = setOf(InputErrors.NAME_EMPTY)
@@ -111,7 +94,7 @@ fun KeyStoreLoadBottomSheet(
         onDismissRequest = { onDismissRequested() },
         modifier = Modifier.imePadding(),
         sheetState = bsState,
-        containerColor = Color.White
+        containerColor = bsContainerColor
     ) {
         val enteredPassword = remember { mutableStateOf("") }
 
@@ -126,7 +109,7 @@ fun KeyStoreLoadBottomSheet(
         Spacer(modifier = Modifier.height(32.dp))
         PasswordTextField(
             onValueChanged = { enteredPassword.value = it },
-            supportText = { Text(text = stringResource(id = ru.barinov.ui_ext.R.string.password_enter_helper_text)) },
+            supportText = { Text(text = stringResource(id = ru.barinov.core.R.string.password_enter_helper_text)) },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -138,7 +121,7 @@ fun KeyStoreLoadBottomSheet(
                 onConfirmed(enteredPassword.value)
                 onDismissRequested()
             },
-            buttonText = ru.barinov.ui_ext.R.string.load
+            buttonText = ru.barinov.core.R.string.load
         )
         Spacer(modifier = Modifier.height(32.dp))
     }
@@ -172,7 +155,7 @@ fun CreateKeyStoreBottomSheet(
         onDismissRequest = { if (!loadStarted.value) onDismissRequested() },
         sheetState = bsState,
         properties = ModalBottomSheetDefaults.properties(shouldDismissOnBackPress = false),
-        containerColor = Color.White
+        containerColor = bsContainerColor
     ) {
         Text(text = "Create the keystore", modifier = Modifier.align(Alignment.CenterHorizontally))
         Spacer(modifier = Modifier.height(32.dp))
@@ -181,7 +164,7 @@ fun CreateKeyStoreBottomSheet(
             supportText = {
                 SupportText(
                     errors = inputErrors.value.filter { it == InputErrors.NAME_EMPTY },
-                    hint = ru.barinov.ui_ext.R.string.keystore_name_hint
+                    hint = ru.barinov.core.R.string.keystore_name_hint
                 )
             },
             onValueChanged = { enteredName.value = it },
@@ -194,7 +177,7 @@ fun CreateKeyStoreBottomSheet(
             supportText = {
                 SupportText(
                     inputErrors.value.filter { it == InputErrors.PASSWORD_EMPTY },
-                    ru.barinov.ui_ext.R.string.password_enter_helper_text
+                    ru.barinov.core.R.string.password_enter_helper_text
                 )
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -218,7 +201,7 @@ fun CreateKeyStoreBottomSheet(
                 .padding(8.dp)
                 .align(Alignment.CenterHorizontally),
             isProgress = loadStarted,
-            buttonText = ru.barinov.ui_ext.R.string.create,
+            buttonText = ru.barinov.core.R.string.create,
         ) {
             if (enteredName.value.isNotEmpty() && passInput.value.isNotEmpty()) {
                 if (enteredName.value.hasNoSpecialSymbols()) {
@@ -242,8 +225,8 @@ private fun SupportText(errors: List<InputErrors>, @StringRes hint: Int) {
         return
     }
     val text = when (errors.first()) {
-        InputErrors.NAME_EMPTY -> ru.barinov.ui_ext.R.string.empty_keystore_name
-        InputErrors.PASSWORD_EMPTY -> ru.barinov.ui_ext.R.string.empty_password_text
+        InputErrors.NAME_EMPTY -> ru.barinov.core.R.string.empty_keystore_name
+        InputErrors.PASSWORD_EMPTY -> ru.barinov.core.R.string.empty_password_text
         InputErrors.HAS_SPECIAL_SYMBOLS -> TODO()
     }.let { stringResource(id = it) }
     Text(text = text, color = MaterialTheme.colorScheme.error)

@@ -138,6 +138,7 @@ class FileObserverViewModel(
     private fun deleteSelected() {
         viewModelScope.launch(Dispatchers.Default) {
             selectedCache.getCache().values.forEach {
+                selectedCache.remove(it.fileId)
                 when (it) {
                     is FileEntity.InternalFile -> it.attachedOrigin.delete()
                     is FileEntity.MassStorageFile -> it.attachedOrigin.delete()
@@ -154,7 +155,7 @@ class FileObserverViewModel(
             val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
             if (!selected) {
                 if(file.isDir && info is FileInfo.Dir) {
-                    _sideEffects.send(ShowInfo(ru.barinov.ui_ext.R.string.select_folder_warning))
+                    _sideEffects.send(ShowInfo(ru.barinov.core.R.string.select_folder_warning))
                 }
                 selectedCache.add(fileId, file as FileEntity)
             } else {
@@ -212,7 +213,7 @@ class FileObserverViewModel(
 
     private fun askTransactionWithSelected() {
         viewModelScope.launch {
-            _sideEffects.send(FileBrowserSideEffect.ShowAddFilesDialog)
+            _sideEffects.send(FileBrowserSideEffect.ShowAddFilesDialog(selectedCache.getCache().values))
         }
     }
 

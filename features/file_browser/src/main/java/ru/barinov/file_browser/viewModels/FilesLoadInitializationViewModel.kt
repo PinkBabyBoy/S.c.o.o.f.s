@@ -25,12 +25,13 @@ import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
 import ru.barinov.file_browser.states.FilesLoadInitializationUiState
 import ru.barinov.cryptography.hash.utils.ContainerHashExtractor
 import ru.barinov.file_browser.core.FileProvider
+import ru.barinov.file_browser.events.FileLoadInitializationEvent
+import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
 
 class FilesLoadInitializationViewModel(
     initializationMode: InitializationMode,
     fileProvider: FileProvider,
-    private val selectedCache: SelectedCache,
     private val containersManager: ContainersManager,
     private val hashValidator: HashValidator,
     private val keyMemoryCache: KeyMemoryCache,
@@ -42,35 +43,54 @@ class FilesLoadInitializationViewModel(
     val uiState = _uiState.asStateFlow()
 
     init {
+
+        val selectedFilesFlow = flow {
+            when (initializationMode) {
+                is InitializationMode.Direct
+                -> emit(
+                    listOf(
+                        fileToUiModelMapper.mapFile(
+                            fileProvider.getFileByID(initializationMode.fileId, initializationMode.source) as FileEntity, true)
+                    )
+                )
+
+                is InitializationMode.Selected
+                -> emit(initializationMode.selectedFiles.map { fileToUiModelMapper.mapFile(it, true) })
+            }
+        }.flowOn(Dispatchers.IO)
+
         viewModelScope.launch(Dispatchers.IO) {
             val key = keyMemoryCache.getPublicKey()!!.encoded
             containersManager.indexes.map { list ->
                 list.filter {
-                   hashValidator.validate(
-                       storedHash = containerHashExtractor.extractHash(it),
-                       input = key
+                    hashValidator.validate(
+                        storedHash = containerHashExtractor.extractHash(it),
+                        input = key
                     )
                 }.map { fileToUiModelMapper.mapFile(it, false) }
-            }.combine(flow {
-                if (initializationMode is InitializationMode.Direct)
-                    emit(listOf(fileToUiModelMapper.mapFile(fileProvider.getFileByID(initializationMode.fileId, initializationMode.source) as FileEntity, true)))
-                else  emit(selectedCache.getCache().values.map { fileToUiModelMapper.mapFile(it, true) })
-            }.flowOn(Dispatchers.IO), ::Pair)
+            }.combine(selectedFilesFlow, ::Pair)
 //                .catch {  }
                 .collectLatest {
-                val (containers, selectedFiles) = it
-                _uiState.emit(
-                    FilesLoadInitializationUiState(
-                        containers = containers,
-                        selectedFiles = selectedFiles
+                    val (containers, selectedFiles) = it
+                    _uiState.emit(
+                        FilesLoadInitializationUiState(
+                            containers = containers,
+                            selectedFiles = selectedFiles
+                        )
                     )
-                )
-            }
+                }
+        }
+    }
+
+    fun onEvent(event: FileLoadInitializationEvent) {
+        when(event){
+            is OnFileClicked -> _uiState.value = uiState.value.selectContainer(event.fileId)
+            FileLoadInitializationEvent.StartProcess -> TODO()
         }
     }
 }
 
-sealed interface InitializationMode{
-    data object Selected: InitializationMode
-    class Direct(val fileId: FileId, val source: Source): InitializationMode
+sealed interface InitializationMode {
+    class Selected(val selectedFiles: Collection<FileEntity>) : InitializationMode
+    class Direct(val fileId: FileId, val source: Source) : InitializationMode
 }

@@ -4,7 +4,7 @@ import ru.barinov.core.FileId
 import ru.barinov.file_browser.models.FileInfo
 import ru.barinov.file_browser.models.Sort
 
-interface FieObserverEvent
+interface FieObserverEvent //root and stub
 
 sealed interface FileBrowserEvent : FieObserverEvent {
 
@@ -30,6 +30,10 @@ sealed interface KeySelectorEvent : FieObserverEvent {
     data object UnbindKey: KeySelectorEvent
 }
 
+sealed interface FileLoadInitializationEvent: FieObserverEvent {
+    data object StartProcess: FileLoadInitializationEvent
+}
+
 sealed interface ContainersEvent : FieObserverEvent {
 
     class ContainerCreateConfirmed(val name: String): ContainersEvent
@@ -39,6 +43,6 @@ data object OnBackPressed : FileBrowserEvent, KeySelectorEvent
 
 class OnFileClicked(
     val fileId: FileId, val selectionMode: Boolean, val fileInfo: FileInfo
-) : FileBrowserEvent, KeySelectorEvent, ContainersEvent
+) : FileBrowserEvent, KeySelectorEvent, ContainersEvent, FileLoadInitializationEvent
 
 data object SourceChanged : FileBrowserEvent, KeySelectorEvent

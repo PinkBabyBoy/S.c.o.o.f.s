@@ -13,27 +13,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ru.barinov.core.ui.bsContainerColor
 
 
 @Composable
 fun UsbInfoBottomSheet(
     onDismissRequested: () -> Unit
 ) {
-    InfoBottomSheet(ru.barinov.ui_ext.R.string.usb_static_text, onDismissRequested)
+    InfoBottomSheet(ru.barinov.core.R.string.usb_static_text, onDismissRequested)
 }
 
 @Composable
 fun PermissionInfoBottomSheet(
     onDismissRequested: () -> Unit
 ) {
-    InfoBottomSheet(ru.barinov.ui_ext.R.string.permission_static_text, onDismissRequested)
+    InfoBottomSheet(ru.barinov.core.R.string.permission_static_text, onDismissRequested)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InfoBottomSheet(@StringRes text: Int, onDismissRequested: () -> Unit) {
     ModalBottomSheet(
-        containerColor = Color.White,
+        containerColor = bsContainerColor,
         onDismissRequest = { onDismissRequested() }
     ) {
         Spacer(modifier = Modifier.height(16.dp))

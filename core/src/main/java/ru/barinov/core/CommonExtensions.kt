@@ -1,6 +1,8 @@
 package ru.barinov.core
 
 import android.content.Context
+import android.content.res.Resources
+import android.util.TypedValue
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -111,4 +113,10 @@ fun Int.getBytes(): ByteArray{
 fun Long.mb(): Float = (this / (1024 * 1024)).toFloat()
 
 fun String.hasNoSpecialSymbols() = !matches("^[a-zA-Z0-9]{4,10}\$".toRegex())
+
+fun getScreenHeightWithLOffset(offsetTopDp: Int): Int {
+   return Resources.getSystem().displayMetrics.heightPixels.pxToDp() - offsetTopDp
+}
+
+fun Int.pxToDp(): Int = (this / Resources.getSystem().displayMetrics.density).toInt()
 

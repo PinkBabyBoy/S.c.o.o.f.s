@@ -98,7 +98,6 @@ val fileObserverModule = module {
         FilesLoadInitializationViewModel(
             fileProvider = get(Qualifiers.sharedFileTreeProvider),
             initializationMode = parameter.get(),
-            selectedCache = get(),
             containersManager = get(),
             hashValidator = get(),
             keyMemoryCache = get(),
@@ -117,6 +116,7 @@ val fileObserverModule = module {
             fileToUiModelMapper = get(),
             createContainerUseCase = get(),
             keyManager = get(),
+            workersManager = get()
         )
     }
 

@@ -65,5 +65,4 @@ dependencies {
     implementation(project(":permission_manager"))
     implementation(project(":transaction_manager"))
     implementation(project(":features:protected_enter:routes"))
-    implementation(project(":core:ui_ext"))
 }

@@ -43,6 +43,7 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
     isPageEmpty: Boolean,
     isInRoot: Boolean,
     showLoading: Boolean,
+    additionalInfoEnabled: Boolean = true,
     actions: Set<@Composable (RowScope) -> Unit> = emptySet()
 ) {
     val selectionMode = remember { mutableStateOf(false) }
@@ -90,7 +91,8 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
                             toggleSelection = { selectionMode.value = !selectionMode.value },
                             selectionAvailable = isSelectionEnabled,
                             onEvent = { onEvent(it) },
-                            showLoading = showLoading
+                            showLoading = showLoading,
+                            additionalInfoEnabled = additionalInfoEnabled
                         )
                     } else LoaderPlaceholder()
                 }

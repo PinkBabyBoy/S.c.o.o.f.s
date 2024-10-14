@@ -21,10 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
@@ -42,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
@@ -53,15 +49,15 @@ import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
-import ru.barinov.file_browser.sideEffects.ImageFileDetailsSideEffects
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.file_browser.toImageDetails
 import ru.barinov.file_browser.viewModels.InitializationMode
-import ru.barinov.ui_ext.BottomSheetPolicy
-import ru.barinov.ui_ext.SingleEventEffect
-import ru.barinov.ui_ext.getArgs
-import ru.barinov.ui_ext.shouldShow
+import ru.barinov.core.ui.BottomSheetPolicy
+import ru.barinov.core.ui.ScoofAlertDialog
+import ru.barinov.core.ui.SingleEventEffect
+import ru.barinov.core.ui.getArgs
+import ru.barinov.core.ui.shouldShow
 
 @Composable
 fun FileBrowserScreen(
@@ -85,14 +81,16 @@ fun FileBrowserScreen(
             -> navController.navigate(toImageDetails(sideEffect.fileId, sideEffect.source))
 
             is FileBrowserSideEffect.ShowAddFilesDialog -> {
-                confirmBsExpanded.value = BottomSheetPolicy.Expanded(InitializationMode.Selected)
+                confirmBsExpanded.value = BottomSheetPolicy.Expanded(InitializationMode.Selected(sideEffect.selectedFiles))
             }
         }
     }
 
     if (deleteDialogVisible.value) {
-        DeleteSelectedAlertDialog(
-            dismiss = { deleteDialogVisible.value = false },
+        ScoofAlertDialog(
+            title = "Delete selected?",
+            message = "All selected files will be removed",
+            onDismissRequest = { deleteDialogVisible.value = false },
             onConfirmed = {
                 onEvent(FileBrowserEvent.DeleteSelected)
                 deleteDialogVisible.value = false
@@ -110,9 +108,7 @@ fun FileBrowserScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center)
             ) {
-                Text(
-                    text = "First, need to load key",
-                )
+                Text(text = "First, need to load key")
                 Image(
                     painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
                     contentDescription = null
@@ -206,7 +202,7 @@ private fun buildActions(
         add { Spacer(modifier = Modifier.width(16.dp)) }
         add {
             Icon(
-                painter = painterResource(id = ru.barinov.ui_ext.R.drawable.baseline_delete_outline_24),
+                painter = painterResource(id = ru.barinov.core.R.drawable.baseline_delete_outline_24),
                 contentDescription = null,
                 modifier = Modifier
                     .clickable {
@@ -259,27 +255,4 @@ private fun buildActions(
         }
         add { Spacer(modifier = Modifier.width(16.dp)) }
     }
-}
-
-@Composable
-fun DeleteSelectedAlertDialog(dismiss: () -> Unit, onConfirmed: () -> Unit) {
-    AlertDialog(
-        title = {
-            Text(text = "Delete selected?")
-        },
-        text = {
-            Text(text = "All selected files will be removed")
-        },
-        onDismissRequest = { dismiss() },
-        dismissButton = {
-            Button(onClick = dismiss) {
-                Text(text = stringResource(id = android.R.string.cancel))
-            }
-        },
-        confirmButton = {
-            Button(onClick = onConfirmed) {
-                Text(text = stringResource(id = android.R.string.ok))
-            }
-        }
-    )
 }

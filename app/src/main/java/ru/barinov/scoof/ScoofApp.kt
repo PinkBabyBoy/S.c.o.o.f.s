@@ -19,6 +19,7 @@ import ru.barinov.component_initializer.PreferencesInitializer
 import ru.barinov.component_initializer.ProtectedEnterInitializer
 import ru.barinov.component_initializer.TransactionManagerInitializer
 import ru.barinov.component_initializer.UsbConnectionInitializer
+import ru.barinov.component_initializer.WorkersInitializer
 import ru.barinov.usb_connection.MsdConnectionBroadcastReceiver
 
 class ScoofApp: Application() {
@@ -32,6 +33,7 @@ class ScoofApp: Application() {
         }
         AppInitializer.getInstance(this).apply {
             initializeComponent(ProtectedEnterInitializer::class.java)
+            initializeComponent(WorkersInitializer::class.java)
             initializeComponent(PasswordManagerInitializer::class.java)
             initializeComponent(PreferencesInitializer::class.java)
             initializeComponent(MsdProviderInitializer::class.java)

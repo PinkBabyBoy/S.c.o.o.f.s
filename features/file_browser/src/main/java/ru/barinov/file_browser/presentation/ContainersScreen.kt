@@ -1,29 +1,18 @@
 package ru.barinov.file_browser.presentation
 
 import androidx.activity.compose.BackHandler
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -41,22 +30,15 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import ru.barinov.core.topBarHeaderStyle
-import ru.barinov.file_browser.R
-import ru.barinov.file_browser.args.KeyLoadBottomSheetArgs
 import ru.barinov.file_browser.events.ContainersEvent
-import ru.barinov.file_browser.events.FieObserverEvent
-import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnFileClicked
-import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.ContainersSideEffect
-import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
 import ru.barinov.file_browser.states.ContainersUiState
-import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.file_browser.toContainerContent
-import ru.barinov.ui_ext.BottomSheetPolicy
-import ru.barinov.ui_ext.SingleEventEffect
-import ru.barinov.ui_ext.getActivity
+import ru.barinov.core.ui.ScoofAlertDialog
+import ru.barinov.core.ui.SingleEventEffect
+import ru.barinov.core.ui.getActivity
+import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,7 +81,7 @@ fun Containers(
                 isContainerCreateBsExpanded = isContainerCreateBsExpanded,
                 snackbarHostState = snackbarHostState,
                 coroutine = coroutineScope,
-                snackbarText = stringResource(id = ru.barinov.ui_ext.R.string.key_not_loaded_containers)
+                snackbarText = stringResource(id = ru.barinov.core.R.string.key_not_loaded_containers)
             )
         )
         LazyColumn {
@@ -119,16 +101,23 @@ fun Containers(
                                 }
                             }
                         },
-                        showLoading = false
+                        showLoading = false,
+                        additionalInfoEnabled = true
                     )
                 }
             }
         }
     }
 
-    if(exitConfirmDialogVisible.value) {
-        ExitDialog(
-            onExit = { context.getActivity()?.finish() },
+    if (exitConfirmDialogVisible.value) {
+        ScoofAlertDialog(
+            title = "Exit the application?",
+            message = "Key should be loaded again on next start",
+            onConfirmed = {
+                context.getActivity()?.finish()
+                if (!state.hasActiveWork)
+                    exitProcess(0)
+            },
             onDismissRequest = { exitConfirmDialogVisible.value = false }
         )
     }
