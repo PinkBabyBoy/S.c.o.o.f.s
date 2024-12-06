@@ -22,10 +22,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -39,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
@@ -58,6 +61,10 @@ import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.getArgs
 import ru.barinov.core.ui.shouldShow
+import ru.barinov.file_browser.events.OnboardingFinished
+import ru.barinov.onboarding.OnBoarding
+import ru.barinov.onboarding.OnboardingState
+import ru.barinov.onboarding.orEmpty
 
 @Composable
 fun FileBrowserScreen(
@@ -159,7 +166,7 @@ fun FileBrowserScreen(
         }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 private fun buildActions(
     state: FileBrowserUiState,
     onEvent: (FileBrowserEvent) -> Unit,
@@ -167,37 +174,49 @@ private fun buildActions(
 ): Set<@Composable (RowScope) -> Unit> = buildSet {
     if (state.hasSelected) {
         add {
-            BadgedBox(
-                badge = {
-                    Text(
-                        text = state.selectedCount.toString(),
-                        Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(start = 8.dp),
-                        Color.Red,
-                    )
-                },
-                modifier = Modifier.padding(8.dp)
+            val onbData = state.fileBrowserOnboarding[OnBoarding.ADD_SELECTED].orEmpty()
+            OnBoarding(
+                title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
+                state = onbData,
+                tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
+                onClick = {onEvent(OnboardingFinished(OnBoarding.ADD_SELECTED))},
+                width = 42.dp,
+                hasNext = false
             ) {
-                Icon(
-                    painter = painterResource(id = ru.barinov.core.R.drawable.baseline_post_add_24),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .combinedClickable(
-                            interactionSource = remember { mutableStateOf(MutableInteractionSource()) }.value,
-                            indication = ripple(),
-                            onLongClick = {
-                                onEvent(FileBrowserEvent.RemoveSelection)
-                            },
-                            onClick = {
-                                onEvent(FileBrowserEvent.AddSelection)
-                            }
+                BadgedBox(
+                    badge = {
+                        Text(
+                            text = state.selectedCount.toString(),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(start = 8.dp),
+                            color = Color.Red,
                         )
-                        .size(26.dp),
-                    tint = Color.Black
-                )
-            }
+                    },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = ru.barinov.core.R.drawable.baseline_post_add_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .combinedClickable(
+                                interactionSource = remember {
+                                    mutableStateOf( MutableInteractionSource() )
+                                }.value,
+                                indication = ripple(),
+                                onLongClick = {
+                                    onEvent(FileBrowserEvent.RemoveSelection)
+                                },
+                                onClick = {
+                                    onEvent(FileBrowserEvent.AddSelection)
+                                }
+                            )
+                            .size(26.dp),
+                        tint = Color.Black
+                    )
+                }
 
+            }
         }
         add { Spacer(modifier = Modifier.width(16.dp)) }
         add {
@@ -216,41 +235,61 @@ private fun buildActions(
     }
     if (state.sourceState.isMsdAttached) {
         add {
-            Icon(
-                painter = painterResource(
-                    id = if (state.sourceState.currentSource == Source.INTERNAL)
-                        ru.barinov.core.R.drawable.baseline_sd_storage_24
-                    else ru.barinov.core.R.drawable.mass_storage_device
-                ),
-                contentDescription = null,
-                modifier = Modifier
-                    .clickable {
-                        onEvent(SourceChanged)
-                    }
-                    .size(26.dp),
-                tint = if (state.sourceState.currentSource == Source.INTERNAL) Color.Black else LocalContentColor.current
-            )
+            val onbData = state.fileBrowserOnboarding[OnBoarding.CHANGE_SOURCE].orEmpty()
+            OnBoarding(
+                title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
+                state = onbData,
+                tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
+                onClick = {onEvent(OnboardingFinished(OnBoarding.CHANGE_SOURCE))},
+                width = 42.dp,
+                hasNext = false
+            ) {
+                Icon(
+                    painter = painterResource(
+                        id = if (state.sourceState.currentSource == Source.INTERNAL)
+                            ru.barinov.core.R.drawable.baseline_sd_storage_24
+                        else ru.barinov.core.R.drawable.mass_storage_device
+                    ),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clickable {
+                            onEvent(SourceChanged)
+                        }
+                        .size(26.dp),
+                    tint = if (state.sourceState.currentSource == Source.INTERNAL) Color.Black else LocalContentColor.current
+                )
+            }
         }
         add { Spacer(modifier = Modifier.width(16.dp)) }
     }
     if (!state.isPageEmpty) {
         add {
-            val sortDropDownExpanded = remember { mutableStateOf(false) }
-            Box {
-                Icon(
-                    painter = painterResource(id = ru.barinov.core.R.drawable.outline_sort_24),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable { sortDropDownExpanded.value = true }
-                        .size(26.dp),
-                    tint = Color.Black
-                )
-                SortDropDownMenu(
-                    isExpanded = sortDropDownExpanded.value,
-                    selectedSort = state.selectedSortType,
-                    onDismissRequest = { sortDropDownExpanded.value = false },
-                    onEvent = { onEvent(it) }
-                )
+            val onbData = state.fileBrowserOnboarding[OnBoarding.SORT_FILES].orEmpty()
+            OnBoarding(
+                title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
+                state = onbData,
+                tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
+                onClick = {onEvent(OnboardingFinished(OnBoarding.SORT_FILES))},
+                width = 42.dp,
+                hasNext = false
+            ) {
+                val sortDropDownExpanded = remember { mutableStateOf(false) }
+                Box {
+                    Icon(
+                        painter = painterResource(id = ru.barinov.core.R.drawable.outline_sort_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clickable { sortDropDownExpanded.value = true }
+                            .size(26.dp),
+                        tint = Color.Black
+                    )
+                    SortDropDownMenu(
+                        isExpanded = sortDropDownExpanded.value,
+                        selectedSort = state.selectedSortType,
+                        onDismissRequest = { sortDropDownExpanded.value = false },
+                        onEvent = { onEvent(it) }
+                    )
+                }
             }
         }
         add { Spacer(modifier = Modifier.width(16.dp)) }

@@ -44,6 +44,8 @@ sealed class FileEntity(
     val parent: Addable?
 ) {
 
+    abstract suspend fun calculateSize(): Long
+
     abstract fun containsCount(): Int?
 
     class MassStorageFile internal constructor(
@@ -61,6 +63,10 @@ sealed class FileEntity(
         override fun innerFiles(): Map<FileId, FileEntity> = runCatching {
             attachedOrigin.listFiles().map { it.toInternalFileEntity() }.associateBy { it.fileId }
         }.getOrNull() ?: emptyMap()
+
+        override suspend fun calculateSize(): Long =
+            if(isDir) attachedOrigin.listFiles().sumOf { it.length }
+            else size.value
 
         override suspend fun innerFilesAsync(): Map<FileId, FileEntity> = coroutineScope {
             runCatching {
@@ -89,6 +95,10 @@ sealed class FileEntity(
             attachedOrigin.listFiles()?.map { it.toInternalFileEntity() }?.associateBy { it.fileId }
         }.getOrNull() ?: emptyMap()
 
+        override suspend fun calculateSize(): Long =
+            if(isDir) attachedOrigin.listFiles()?.sumOf { it.length() } ?: 0L
+            else size.value
+
         override suspend fun innerFilesAsync(): Map<FileId, FileEntity> = coroutineScope {
             runCatching {
                 attachedOrigin.listFiles()?.map {
@@ -113,6 +123,10 @@ sealed class FileEntity(
         path = Filepath(attachedOrigin.path),
         parent = null
     ) {
+        override suspend fun calculateSize(): Long {
+            TODO("Not yet implemented")
+        }
+
         override fun containsCount(): Int {
             TODO("Not yet implemented")
         }
@@ -158,3 +172,5 @@ fun Addable.outputStream(): OutputStream {
         is FileEntity.MassStorageFile -> UsbFileOutputStream(attachedOrigin)
     }
 }
+
+typealias FileEntityBundle = Pair<FileEntity, FileIndex.FileType>

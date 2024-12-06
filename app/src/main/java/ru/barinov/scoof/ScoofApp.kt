@@ -7,6 +7,7 @@ import androidx.startup.AppInitializer
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import ru.barinov.component_initializer.CoreModuleInitializer
 import ru.barinov.component_initializer.CryptographyInitializer
 import ru.barinov.component_initializer.EnterScreenInitializer
 import ru.barinov.component_initializer.FileObserverInitializer
@@ -32,6 +33,7 @@ class ScoofApp: Application() {
             androidContext(this@ScoofApp)
         }
         AppInitializer.getInstance(this).apply {
+            initializeComponent(CoreModuleInitializer::class.java)
             initializeComponent(ProtectedEnterInitializer::class.java)
             initializeComponent(WorkersInitializer::class.java)
             initializeComponent(PasswordManagerInitializer::class.java)

@@ -16,4 +16,16 @@ internal object Qualifiers {
             get() = "ns_file_tree_provider"
 
     }
+
+    val kpOnboardings = object : Qualifier {
+        override val value: QualifierValue
+            get() = "kp_onboardings"
+
+    }
+
+    val fbOnboardings = object : Qualifier {
+        override val value: QualifierValue
+            get() = "fb_onboardings"
+
+    }
 }

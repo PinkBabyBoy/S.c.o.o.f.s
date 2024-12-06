@@ -1,27 +1,21 @@
 package ru.barinov.transaction_manager
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import ru.barinov.core.Addable
 import ru.barinov.core.FileEntity
-import ru.barinov.core.launchCatching
 import ru.barinov.core.launchWithMutex
 import ru.barinov.core.truncate
 import ru.barinov.write_worker.WriteFileWorker
-import java.io.IOException
 import java.lang.Exception
-import java.security.InvalidKeyException
-import java.security.NoSuchAlgorithmException
 import java.util.UUID
-import kotlin.coroutines.CoroutineContext
 
-private const val SHORT_TRANSACTION_LIMIT = 2000
+private const val SHORT_TRANSACTION_LIMIT = 7
 
 internal class FileWriterImpl(
     private val getCurrentContainerUseCase: GetCurrentContainerUseCase,
@@ -30,29 +24,16 @@ internal class FileWriterImpl(
 ) : FileWriter {
 
     private val serviceCoroutine =
-        CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler(::handleException))
-
-    private val _events = MutableSharedFlow<FailReason>()
-    val events = _events.asSharedFlow()
+        CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> })
 
 
     private val mutex = Mutex()
 
     private val transactionsRegister: MutableMap<UUID, Transaction> = mutableMapOf()
 
-    private fun handleException(coroutineContext: CoroutineContext, throwable: Throwable) {
-
-        fun toFailReason(t: Throwable): FailReason =
-            when (t) {
-                else -> FailReason.UnknownInternalException
-            }
-
-        serviceCoroutine.launch {
-            when (throwable) {
-                is TransactionError -> _events.emit(toFailReason(throwable))
-                else -> _events.emit(FailReason.UnknownInternalException)
-            }
-        }
+    private fun handleException(throwable: Throwable) {
+        //TODO
+        throw throwable
     }
 
     override fun clearStoredData() {
@@ -62,97 +43,100 @@ internal class FileWriterImpl(
         }
     }
 
-    override fun startTransaction(
+    override fun evaluateTransaction(
+        containersName: String,
         files: List<FileEntity>,
-        onShortTransaction: (Result<Unit>) -> Unit,
-        onLongTransaction: (InitialTransactionData) -> Unit
+        onEvaluated: (InitialTransactionData, Boolean) -> Unit
     ) {
         serviceCoroutine.launchWithMutex(mutex) {
-            val size = files.sumOf { it.size.value }
-            val containerData = getCurrentContainerUseCase()
-            if (size > SHORT_TRANSACTION_LIMIT) {
-                val result = shortTransaction(files, containerData)
-                onShortTransaction(result)
-            } else {
-                val transaction = registerLongTransaction(files, containerData, size)
-                onLongTransaction(transaction)
-            }
+            val size = files.sumOf { it.calculateSize() }
+            val containerData = getCurrentContainerUseCase(containersName)
+            val isLongTransaction = size > SHORT_TRANSACTION_LIMIT
+            val transaction = registerTransaction(files, containerData, size)
+            onEvaluated(transaction, isLongTransaction)
         }
     }
 
-    private fun shortTransaction(
-        files: List<FileEntity>,
-        containerData: ContainerData
-    ): Result<Unit> = runCatching {
-        files.forEach { file ->
-            serviceCoroutine.launchWithMutex(mutex) {
+//    private suspend fun shortTransaction(
+//        files: List<FileEntity>,
+//        containerData: ContainerData
+//    ): Result<Unit> = runCatching {
+//        files.forEach { file ->
+//            writeFieWorker.putInStorage(
+//                0L,
+//                targetFile = file,
+//                progressCallback = null,
+//                indexes = containerData.indexes,
+//                container = containerData.container
+//            )
+//        }
+//    }.onFailure {
+//        containerData.container.truncate(containerData.initialSize)
+//        containerData.indexes.truncate(containerData.initialSize)
+//    }
+
+    override suspend fun startTransactionToContainer(
+        transactionUUID: UUID,
+        progressCallback: (Long) -> Unit
+    ) = mutex.withLock {
+        val transaction = transactionsRegister[transactionUUID] ?: throw IllegalStateException()
+        runCatching {
+            var currentFileName = String()
+            var currentIndex = 0
+            transaction.changeState(Transaction.State.STARTED)
+            val containerData = transaction.containerData
+
+            transaction.files.flatMapFiles().forEach { file ->
+                Log.d("@@@", "WR FILE $currentIndex")
+                currentFileName = file.name.value
                 writeFieWorker.putInStorage(
                     targetFile = file,
-                    progressFlow = null,
+                    progressCallback = progressCallback,
                     indexes = containerData.indexes,
                     container = containerData.container
                 )
+                currentIndex++
             }
-        }
+        }.onFailure {
+            val containerData = transaction.containerData
+            containerData.container.truncate(containerData.initialSize)
+            containerData.indexes.truncate(containerData.initialSize)
+        }.onSuccess { transaction.changeState(Transaction.State.FINISHED) }.getOrThrow()
     }
 
-    override fun startTransactionToContainer(transactionUUID: UUID) {
-        val transaction = transactionsRegister[transactionUUID]
-        var currentFileName = String()
-        var currentIndex = 0
-        suspend fun execute() {
-            mutex.withLock {
-                if (transaction == null) {
-                    _events.emit(FailReason.TransactionNotFound)
-                    return
-                }
-                transaction.changeState(Transaction.State.STARTED)
-                val containerData = transaction.containerData
+//        fun onTransactionError(t: Throwable) {
+//            Log.e("@@@", "${t.stackTraceToString()}")
+//            fun mapToReason(t: Throwable): TransactionError.Reason =
+//                when (t) {
+//                    is IOException -> TransactionError.Reason.CONNECTION_FAIL
+//                    is NoSuchAlgorithmException, is InvalidKeyException -> TransactionError.Reason.CIPHER_FAIL
+//                    else -> {
+//                        error("")
+//                    }
+//                }
+//
+//            val containerData = transaction?.containerData ?: throw TransactionError(
+//                String(), 0, 0, TransactionError.Reason.TRANSACTION_NOT_FOUND
+//            )
+//
+//            val container = containerData.container
+//            container.truncate(containerData.initialSize)
+//            throw TransactionError(
+//                fileName = currentFileName,
+//                resultSuccess = currentIndex,
+//                total = transaction.files.size,
+//                reason = mapToReason(t)
+//            )
+//        }
+//
+//        return serviceCoroutine.launchCatching(
+//            block = (::execute),
+//            onError = (::onTransactionError),
+//            onSuccess = { transaction?.changeState(Transaction.State.FINISHED) }
+//        )
+//}
 
-                transaction.files.forEach { file ->
-                    currentIndex++
-                    currentFileName = file.name.value
-                    writeFieWorker.putInStorage(
-                        targetFile = file,
-                        progressFlow = transaction.progressFlow,
-                        indexes = containerData.indexes,
-                        container = containerData.container
-                    )
-                }
-            }
-        }
-
-        fun onTransactionError(t: Throwable) {
-
-            fun mapToReason(t: Throwable): TransactionError.Reason =
-                when (t) {
-                    is IOException -> TransactionError.Reason.CONNECTION_FAIL
-                    is NoSuchAlgorithmException, is InvalidKeyException -> TransactionError.Reason.CIPHER_FAIL
-                    else -> { error("") }
-                }
-
-            val containerData = transaction?.containerData ?: throw TransactionError(
-                String(), 0, 0, TransactionError.Reason.TRANSACTION_NOT_FOUND
-            )
-
-            val container = containerData.container
-            container.truncate(containerData.initialSize)
-            throw TransactionError(
-                fileName = currentFileName,
-                resultSuccess = currentIndex,
-                total = transaction.files.size,
-                reason = mapToReason(t)
-            )
-        }
-
-        serviceCoroutine.launchCatching(
-            block = (::execute),
-            onError = (::onTransactionError),
-            onSuccess = { transaction?.changeState(Transaction.State.FINISHED) }
-        )
-    }
-
-    private fun registerLongTransaction(
+    private fun registerTransaction(
         files: List<FileEntity>,
         containerData: ContainerData,
         size: Long
@@ -160,7 +144,7 @@ internal class FileWriterImpl(
         val transactionUUID = UUID.randomUUID()
 
         transactionsRegister[transactionUUID] =
-            Transaction(transactionUUID, MutableSharedFlow(), files, containerData)
+            Transaction(transactionUUID, files, containerData)
         return InitialTransactionData(
             uuid = transactionUUID,
             totalSize = size
@@ -187,4 +171,10 @@ class TransactionError(fileName: String, resultSuccess: Int, total: Int, reason:
     enum class Reason {
         CONNECTION_FAIL, INDEX_CREATION_FAIL, CIPHER_FAIL, KEY_READ_FAIL, KEY_NOT_LOADED, TRANSACTION_NOT_FOUND
     }
+}
+
+private suspend fun Collection<FileEntity>.flatMapFiles(): List<FileEntity> {
+    val files = filter { !it.isDir }
+    val folders = filter { it.isDir }
+    return files + folders.map { (it as Addable).innerFilesAsync().values.flatMapFiles() }.flatten()
 }

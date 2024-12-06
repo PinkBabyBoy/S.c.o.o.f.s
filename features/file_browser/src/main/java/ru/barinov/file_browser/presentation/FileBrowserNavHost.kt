@@ -60,7 +60,7 @@ fun FileBrowserNavHost(
         composable<ContainersContent> {
             val args: ContainersContent = it.toRoute()
             val vm: ContainerContentViewModel =
-                koinViewModel(parameters = { parametersOf(FileId.restore(args.fileId)) })
+                koinViewModel(parameters = { parametersOf(args.fileId) })
             ContainerContent()
         }
 

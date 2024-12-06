@@ -2,11 +2,12 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     kotlin("plugin.serialization") version libs.versions.kotlin
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "ru.barinov.file_browser"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 29
@@ -24,6 +25,9 @@ android {
             )
         }
     }
+//    composeCompiler {
+//        stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
+//    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -31,18 +35,16 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
     kotlinOptions {
         jvmTarget = "1.8"
     }
 }
 
 dependencies {
-    implementation("androidx.paging:paging-compose:3.3.2")
-    implementation("androidx.paging:paging-runtime-ktx:3.3.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
+    implementation("androidx.paging:paging-compose:3.3.4")
+    implementation("androidx.paging:paging-runtime-ktx:3.3.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("io.coil-kt:coil-compose-base:2.7.0")
 //    implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
     implementation(libs.libaums)
     implementation(libs.androidx.ui)
@@ -58,15 +60,17 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(project(":features:protected_enter:routes"))
-    implementation(project(":file_works:read_worker"))
-    implementation(project(":file_process_worker"))
+    implementation(project(":features:onboarding"))
+    implementation(project(":preferences"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation(project(":features:protected_enter:routes"))
+    implementation(project(":file_works:read_worker"))
+    implementation(project(":file_process_worker"))
     implementation(project(":core"))
     implementation(project(":providers:external_data"))
     implementation(project(":providers:internal_data"))

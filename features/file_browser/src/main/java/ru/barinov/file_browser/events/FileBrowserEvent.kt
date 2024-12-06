@@ -1,8 +1,9 @@
 package ru.barinov.file_browser.events
 
 import ru.barinov.core.FileId
-import ru.barinov.file_browser.models.FileInfo
+import ru.barinov.core.FileTypeInfo
 import ru.barinov.file_browser.models.Sort
+import ru.barinov.onboarding.OnBoarding
 
 interface FieObserverEvent //root and stub
 
@@ -42,7 +43,9 @@ sealed interface ContainersEvent : FieObserverEvent {
 data object OnBackPressed : FileBrowserEvent, KeySelectorEvent
 
 class OnFileClicked(
-    val fileId: FileId, val selectionMode: Boolean, val fileInfo: FileInfo
+    val fileId: FileId, val selectionMode: Boolean, val fileInfo: FileTypeInfo, val isDir: Boolean
 ) : FileBrowserEvent, KeySelectorEvent, ContainersEvent, FileLoadInitializationEvent
 
 data object SourceChanged : FileBrowserEvent, KeySelectorEvent
+
+class OnboardingFinished(val onBoarding: OnBoarding): FileBrowserEvent, KeySelectorEvent

@@ -5,13 +5,13 @@ import java.util.UUID
 
 interface FileWriter: Cleaner {
 
-    fun startTransaction(
+    fun evaluateTransaction(
+        containersName: String,
         files: List<FileEntity>,
-        onShortTransaction: (Result<Unit>) -> Unit,
-        onLongTransaction: (InitialTransactionData) -> Unit
+        onEvaluated: (InitialTransactionData, Boolean) -> Unit
     )
 
-    fun startTransactionToContainer(transactionUUID: UUID)
+    suspend fun startTransactionToContainer(transactionUUID: UUID, progressCallback: (Long) -> Unit)
 
     fun clearByUUID(uuid: UUID)
 }

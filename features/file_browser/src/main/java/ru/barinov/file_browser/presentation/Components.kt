@@ -1,19 +1,31 @@
 package ru.barinov.file_browser.presentation
 
+import android.os.Build
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.tappableElement
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
@@ -21,21 +33,25 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -45,11 +61,13 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import me.jahnen.libaums.core.BuildConfig
 import ru.barinov.core.topBarHeader
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.models.Sort
 import ru.barinov.file_browser.models.TopLevelScreen
 import ru.barinov.core.ui.mainGreen
+import ru.barinov.onboarding.OnBoarding
 
 private val fileBrowserTopLevelScreens = setOf(
     TopLevelScreen(
@@ -92,16 +110,20 @@ private val sortTypes = listOf(
     )
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserBottomNavBar(
     navController: NavController
 ) {
+//    val sides = if(VERSION.SDK_INT >= VERSION_CODES.VANILLA_ICE_CREAM)
+//        WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+//    else  WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
     val currentEntry = navController.currentBackStackEntryAsState().value
     NavigationBar(
         containerColor = mainGreen,
         modifier = Modifier
             .windowInsetsPadding(
-                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                WindowInsets.safeDrawing.only( WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
             )
             .padding(horizontal = 12.dp)
             .height(64.dp)
@@ -109,28 +131,28 @@ fun BrowserBottomNavBar(
     ) {
         fileBrowserTopLevelScreens.forEach { destination ->
             val selected = currentEntry.isSelected(destination.rout)
-            NavigationBarItem(
-                colors = NavigationBarItemDefaults.colors().copy(
-                    selectedTextColor = Color(0xFFF0EFEF),
-                    selectedIndicatorColor = Color(0xFFF0EFEF)
-                ),
-                alwaysShowLabel = selected,
-                selected = selected,
-                icon = { NavigationIcon(destination.iconImgDrawable, selected) },
-                label = { NavigationItemLabel(destination) },
-                onClick = {
-                    if (!selected) {
-                        navController.navigate(destination.rout.name) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                NavigationBarItem(
+                    colors = NavigationBarItemDefaults.colors().copy(
+                        selectedTextColor = Color(0xFFF0EFEF),
+                        selectedIndicatorColor = Color(0xFFF0EFEF)
+                    ),
+                    alwaysShowLabel = selected,
+                    selected = selected,
+                    icon = { NavigationIcon(destination.iconImgDrawable, selected) },
+                    label = { NavigationItemLabel(destination) },
+                    onClick = {
+                        if (!selected) {
+                            navController.navigate(destination.rout.name) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                restoreState = true
+                                launchSingleTop = true
                             }
-                            restoreState = true
-                            launchSingleTop = true
                         }
                     }
-                }
-            )
-        }
+                )
+            }
 
     }
 }
@@ -244,4 +266,30 @@ fun SortDropDownMenu(
             )
         }
     }
+}
+
+@Composable
+fun ProtectNavigationBar(modifier: Modifier = Modifier) {
+    val density = LocalDensity.current
+    val tappableElement = WindowInsets.tappableElement
+    val navigationBars = WindowInsets.navigationBars
+    val bottomPixels = tappableElement.getBottom(density)
+    val usingTappableBars = remember(bottomPixels) { bottomPixels != 0 }
+    val barHeight = remember(bottomPixels) {
+        if(usingTappableBars)
+        tappableElement.asPaddingValues(density).calculateBottomPadding()
+        else navigationBars.asPaddingValues(density).calculateBottomPadding()
+    }
+
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Spacer(
+                modifier = Modifier
+                    .background(mainGreen)
+                    .fillMaxWidth()
+                    .height(barHeight)
+            )
+        }
 }

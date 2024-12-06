@@ -4,12 +4,17 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -26,8 +31,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import ru.barinov.core.ui.ColorPair
-import ru.barinov.core.ui.DecorStyle
 import ru.barinov.core.ui.getActivity
 import ru.barinov.core.ui.mainGreen
 
@@ -65,21 +68,12 @@ fun FileBrowserHomeScreen(mainController: NavController) {
                 visible = bottomBarVisibility.value,
                 enter = fadeIn(),
                 exit = fadeOut()
-                ) {
-                BrowserBottomNavBar(navController = localNavController)
-            }
+            ) { BrowserBottomNavBar(navController = localNavController) }
 
         },
     ) {
-        DecorStyle(
-            ColorPair((0xFFFCFFFD).toInt(), (0xFFFCFFFD).toInt()),
-            ColorPair((0xFF65C08F).toInt(), (0xFF65C08F).toInt()),
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = it.calculateTopPadding())
-        ) {
+        Column (modifier = Modifier.fillMaxSize()) {
+            Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars).fillMaxWidth().background(Color.White))
             FileBrowserNavHost(
                 navController = localNavController,
                 startDestination = FileBrowserRout.CONTAINERS.name,
@@ -88,6 +82,11 @@ fun FileBrowserHomeScreen(mainController: NavController) {
                 bottomNavBarVisibility = { bottomBarVisibility.value = it }
             )
         }
+            AnimatedVisibility(
+                visible = bottomBarVisibility.value,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) { ProtectNavigationBar() }
 
     }
 }

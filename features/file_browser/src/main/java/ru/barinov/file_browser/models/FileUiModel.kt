@@ -2,14 +2,18 @@ package ru.barinov.file_browser.models
 
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import ru.barinov.core.FileId
 import ru.barinov.core.FileSize
+import ru.barinov.core.FileTypeInfo
 import ru.barinov.core.Source
 
-@Stable
+@Immutable
 data class FileUiModel(
     val fileId: FileId,
     val filePath: String,
@@ -20,14 +24,7 @@ data class FileUiModel(
     val size: FileSize,
     @DrawableRes val placeholderRes: Int,
     val isSelected: Boolean,
-    @Stable
-    val info: MutableState<FileInfo>
+    val info: StateFlow<FileTypeInfo>,
 )
 
-sealed interface FileInfo {
-    data object Unconfirmed : FileInfo
-    class Other(val bigFile: Boolean, val size: String) : FileInfo
-    class ImageFile(val bitmapPreview: Bitmap, val size: String) : FileInfo
-    class Dir(val contentText: String, val count: Int) : FileInfo
-    class Index(val creationDate: String) : FileInfo
-}
+

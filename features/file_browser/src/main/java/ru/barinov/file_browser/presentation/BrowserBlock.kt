@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.presentation
 
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.OnBackPressed
+import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.models.FileUiModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,10 +51,16 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
 ) {
     val selectionMode = remember { mutableStateOf(false) }
     val folderFiles = files.collectAsLazyPagingItems(Dispatchers.IO)
+    val appBarState = rememberTopAppBarState()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(appBarState)
     BackHandler {
         if (selectionMode.value) {
             selectionMode.value = false
-        } else onEvent(OnBackPressed as T)
+        } else {
+            onEvent(OnBackPressed as T)
+            appBarState.heightOffset = 0f
+            appBarState.contentOffset = 0f
+        }
     }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -59,7 +68,6 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
                 .fillMaxSize()
                 .background(Color(0xFFFCFFFD))
         ) {
-            val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
             FileBrowserAppBar(
                 titleString = currentFolderName,
                 topAppBarScrollBehavior = scrollBehavior,
@@ -81,7 +89,8 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
             ) {
                 items(
                     count = folderFiles.itemCount,
-                    key = { folderFiles[it]?.fileId?.value ?: String() }
+                    key = { folderFiles[it]?.fileId?.value ?: String() },
+                    contentType = {folderFiles[it]?.isDir}
                 ) { index ->
                     val fileModel = folderFiles[index]
                     if (fileModel != null) {
@@ -90,7 +99,12 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
                             selectionMode = selectionMode.value && isSelectionEnabled,
                             toggleSelection = { selectionMode.value = !selectionMode.value },
                             selectionAvailable = isSelectionEnabled,
-                            onEvent = { onEvent(it) },
+                            onEvent = {
+                                if(it is OnFileClicked && it.isDir){
+                                    appBarState.heightOffset = 0f
+                                    appBarState.contentOffset = 0f
+                                }
+                                onEvent(it) },
                             showLoading = showLoading,
                             additionalInfoEnabled = additionalInfoEnabled
                         )

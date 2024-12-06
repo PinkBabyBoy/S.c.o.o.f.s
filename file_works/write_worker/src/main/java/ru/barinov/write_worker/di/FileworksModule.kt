@@ -13,7 +13,8 @@ val writeWorkerModule = module {
             encryptor = get(),
             keygen = get(),
             cipherStreamsFactory = get(),
-            getMSDFileSystemUseCase = get()
+            getMSDFileSystemUseCase = get(),
+            indexTypeExtractor = get()
         )
     } bind WriteFileWorker::class
 }

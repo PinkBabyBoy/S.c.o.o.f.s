@@ -7,7 +7,6 @@ import java.util.UUID
 
 class Transaction(
     val uuid: UUID,
-    val progressFlow: MutableSharedFlow<Long>,
     val files: List<FileEntity>,
     val containerData: ContainerData,
 ) {

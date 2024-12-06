@@ -5,7 +5,6 @@ import ru.barinov.cryptography.keygens.SecretKeyGenerator
 import ru.barinov.preferences.AppPreferences
 import java.security.KeyStore
 import java.util.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 private const val KEY_ALIAS = "pass_key"
 
@@ -50,7 +49,7 @@ internal class PasswordStorageImpl(
             Base64.getDecoder().decode(it)
         } ?: return null
 
-        return cipherFactory.createDecryptionInnerCipher(
+        return cipherFactory.createDecryptionInnerCipherBC(
             key,
             Base64.getDecoder().decode(storage.iv)
         ).doFinal(encryptedHash)

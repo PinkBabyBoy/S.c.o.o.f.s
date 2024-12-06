@@ -41,6 +41,7 @@ import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.darkGreen
 import ru.barinov.core.ui.enterScreenBackground
+import ru.barinov.core.ui.getActivity
 import ru.barinov.core.ui.keyboardAsState
 
 @Composable
@@ -59,12 +60,19 @@ internal fun EnterScreen(
             ) { granted ->
                 if (granted) {
                     enterScreenEvent(EnterScreenEvent.PermissionGranted)
+                    if(state.isBioAuthAvailable()) {
+                        enterScreenEvent(EnterScreenEvent.RequestFingerprintAuth(context.getActivity()!!))
+                    }
                 }
             }
         )
     }
     RegisterLifecycleCallbacks(
-        onDestroy = { permissionManager.close() }
+        onDestroy = { permissionManager.close() },
+        onCreate = {
+            if(state.hasPermission && state.isBioAuthAvailable())
+                enterScreenEvent(EnterScreenEvent.RequestFingerprintAuth(context.getActivity()!!))
+        }
     )
 
     val progress = remember { mutableStateOf(false) }
@@ -103,37 +111,40 @@ internal fun EnterScreen(
         }
         val errors =
             state.errors.filter { it != ErrorType.CHECK_EMPTY && it != ErrorType.CREATE_NOT_EQUALS }
-        PasswordTextField(
-            onValueChanged = {
-                enterScreenEvent(
-                    EnterScreenEvent.NewInput(
-                        type = InputType.PASSWORD,
-                        input = it
+        if(!state.isBioAuthAvailable()) {
+            PasswordTextField(
+                onValueChanged = {
+                    enterScreenEvent(
+                        EnterScreenEvent.NewInput(
+                            type = InputType.PASSWORD,
+                            input = it
+                        )
                     )
-                )
-            },
-            isError = errors.isNotEmpty(),
-            supportText = {
-                SupportText(
-                    errors = errors,
-                    hint = ru.barinov.core.R.string.password_enter_helper_text
-                )
-            },
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(top = 84.dp)
-        )
-        if (state.type == Stage.Enter) {
+                },
+                isError = errors.isNotEmpty(),
+                supportText = {
+                    SupportText(
+                        errors = errors,
+                        hint = ru.barinov.core.R.string.password_enter_helper_text
+                    )
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 84.dp)
+            )
+        }
+        if (state.stage == Stage.Enter && !state.isBioAuthAvailable()) {
             val alertDialogVisible = remember {
                 mutableStateOf(false)
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                color = darkGreen,
-                text = "Forgot your password",
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .clickable { alertDialogVisible.value = true }
+            Spacer(modifier = Modifier.height(64.dp))
+            InformationalBlock(
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(horizontal = 64.dp),
+                type = InformationalBlockType.INFO,
+                text = "Reset password",
+                onIconClicked = { alertDialogVisible.value = true },
+                onBlockClicked = { alertDialogVisible.value = true }
+
             )
             if (alertDialogVisible.value) {
                 ScoofAlertDialog(
@@ -147,7 +158,7 @@ internal fun EnterScreen(
                 )
             }
         }
-        if (state.type == Stage.Create) {
+        if (state.stage == Stage.Create) {
             val confirmErrors = state.errors.filter { it == ErrorType.CHECK_EMPTY || it == ErrorType.CREATE_NOT_EQUALS }
             PasswordTextField(
                 onValueChanged = {
@@ -174,26 +185,29 @@ internal fun EnterScreen(
         }
 
         if (state.hasPermission) {
-            Spacer(modifier = Modifier.height(if (kbState.value == Keyboard.Closed) 84.dp else 42.dp))
-            val keyboardController = LocalSoftwareKeyboardController.current
-            ProgressButton(
-                isEnabled = !progress.value,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .defaultMinSize(minWidth = 228.dp),
-                buttonText = R.string.enter_text,
-                isProgress = progress
-            ) {
-                keyboardController?.hide()
-                progress.value = true
-                enterScreenEvent(EnterScreenEvent.SubmitClicked)
+            if(!state.isBioAuthAvailable()) {
+                Spacer(modifier = Modifier.height(if (kbState.value == Keyboard.Closed) 84.dp else 42.dp))
+                val keyboardController = LocalSoftwareKeyboardController.current
+                ProgressButton(
+                    isEnabled = !progress.value,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .defaultMinSize(minWidth = 228.dp),
+                    buttonText = R.string.enter_text,
+                    isProgress = progress
+                ) {
+                    keyboardController?.hide()
+                    progress.value = true
+                    enterScreenEvent(EnterScreenEvent.SubmitClicked)
+                }
             }
         } else {
+            Spacer(modifier = Modifier.height(84.dp))
             InformationalBlock(
                 modifier = Modifier
-                    .padding(top = 84.dp)
+                    .padding(horizontal = 32.dp)
                     .align(Alignment.CenterHorizontally),
-                type = InformationalBlockType.INFO,
+                type = InformationalBlockType.WARNING,
                 text = stringResource(id = R.string.permission_warning_title),
                 onBlockClicked = { permissionManager.launch(Permission.MANAGE_FILES) },
                 onIconClicked = { isPermissionInfoBsVisible.value = true }

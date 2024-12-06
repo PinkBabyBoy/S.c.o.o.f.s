@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="key_creation_title_ond">Crate the key</string>
+    <string name="key_creation_message_ond">Create the keyholder file, what you can use to create container</string>
+    <string name="source_change_message_ond">Attached mass storage device detected, you can switch sources to external and internal.</string>
+    <string name="source_change_title_ond">Switch data source</string>
+    <string name="next_onb_button_text">Next</string>
+    <string name="close_onb_button_text">Close</string>
+    <string name="cancel">Cancel</string>
+
+
     <string name="sort_new_first">New first</string>
     <string name="encryption_notification_title">Encryption in process</string>
     <string name="decryption_notification_title">Decryption in process</string>

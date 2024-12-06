@@ -1,5 +1,8 @@
+
+
 package ru.barinov.file_browser.states
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Stable
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +13,9 @@ import ru.barinov.core.folderName
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
 import ru.barinov.file_browser.models.Sort
+import ru.barinov.onboarding.OnboardingState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Stable
 data class FileBrowserUiState internal constructor(
     val type: Type,
@@ -20,16 +25,22 @@ data class FileBrowserUiState internal constructor(
     val selectedCount: Int,
     val isInRoot: Boolean,
     val isPageEmpty: Boolean,
-    val selectedSortType: Sort.Type
+    val selectedSortType: Sort.Type,
+    val fileBrowserOnboarding: OnboardingState
 ) {
     val isKeyLoaded = type == Type.LOADED
     val hasSelected: Boolean = selectedCount > 0
+
+    fun onboardingsStateChanged(state: OnboardingState) = copy(
+        fileBrowserOnboarding = state
+    )
 
     enum class Type {
         LOADED, KEY_NOT_LOADED, IDLE
     }
 
     companion object {
+        @OptIn(ExperimentalMaterial3Api::class)
         fun reconstruct(
             files: Flow<PagingData<FileUiModel>>,
             folderName: Filepath,
@@ -38,7 +49,8 @@ data class FileBrowserUiState internal constructor(
             isInRoot: Boolean,
             isKeyLoaded: Boolean,
             isPageEmpty: Boolean,
-            selectedSortType: Sort.Type
+            selectedSortType: Sort.Type,
+            fileBrowserOnboarding: OnboardingState
         ) = FileBrowserUiState(
             type = if(isKeyLoaded) Type.LOADED else Type.KEY_NOT_LOADED,
             files = files,
@@ -47,7 +59,8 @@ data class FileBrowserUiState internal constructor(
             selectedCount = selectedCount,
             isInRoot = isInRoot,
             isPageEmpty = isPageEmpty,
-            selectedSortType = selectedSortType
+            selectedSortType = selectedSortType,
+            fileBrowserOnboarding = fileBrowserOnboarding
         )
 
         fun idle(): FileBrowserUiState =
@@ -59,7 +72,8 @@ data class FileBrowserUiState internal constructor(
                 selectedCount = 0,
                 isInRoot = true,
                 true,
-                Sort.Type.AS_IS
+                selectedSortType =  Sort.Type.AS_IS,
+                fileBrowserOnboarding =  emptyMap()
             )
     }
 }

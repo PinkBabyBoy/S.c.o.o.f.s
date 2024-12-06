@@ -29,3 +29,15 @@ fun headerDefault() = TextStyle(
     )
 )
 
+val headerBig = TextStyle(
+    fontSize = 24.sp,
+    lineHeight = 24.sp,
+    lineHeightStyle = LineHeightStyle(
+        LineHeightStyle.Alignment.Center,
+        trim = LineHeightStyle.Trim.None
+    ),
+    platformStyle = PlatformTextStyle(
+        includeFontPadding = false
+    )
+)
+

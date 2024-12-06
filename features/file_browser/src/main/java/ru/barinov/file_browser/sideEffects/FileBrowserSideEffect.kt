@@ -5,7 +5,6 @@ import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filename
 import ru.barinov.core.Source
-import ru.barinov.file_browser.models.FileInfo
 
 interface SideEffect
 
@@ -20,7 +19,8 @@ sealed interface FileBrowserSideEffect : SideEffect {
 }
 
 sealed interface FilesLoadInitializationSideEffects : SideEffect {
-
+    data object CloseOnShortTransaction: FilesLoadInitializationSideEffects
+    data object CloseOnLongTransaction: FilesLoadInitializationSideEffects
 }
 
 sealed interface ContainersSideEffect : SideEffect {

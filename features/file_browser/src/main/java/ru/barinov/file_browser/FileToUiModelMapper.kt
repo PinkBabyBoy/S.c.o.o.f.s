@@ -1,20 +1,19 @@
 package ru.barinov.file_browser
 
 import androidx.annotation.DrawableRes
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
 import androidx.paging.map
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
+import ru.barinov.core.FileTypeInfo
 import ru.barinov.core.Source
 import ru.barinov.core.trimFileName
 import ru.barinov.core.trimFilePath
-import ru.barinov.file_browser.models.FileInfo
 import ru.barinov.file_browser.models.FileUiModel
-import ru.barinov.file_browser.utils.FileInfoExtractor
+import ru.barinov.core.util.FileInfoExtractor
 
 class FileToUiModelMapper(
     private val infoExtractor: FileInfoExtractor
@@ -42,7 +41,7 @@ class FileToUiModelMapper(
     fun mapFile(
         file: FileEntity,
         isSelected: Boolean,
-        typeState: MutableState<FileInfo> = mutableStateOf(FileInfo.Unconfirmed),
+        typeState: StateFlow<FileTypeInfo> = MutableStateFlow(FileTypeInfo.Unconfirmed).asStateFlow(),
     ): FileUiModel =
         file.run {
             FileUiModel(

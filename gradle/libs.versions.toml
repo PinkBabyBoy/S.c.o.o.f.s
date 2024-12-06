@@ -1,17 +1,18 @@
 [versions]
-agp = "8.5.0"
-kotlin = "1.9.24"
-coreKtx = "1.13.1"
+agp = "8.6.1"
+kotlin = "2.0.21"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.6"
-activityCompose = "1.9.2"
-composeBom = "2024.09.03"
+lifecycleRuntimeKtx = "2.8.7"
+activityCompose = "1.9.3"
+composeBom = "2024.11.00"
 jetbrainsKotlinJvm = "1.9.24"
 appcompat = "1.7.0"
 material = "1.12.0"
-androidx-navigation-compose = "2.8.2" #https://developer.android.com/jetpack/androidx/releases/navigation#2.7.7
+material3 = "1.3.1"
+androidx-navigation-compose = "2.8.4" #https://developer.android.com/jetpack/androidx/releases/navigation#2.7.7
 startup = "1.2.0"
 koin = "3.5.6"
 koin-compose = "3.5.6"
@@ -19,7 +20,8 @@ argon2 = "1.5.0"
 libaums = "0.10.0"
 firebaseCrashlyticsBuildtools = "3.0.2"
 appcompanist = "0.34.0"
-work_version = "2.9.1"
+work_version = "2.10.0"
+biometricKtx = "1.4.0-alpha02"
 
 [libraries]
 workers = {  group = "androidx.work", name = "work-runtime-ktx", version.ref = "work_version"}
@@ -36,7 +38,7 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation-compose" }
@@ -48,6 +50,8 @@ argon2 = { module = "com.lambdapioneer.argon2kt:argon2kt",  version.ref = "argon
 libaums = {group = "me.jahnen.libaums", name = "core", version.ref = "libaums"}
 compose-appcompanist = {group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "appcompanist"}
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric", version.ref = "biometricKtx" }
+androidx-biometric-ktx-ext = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "biometricKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

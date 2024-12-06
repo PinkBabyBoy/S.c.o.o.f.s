@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.presentation
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,10 +11,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import ru.barinov.core.Source
 import ru.barinov.file_browser.args.KeyLoadBottomSheetArgs
 import ru.barinov.file_browser.events.KeySelectorEvent
 import ru.barinov.file_browser.sideEffects.CanGoBack
@@ -37,7 +43,14 @@ import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.core.ui.BottomSheetPolicy
 import ru.barinov.core.ui.ScoofButton
 import ru.barinov.core.ui.SingleEventEffect
+import ru.barinov.file_browser.R
+import ru.barinov.file_browser.events.OnboardingFinished
+import ru.barinov.file_browser.events.SourceChanged
+import ru.barinov.onboarding.OnBoarding
+import ru.barinov.onboarding.orEmpty
+import ru.barinov.onboarding.switchDefault
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeySelector(
     state: KeyPickerUiState,
@@ -107,12 +120,51 @@ fun KeySelector(
             isPageEmpty = state.isPageEmpty,
             isInRoot = state.isInRoot,
             actions = buildSet {
+                if (state.sourceState.isMsdAttached) {
+                    add {
+                        val onbData = state.onboardings[OnBoarding.CHANGE_SOURCE].orEmpty()
+                        OnBoarding(
+                            title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
+                            state = onbData,
+                            tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
+                            onClick = { onEvent(OnboardingFinished(OnBoarding.CHANGE_SOURCE)) },
+                            width = 42.dp,
+                            hasNext = false
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    id = if (state.sourceState.currentSource == Source.INTERNAL)
+                                        ru.barinov.core.R.drawable.baseline_sd_storage_24
+                                    else ru.barinov.core.R.drawable.mass_storage_device
+                                ),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clickable {
+                                        onEvent(SourceChanged)
+                                    }
+                                    .size(26.dp),
+                                tint = if (state.sourceState.currentSource == Source.INTERNAL) Color.Black else LocalContentColor.current
+                            )
+                        }
+                    }
+                    add { Spacer(modifier = Modifier.width(16.dp)) }
+                }
                 add {
-                    Icon(
-                        painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
-                        contentDescription = null,
-                        modifier = Modifier.clickable { isKeystoreCreatorBsVisible.value = true }
-                    )
+                    val onbData = state.onboardings[OnBoarding.KEY_CREATION].orEmpty()
+                    OnBoarding(
+                        title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
+                        state = onbData,
+                        tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
+                        onClick = {onEvent(OnboardingFinished(OnBoarding.KEY_CREATION))},
+                        width = 42.dp,
+                        hasNext = false
+                    ) {
+                        Icon(
+                            painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
+                            contentDescription = null,
+                            modifier = Modifier.clickable { isKeystoreCreatorBsVisible.value = true }
+                        )
+                    }
                 }
                 add { Spacer(modifier = Modifier.width(16.dp)) }
             },

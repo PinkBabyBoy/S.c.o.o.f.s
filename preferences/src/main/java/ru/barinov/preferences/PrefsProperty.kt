@@ -29,6 +29,14 @@ internal fun SharedPreferences.string(key: String, def: String?) = PrefsProperty
     SharedPreferences.Editor::putString
 )
 
+internal fun SharedPreferences.stringSet(key: String, def: Set<String>) = PrefsProperty(
+    this,
+    key,
+    def,
+    SharedPreferences::getStringSet,
+    SharedPreferences.Editor::putStringSet
+)
+
 internal fun SharedPreferences.stringNotNull(key: String, def: String) = PrefsProperty(
     this,
     key,

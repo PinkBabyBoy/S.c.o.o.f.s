@@ -17,11 +17,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.Flow
 
@@ -41,14 +42,15 @@ fun <T : Any> SingleEventEffect(
     }
 }
 
-fun Context.getActivity(): Activity? = when (this) {
-    is ComponentActivity -> this
+fun Context.getActivity(): FragmentActivity? = when (this) {
+    is FragmentActivity -> this
     is ContextWrapper -> baseContext.getActivity()
     else -> null
 }
 
 @Composable
 fun RegisterLifecycleCallbacks(
+    onCreate: () -> Unit = {},
     onResume: () -> Unit = {},
     onPause: () -> Unit = {},
     onDestroy: () -> Unit = {},
@@ -59,10 +61,14 @@ fun RegisterLifecycleCallbacks(
     val currentOnResume = rememberUpdatedState(onResume)
     val currentOnPause = rememberUpdatedState(onPause)
     val currentOnDestroy = rememberUpdatedState(onDestroy)
+    val currentOnCreate = rememberUpdatedState(onCreate)
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
+                Lifecycle.Event.ON_CREATE -> {
+                    currentOnCreate.value()
+                }
                 Lifecycle.Event.ON_RESUME -> {
                     currentOnResume.value()
                 }
@@ -89,6 +95,7 @@ fun RegisterLifecycleCallbacks(
 }
 
 @Composable
+@Deprecated("Does not work since android 15 (api lvl 35)")
 fun DecorStyle(
     statusBar: ColorPair,
     navigationBar: ColorPair

@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "ru.barinov.transaction_manager"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 29
@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(project(":file_works:write_worker"))
+    implementation(project(":providers:internal_data"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
 

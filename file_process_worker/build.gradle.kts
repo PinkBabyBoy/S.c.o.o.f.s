@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "ru.barinov.file_process_worker"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 29
@@ -31,9 +31,11 @@ dependencies {
     implementation(project(":core"))
     implementation(libs.workers)
     implementation(libs.koin.core)
+    implementation(libs.koin.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(project(":transaction_manager"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

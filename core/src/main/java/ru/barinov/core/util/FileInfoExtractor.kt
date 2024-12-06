@@ -1,41 +1,51 @@
-package ru.barinov.file_browser.utils
+package ru.barinov.core.util
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.barinov.core.Addable
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
+import ru.barinov.core.FileIndex
+import ru.barinov.core.FileTypeInfo
 import ru.barinov.core.bytesToMbSting
 import ru.barinov.core.inputStream
-import ru.barinov.core.mb
-import ru.barinov.file_browser.models.FileInfo
 import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private const val BIG_FILE_SIZE_LIMIT = 1024 * 1024 * 20
+private const val THREAD_LIMIT = 8
+
 class FileInfoExtractor(
     private val appContext: Context
-) {
+): IndexTypeExtractor {
 
-    private val recognizerCoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
-    private val savedInfos = mutableMapOf<FileId, MutableState<FileInfo>>()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val recognizerCoroutineScope = CoroutineScope(Job() + Dispatchers.IO.limitedParallelism(
+        THREAD_LIMIT
+    ))
+    private val savedInfos = mutableMapOf<FileId, StateFlow<FileTypeInfo>>()
+
+    override suspend fun getTypeDirectly(fileEntity: FileEntity): FileIndex.FileType{
+      return  FileIndex.FileType.COMMON
+    }
 
     fun clear() {
         recognizerCoroutineScope.coroutineContext.cancelChildren()
         recognizerCoroutineScope.launch {
             savedInfos.forEach {
-                (it.value.value as? FileInfo.ImageFile)?.bitmapPreview?.recycle()
+                (it.value.value as? FileTypeInfo.ImageFile)?.bitmapPreview?.recycle()
             }
             savedInfos.clear()
         }
@@ -45,20 +55,18 @@ class FileInfoExtractor(
         fileEntity: FileEntity,
         recognizeOn: Boolean,
         delayDuration: Long = 0L
-    ): MutableState<FileInfo> {
+    ): StateFlow<FileTypeInfo> {
         if (savedInfos.containsKey(fileEntity.fileId)) {
             return savedInfos[fileEntity.fileId]!!
         }
-        val state: MutableState<FileInfo> = mutableStateOf(FileInfo.Unconfirmed)
+        val state: MutableStateFlow<FileTypeInfo> = MutableStateFlow(FileTypeInfo.Unconfirmed)
         if (recognizeOn) {
             recognizerCoroutineScope.launch {
-
-                if (delayDuration > 0) delay(delayDuration)
-
+//                if (delayDuration > 0) delay(delayDuration)
                 when {
 
                     fileEntity is FileEntity.Index -> {
-                        FileInfo.Index(
+                        FileTypeInfo.Index(
                             SimpleDateFormat(
                                 "dd-MM-yyyy",
                                 Locale.getDefault()
@@ -68,7 +76,7 @@ class FileInfoExtractor(
 
                     fileEntity.isDir -> {
                         val contentCount = fileEntity.containsCount() ?: 0
-                        FileInfo.Dir(
+                        FileTypeInfo.Dir(
                             appContext.getString(
                                 ru.barinov.core.R.string.contains_files_info,
                                 contentCount
@@ -77,7 +85,7 @@ class FileInfoExtractor(
                         )
                     }
 
-                    fileEntity.size.value.mb() > 7 -> FileInfo.Other(
+                    fileEntity.size.value > BIG_FILE_SIZE_LIMIT -> FileTypeInfo.Other(
                         true,
                         fileEntity.size.value.bytesToMbSting()
                     )
@@ -87,9 +95,9 @@ class FileInfoExtractor(
                         iStream.use {
                             val preview = it.getBitMapPreview()
                             if (preview == null) {
-                                FileInfo.Other(false, fileEntity.size.value.bytesToMbSting())
+                                FileTypeInfo.Other(false, fileEntity.size.value.bytesToMbSting())
                             } else {
-                                FileInfo.ImageFile(
+                                FileTypeInfo.ImageFile(
                                     bitmapPreview = preview,
                                     size = fileEntity.size.value.bytesToMbSting()
                                 )
@@ -98,14 +106,14 @@ class FileInfoExtractor(
 
                     }
 
-                    else ->  FileInfo.Other(false, fileEntity.size.value.bytesToMbSting())
+                    else ->  FileTypeInfo.Other(false, fileEntity.size.value.bytesToMbSting())
                 }.also {
                     state.value = it
                     savedInfos[fileEntity.fileId] = state
                 }
             }
         }
-        return state
+        return state.asStateFlow()
     }
 
     private suspend fun InputStream.getBitMapPreview(): Bitmap? = runCatching {

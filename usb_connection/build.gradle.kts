@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "ru.barinov.usb_connection"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 29

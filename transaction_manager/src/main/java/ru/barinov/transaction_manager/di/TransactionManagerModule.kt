@@ -14,10 +14,13 @@ import java.io.File
 val fileWriterModule = module {
 
     factory {
-        GetCurrentContainerUseCase(androidContext())
+        GetCurrentContainerUseCase(
+            indexesProvider = get(),
+            containerProvider = get(),
+        )
     }
 
-    factory {
+    single {
         FileWriterImpl(
             getCurrentContainerUseCase = get(),
             writeFieWorker = get(),
@@ -26,8 +29,6 @@ val fileWriterModule = module {
     } binds (arrayOf(FileWriter::class, Cleaner::class))
 
     factory {
-        AppFolderProvider{
-            File(androidContext().applicationInfo.dataDir)
-        }
+        AppFolderProvider{ File(androidContext().applicationInfo.dataDir) }
     }
 }

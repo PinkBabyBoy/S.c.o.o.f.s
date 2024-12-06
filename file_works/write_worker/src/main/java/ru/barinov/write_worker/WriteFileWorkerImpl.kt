@@ -1,8 +1,10 @@
 package ru.barinov.write_worker
 
-import kotlinx.coroutines.flow.MutableSharedFlow
+import android.util.Log
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
+import ru.barinov.core.Progress
+import ru.barinov.core.util.IndexTypeExtractor
 import ru.barinov.cryptography.Encryptor
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.factories.CipherStreamsFactory
@@ -10,6 +12,7 @@ import ru.barinov.cryptography.keygens.SecretKeyGenerator
 import ru.barinov.external_data.GetMSDFileSystemUseCase
 import ru.barinov.file_works.IndexCreator
 import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import javax.crypto.Cipher
@@ -19,12 +22,13 @@ internal class WriteFileWorkerImpl(
     private val keygen: SecretKeyGenerator,
     private val encryptor: Encryptor,
     private val cipherStreamsFactory: CipherStreamsFactory,
-    private val getMSDFileSystemUseCase: GetMSDFileSystemUseCase
+    private val getMSDFileSystemUseCase: GetMSDFileSystemUseCase,
+    private val indexTypeExtractor: IndexTypeExtractor
 ) : WriteFileWorker {
 
     override suspend fun putInStorage(
         targetFile: FileEntity,
-        progressFlow: MutableSharedFlow<Long>?,
+        progressCallback: (Long) -> Unit,
         indexes: File,
         container: File
     ) {
@@ -39,10 +43,10 @@ internal class WriteFileWorkerImpl(
         container.appendBytes(encKey)
         when (targetFile) {
             is FileEntity.InternalFile ->
-                appendInternalFile(targetFile, container, progressFlow, blockCipher)
+                appendInternalFile(targetFile, container, progressCallback, blockCipher)
 
             is FileEntity.MassStorageFile ->
-                appendMSDFile(targetFile, container, progressFlow, blockCipher)
+                appendMSDFile(targetFile, container, progressCallback, blockCipher)
 
             is FileEntity.Index -> error("Container is not allowed here")
         }
@@ -56,14 +60,14 @@ internal class WriteFileWorkerImpl(
         names.map { name ->
             File(innerFolder, name)
         }.forEach { file ->
-            if(file.exists()) file.delete()
+            if (file.exists()) file.delete()
         }
     }
 
     private suspend fun appendMSDFile(
         targetFile: FileEntity.MassStorageFile,
         container: File,
-        progressFlow: MutableSharedFlow<Long>?,
+        progressCallback: (Long) -> Unit,
         cipher: Cipher
     ) {
         UsbFileStreamFactory.createBufferedInputStream(
@@ -72,7 +76,7 @@ internal class WriteFileWorkerImpl(
         ).use { input ->
             cipherStreamsFactory.createOutputStream(container.outputStream(), cipher)
                 .use { output ->
-                    input.copyWithProgress(output) { progressFlow?.tryEmit(it) }
+                    input.copyWithProgress(output) { progressCallback.invoke(it) }
                 }
         }
     }
@@ -80,15 +84,14 @@ internal class WriteFileWorkerImpl(
     private suspend fun appendInternalFile(
         targetFile: FileEntity.InternalFile,
         container: File,
-        progressFlow: MutableSharedFlow<Long>?,
+        progressCallback: (Long) -> Unit,
         cipher: Cipher
     ) {
-        targetFile.attachedOrigin.inputStream().use { input ->
-            cipherStreamsFactory.createOutputStream(container.outputStream(), cipher)
-                .use { output ->
-                    input.copyWithProgress(output) { progressFlow?.tryEmit(it) }
+        cipherStreamsFactory.createOutputStream(FileOutputStream(container, true), cipher).use { output ->
+                targetFile.attachedOrigin.inputStream().use { input ->
+                    input.copyWithProgress(output) { progressCallback.invoke(it) }
                 }
-        }
+            }
     }
 }
 

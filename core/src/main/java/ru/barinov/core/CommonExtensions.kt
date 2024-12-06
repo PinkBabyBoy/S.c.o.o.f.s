@@ -1,35 +1,14 @@
 package ru.barinov.core
 
-import android.content.Context
 import android.content.res.Resources
-import android.util.TypedValue
-import androidx.fragment.app.Fragment
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.nio.ByteBuffer
-import java.nio.CharBuffer
 import java.util.Locale
-import kotlin.text.Charsets.UTF_8
-
-fun <T> Flow<T>.mutableStateIn(
-    scope: CoroutineScope,
-    initialValue: T
-): MutableStateFlow<T> {
-    val flow = MutableStateFlow(initialValue)
-
-    scope.launch {
-        this@mutableStateIn.collect(flow)
-    }
-
-    return flow
-}
 
 fun File.truncate(toSize: Long){
     outputStream().channel.truncate(toSize)
@@ -42,7 +21,7 @@ fun <R>CoroutineScope.launchCatching(
     block: suspend () -> R,
     onError: (Throwable) -> Unit = {},
     onSuccess: (R) -> Unit = {}
-){
+): Job {
     suspend fun execute(){
         runCatching { block() }.fold(
             onFailure = onError,
@@ -50,7 +29,7 @@ fun <R>CoroutineScope.launchCatching(
         )
     }
 
-    launch { execute() }
+    return launch { execute() }
 }
 
 fun CharArray.toByteArray(): ByteArray {
@@ -62,13 +41,15 @@ fun CharArray.toByteArray(): ByteArray {
     return buffer
 }
 
-inline fun <T> Iterable<T>.forEachScoped(action: T.() -> Unit): Unit {
+inline fun <T> Iterable<T>.forEachScoped(action: T.() -> Unit) {
     for (element in this) action(element)
 }
 
+fun Int.mb(): Long = this * 1_000_000L
+
 
 fun Long.bytesToMbSting() =
-    "${String.format(Locale.getDefault(), "%.2f", (this.toFloat()/ 1024 / 1024).toMinDisplayable())} mb"
+    "${String.format(Locale.getDefault(), "%.2f", (this.toFloat()/  1_000_000).toMinDisplayable())} mb"
 
 internal fun Float.toMinDisplayable(): Float {
     return if(this < 0.01f) 0.01f else this

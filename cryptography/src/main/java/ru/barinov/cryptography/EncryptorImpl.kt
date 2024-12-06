@@ -16,7 +16,7 @@ internal class EncryptorImpl(
 
     override fun encryptIndex(indexRaw: ByteArray): ByteArray {
         val key = keyGenerator.generateNewSecretKey()
-        val innerCipher = cipherFactory.createEncryptionInnerCipher(key)
+        val innerCipher = cipherFactory.createEncryptionInnerCipherBC(key)
         //todo indexSize
         return encryptSyncBlockKey(key) + innerCipher.doFinal(indexRaw)
     }

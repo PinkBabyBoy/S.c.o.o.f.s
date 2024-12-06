@@ -1,6 +1,5 @@
 package ru.barinov.write_worker
 
-import kotlinx.coroutines.flow.MutableSharedFlow
 import ru.barinov.core.FileEntity
 import java.io.File
 
@@ -8,7 +7,7 @@ interface WriteFileWorker {
 
     suspend fun putInStorage(
         targetFile: FileEntity,
-        progressFlow: MutableSharedFlow<Long>?,
+        progressCallback: (Long) -> Unit,
         indexes: File,
         container: File
     )

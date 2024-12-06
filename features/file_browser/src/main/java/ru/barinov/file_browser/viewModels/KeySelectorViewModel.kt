@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.viewModels
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filepath
+import ru.barinov.core.R
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
@@ -32,6 +34,7 @@ import ru.barinov.file_browser.base.change
 import ru.barinov.file_browser.events.KeySelectorEvent
 import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnFileClicked
+import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
@@ -40,14 +43,17 @@ import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
+import ru.barinov.onboarding.OnBoarding
+import ru.barinov.onboarding.OnBoardingEngine
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 class KeySelectorViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     fileTreeProvider: FileTreeProvider,
     private val fileToUiModelMapper: FileToUiModelMapper,
     private val keyManager: KeyManager,
-    private val createKeyStoreUseCase: CreateKeyStoreUseCase
+    private val createKeyStoreUseCase: CreateKeyStoreUseCase,
+    private val keyPickerOnBoarding: OnBoardingEngine
 ) : FileWalkViewModel<KeySelectorSideEffect>(fileTreeProvider, getMSDAttachStateProvider, true) {
 
 
@@ -107,7 +113,8 @@ class KeySelectorViewModel(
                             folderName = folderName,
                             sourceState = sourceData,
                             isInRoot = isInRoot,
-                            isPageEmpty = isPageEmpty
+                            isPageEmpty = isPageEmpty,
+                            onboardings = keyPickerOnBoarding.getInitial()
                         )
                 }
         }
@@ -124,12 +131,12 @@ class KeySelectorViewModel(
                 password = event.password,
                 onSuccess = {
                     viewModelScope.launch {
-                        _sideEffects.send(ShowInfo(ru.barinov.core.R.string.key_loaded))
+                        _sideEffects.send(ShowInfo(R.string.key_loaded))
                     }
                 },
                 onError = {
                     viewModelScope.launch {
-                        _sideEffects.send(ShowInfo(ru.barinov.core.R.string.key_load_fail))
+                        _sideEffects.send(ShowInfo(R.string.key_load_fail))
                     }
                 }
             )
@@ -145,17 +152,22 @@ class KeySelectorViewModel(
                     ).fold(
                         onSuccess = {
                             fileTreeProvider.update(sourceType.value)
-                            _sideEffects.send(ShowInfo(ru.barinov.core.R.string.keystore_create_success))
+                            _sideEffects.send(ShowInfo(R.string.keystore_create_success))
                         },
                         onFailure = {
-                            _sideEffects.send(ShowInfo(ru.barinov.core.R.string.keystore_create_fail))
+                            _sideEffects.send(ShowInfo(R.string.keystore_create_fail))
                         }
                     )
                 }
             }
 
             KeySelectorEvent.UnbindKey -> unbindKey()
+            is OnboardingFinished -> onOnboadingFinished(event.onBoarding)
         }
+    }
+
+    private fun onOnboadingFinished(onboarding: OnBoarding) {
+        _uiState.value = uiState.value.onboardingsStateChanged(keyPickerOnBoarding.next(onboarding, viewModelScope))
     }
 
     private fun onFileClicked(fileId: FileId) {

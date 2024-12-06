@@ -1,5 +1,6 @@
 package ru.barinov.protected_enter
 
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +16,7 @@ import ru.barinov.cryptography.hash.HashValidator
 import ru.barinov.password_manager.PType
 import ru.barinov.password_manager.PasswordStorage
 import ru.barinov.permission_manager.PermissionChecker
+import ru.barinov.protected_enter.fingerprint.BiometricEnterHelper
 import ru.barinov.transaction_manager.Cleaner
 
 internal class EnterScreenViewModel(
@@ -22,7 +24,8 @@ internal class EnterScreenViewModel(
     private val hashValidator: HashValidator,
     private val passwordStorage: PasswordStorage,
     private val cleaner: Cleaner,
-    private val permissionChecker: PermissionChecker
+    private val permissionChecker: PermissionChecker,
+    private val biometricEnterHelper: BiometricEnterHelper
 ) : ViewModel() {
 
     private val userInput = MutableLiveData<CharArray>()
@@ -45,7 +48,17 @@ internal class EnterScreenViewModel(
             )
 
             EnterScreenEvent.ResetConfirmed -> resetPassword()
+            is EnterScreenEvent.RequestFingerprintAuth -> requestFingerprintAuth(event.fragmentActivity)
         }
+    }
+
+    private fun requestFingerprintAuth(fragmentActivity: FragmentActivity) {
+        biometricEnterHelper.startFingerprintAuth(fragmentActivity, {
+            viewModelScope.launch { _sideEffects.send(SideEffects.EnterGranted) }
+        }, {
+            _uiState.value = uiState.value.onBioAuthStateChanged(BiometricAuthState.Failed)
+        }
+        )
     }
 
     private fun resetPassword() {
@@ -188,5 +201,7 @@ internal sealed interface EnterScreenEvent {
     data object PermissionGranted : EnterScreenEvent
 
     data object ResetConfirmed : EnterScreenEvent
+
+    class RequestFingerprintAuth(val fragmentActivity: FragmentActivity): EnterScreenEvent
 
 }

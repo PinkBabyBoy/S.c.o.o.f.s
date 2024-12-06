@@ -1,6 +1,5 @@
 package ru.barinov.cryptography
 
-import android.util.Log
 import ru.barinov.core.getBytes
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.keygens.SecretKeyGenerator

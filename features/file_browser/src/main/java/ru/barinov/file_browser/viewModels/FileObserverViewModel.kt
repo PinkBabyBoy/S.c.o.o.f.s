@@ -1,6 +1,6 @@
 package ru.barinov.file_browser.viewModels
 
-import android.util.Log
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
+import ru.barinov.core.FileTypeInfo
 import ru.barinov.core.Filepath
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
@@ -28,15 +29,14 @@ import ru.barinov.file_browser.core.FileTreeProvider
 import ru.barinov.file_browser.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.PAGE_SIZE
-import ru.barinov.file_browser.R
 import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnFileClicked
+import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.file_browser.events.SourceChanged
-import ru.barinov.file_browser.models.FileInfo
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
 import ru.barinov.file_browser.models.Sort
@@ -45,14 +45,18 @@ import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.utils.sort
 import ru.barinov.file_browser.states.FileBrowserUiState
+import ru.barinov.onboarding.OnBoarding
+import ru.barinov.onboarding.OnBoardingEngine
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("OPT_IN_USAGE")
 class FileObserverViewModel(
     private val selectedCache: SelectedCache,
     fileTreeProvider: FileTreeProvider,
     private val fileToUiModelMapper: FileToUiModelMapper,
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
-    keyManager: KeyManager
+    keyManager: KeyManager,
+    private val fileBrowserOnboarding: OnBoardingEngine
 ) : FileWalkViewModel<FileBrowserSideEffect>(fileTreeProvider, getMSDAttachStateProvider, false) {
 
     private val _uiState: MutableStateFlow<FileBrowserUiState> =
@@ -117,7 +121,8 @@ class FileObserverViewModel(
                         isInRoot = isInRoot,
                         isKeyLoaded = isKeyLoaded,
                         isPageEmpty = isPageEmpty,
-                        selectedSortType = sortType.value
+                        selectedSortType = sortType.value,
+                        fileBrowserOnboarding = fileBrowserOnboarding.getInitial()
                     )
                 }
         }
@@ -132,7 +137,12 @@ class FileObserverViewModel(
             SourceChanged -> changeSource()
             FileBrowserEvent.DeleteSelected -> deleteSelected()
             is FileBrowserEvent.SortSelected -> sortType.value = event.type
+            is OnboardingFinished -> onOnboadingFinished(event.onBoarding)
         }
+    }
+
+    private fun onOnboadingFinished(onboarding: OnBoarding) {
+       _uiState.value = uiState.value.onboardingsStateChanged(fileBrowserOnboarding.next(onboarding, viewModelScope))
     }
 
     private fun deleteSelected() {
@@ -150,11 +160,11 @@ class FileObserverViewModel(
     }
 
 
-    private fun onSelect(fileId: FileId, selected: Boolean, info: FileInfo) {
+    private fun onSelect(fileId: FileId, selected: Boolean, info: FileTypeInfo) {
         viewModelScope.launch {
             val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
             if (!selected) {
-                if(file.isDir && info is FileInfo.Dir) {
+                if(file.isDir && info is FileTypeInfo.Dir) {
                     _sideEffects.send(ShowInfo(ru.barinov.core.R.string.select_folder_warning))
                 }
                 selectedCache.add(fileId, file as FileEntity)
@@ -169,7 +179,7 @@ class FileObserverViewModel(
         sourceType.value = sourceType.value.change()
     }
 
-    private fun onFileClicked(fileId: FileId, toggleMode: Boolean, info: FileInfo) {
+    private fun onFileClicked(fileId: FileId, toggleMode: Boolean, info: FileTypeInfo) {
         if (toggleMode) {
             onSelect(fileId, selectedCache.hasSelected(fileId), info)
         } else {
@@ -184,31 +194,23 @@ class FileObserverViewModel(
     }
 
 
-    private fun openFile(fileId: FileId, info: FileInfo) {
+    private fun openFile(fileId: FileId, info: FileTypeInfo) {
         when(info) {
-            is FileInfo.Dir -> fileTreeProvider.open(fileId, sourceType.value)
-            is FileInfo.ImageFile -> {
+            is FileTypeInfo.Dir -> fileTreeProvider.open(fileId, sourceType.value)
+            is FileTypeInfo.ImageFile -> {
                 viewModelScope.launch{
                     _sideEffects.send(FileBrowserSideEffect.OpenImageFile(sourceType.value, fileId))
                 }
             }
-            is FileInfo.Index -> error("")
-            is FileInfo.Other -> {}
-            FileInfo.Unconfirmed -> {}
+            is FileTypeInfo.Index -> error("")
+            is FileTypeInfo.Other -> {}
+            FileTypeInfo.Unconfirmed -> {}
         }
     }
 
     private fun directFolderAdd(fileId: FileId) {
         val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
         if (!file.isDir) error("")
-//        val selectedData = file.innerFiles().map { innerFile ->
-//            FileObserverUiCommand.ConfirmFilesTransaction.TransactionConfirmationArgs(
-//                file.uuid,
-//                file.name.value,
-//                innerFile.isDir,
-//                file.innerFiles().sumOf { it.size.value }.bytesToMbSting()
-//            )
-//        }
     }
 
     private fun askTransactionWithSelected() {

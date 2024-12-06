@@ -12,11 +12,11 @@ class FileIndex(
     val state: State // byte
 ) {
     enum class FileType {
-        COMMON
+        COMMON, PHOTO
     }
 
     enum class State {
-        IDLE
+        IDLE, EXTRACTED
     }
 }
 
