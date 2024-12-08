@@ -11,7 +11,8 @@ object IndexCreator {
     fun createIndex(
         fileEntity: FileEntity,
         currentIndexPos: Long,
-        currentContainerPos: Long
+        currentContainerPos: Long,
+        fileType: FileIndex.FileType
     ): ByteArray {
         if (fileEntity.isDir) throw IllegalArgumentException()
         return fileEntity.name.value.encodeToByteArray() +
@@ -19,7 +20,7 @@ object IndexCreator {
                 fileEntity.size.value.getBytes() +
                 fileEntity.lastModifiedTimeStamp.getBytes() +
                 System.currentTimeMillis().getBytes() +
-                FileIndex.FileType.COMMON.ordinal.getBytes() + //todo
+                fileType.ordinal.getBytes() +
                 FileIndex.State.IDLE.ordinal.getBytes()
 
     }

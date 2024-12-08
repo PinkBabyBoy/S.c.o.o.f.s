@@ -118,7 +118,7 @@ val fileObserverModule = module {
     }
 
     viewModel { params ->
-        ContainerContentViewModel(params.get())
+        ContainerContentViewModel(params.get(), get())
     }
 
     viewModel {

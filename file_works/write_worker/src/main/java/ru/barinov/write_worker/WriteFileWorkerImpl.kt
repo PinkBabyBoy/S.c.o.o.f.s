@@ -33,11 +33,11 @@ internal class WriteFileWorkerImpl(
         container: File
     ) {
         val index = IndexCreator.createIndex(
-            targetFile, indexes.length(), container.length()
+            targetFile, indexes.length(), container.length(), indexTypeExtractor.getTypeDirectly(targetFile)
         ).let(encryptor::encryptIndex)
         val key = keygen.generateNewSecretKey()
         val envelopeCipher = cipherFactory.createEnvelopeWrapperCipher()
-        val blockCipher = cipherFactory.createEncryptionInnerCipher(key)
+        val blockCipher = cipherFactory.createEncryptionInnerCipherBC(key)
         val encKey = envelopeCipher.wrap(key)
         container.appendBytes(encKey.size.getBytes())
         container.appendBytes(encKey)

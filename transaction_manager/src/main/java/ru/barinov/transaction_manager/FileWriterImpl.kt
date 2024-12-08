@@ -82,12 +82,11 @@ internal class FileWriterImpl(
         val transaction = transactionsRegister[transactionUUID] ?: throw IllegalStateException()
         runCatching {
             var currentFileName = String()
-            var currentIndex = 0
             transaction.changeState(Transaction.State.STARTED)
             val containerData = transaction.containerData
 
-            transaction.files.flatMapFiles().forEach { file ->
-                Log.d("@@@", "WR FILE $currentIndex")
+            transaction.files.flatMapFiles().forEachIndexed { index, file ->
+                Log.d("@@@", "WR FILE $index")
                 currentFileName = file.name.value
                 writeFieWorker.putInStorage(
                     targetFile = file,
@@ -95,46 +94,13 @@ internal class FileWriterImpl(
                     indexes = containerData.indexes,
                     container = containerData.container
                 )
-                currentIndex++
             }
         }.onFailure {
             val containerData = transaction.containerData
             containerData.container.truncate(containerData.initialSize)
-            containerData.indexes.truncate(containerData.initialSize)
+            containerData.indexes.truncate(containerData.initialIndexesSize)
         }.onSuccess { transaction.changeState(Transaction.State.FINISHED) }.getOrThrow()
     }
-
-//        fun onTransactionError(t: Throwable) {
-//            Log.e("@@@", "${t.stackTraceToString()}")
-//            fun mapToReason(t: Throwable): TransactionError.Reason =
-//                when (t) {
-//                    is IOException -> TransactionError.Reason.CONNECTION_FAIL
-//                    is NoSuchAlgorithmException, is InvalidKeyException -> TransactionError.Reason.CIPHER_FAIL
-//                    else -> {
-//                        error("")
-//                    }
-//                }
-//
-//            val containerData = transaction?.containerData ?: throw TransactionError(
-//                String(), 0, 0, TransactionError.Reason.TRANSACTION_NOT_FOUND
-//            )
-//
-//            val container = containerData.container
-//            container.truncate(containerData.initialSize)
-//            throw TransactionError(
-//                fileName = currentFileName,
-//                resultSuccess = currentIndex,
-//                total = transaction.files.size,
-//                reason = mapToReason(t)
-//            )
-//        }
-//
-//        return serviceCoroutine.launchCatching(
-//            block = (::execute),
-//            onError = (::onTransactionError),
-//            onSuccess = { transaction?.changeState(Transaction.State.FINISHED) }
-//        )
-//}
 
     private fun registerTransaction(
         files: List<FileEntity>,

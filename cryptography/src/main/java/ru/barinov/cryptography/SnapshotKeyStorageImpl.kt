@@ -29,6 +29,7 @@ internal class SnapshotKeyStorageImpl(
             (keyStore.getEntry(KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
         val cipher = cipherFactory.createEncryptionInnerCipher(key)
         val encHash = cipher.doFinal(hash)
+        //4(total)-4-iv-4-hash
         return  (cipher.iv.size.getBytes() + cipher.iv + encHash.size.getBytes() + encHash)
     }
 

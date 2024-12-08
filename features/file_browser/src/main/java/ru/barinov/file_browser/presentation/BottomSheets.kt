@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.barinov.core.Filename
 import ru.barinov.core.hasNoSpecialSymbols
+import ru.barinov.core.headerDefault
 import ru.barinov.core.ui.PasswordTextField
 import ru.barinov.core.ui.ProgressButton
 import ru.barinov.core.ui.ScoofButton
@@ -47,7 +49,7 @@ fun CreateContainerBottomSheet(
     ) {
         val nameInput = remember { mutableStateOf("") }
         val inputErrors = remember { mutableStateOf(emptySet<InputErrors>()) }
-        Text(text = "Create container", modifier = Modifier.align(Alignment.CenterHorizontally))
+        Text(text = "Create container", style = headerDefault(), modifier = Modifier.align(Alignment.CenterHorizontally))
         Spacer(modifier = Modifier.height(32.dp))
         TextEnter(
             supportText = {
@@ -60,11 +62,14 @@ fun CreateContainerBottomSheet(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         val isInProgress = remember { mutableStateOf(false) }
+        Spacer(modifier = Modifier.height(32.dp))
         ProgressButton(
             isEnabled = !isInProgress.value,
             modifier = Modifier
                 .padding(8.dp)
-                .align(Alignment.CenterHorizontally),
+                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth()
+                .padding(horizontal = 64.dp),
             isProgress = isInProgress,
             buttonText = ru.barinov.core.R.string.create,
         ) {
@@ -100,7 +105,7 @@ fun KeyStoreLoadBottomSheet(
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            fontSize = 14.sp,
+            style = headerDefault(),
             text = "Load keys from ${filename.value}",
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -115,8 +120,10 @@ fun KeyStoreLoadBottomSheet(
         Spacer(modifier = Modifier.height(32.dp))
         ScoofButton(
             modifier = Modifier
+                .padding(8.dp)
                 .align(Alignment.CenterHorizontally)
-                .padding(8.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 64.dp),
             onClick = {
                 onConfirmed(enteredPassword.value)
                 onDismissRequested()
@@ -157,7 +164,11 @@ fun CreateKeyStoreBottomSheet(
         properties = ModalBottomSheetDefaults.properties(shouldDismissOnBackPress = false),
         containerColor = bsContainerColor
     ) {
-        Text(text = "Create the keystore", modifier = Modifier.align(Alignment.CenterHorizontally))
+        Text(
+            style = headerDefault(),
+            text = "Create the keystore",
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
         Spacer(modifier = Modifier.height(32.dp))
         //имя
         TextEnter(

@@ -10,15 +10,24 @@ internal class ContainerHashExtractorImpl(
 
     override fun extractHash(index: FileEntity.Index): ByteArray =
         index.attachedOrigin.inputStream().use {
-            val sizeBuffer = ByteArray(Int.SIZE_BYTES)
-            it.read(sizeBuffer)
-            val payload = ByteArray(ByteBuffer.wrap(sizeBuffer).getInt())
-            it.read(payload)
-            val hashBuffer = ByteBuffer.wrap(payload)
-            val ivSize = hashBuffer.getInt()
-            val iv = ByteArray(ivSize).also { hashBuffer.get(it) }
-            val encHashSize = hashBuffer.getInt()
-            val encHash = ByteArray(encHashSize).also { hashBuffer.get(it) }
+            val totalSize = ByteArray(Int.SIZE_BYTES).run {
+                it.read(this)
+                ByteBuffer.wrap(this)
+            }.getInt()
+            val ivSize = ByteArray(Int.SIZE_BYTES).run {
+                it.read(this)
+                ByteBuffer.wrap(this)
+            }.getInt()
+            val iv = ByteArray(ivSize).apply {
+                it.read(this)
+            }
+            val encHashSize =ByteArray(Int.SIZE_BYTES).run {
+                it.read(this)
+                ByteBuffer.wrap(this)
+            }.getInt()
+            val encHash = ByteArray(encHashSize).apply {
+                it.read(this)
+            }
             snapshotKeyStorage.decrypt(encHash, iv)
         }
 }

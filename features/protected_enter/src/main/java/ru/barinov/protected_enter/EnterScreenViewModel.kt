@@ -1,5 +1,6 @@
 package ru.barinov.protected_enter
 
+import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -179,6 +180,7 @@ internal class EnterScreenViewModel(
                 else -> validateBoth(r, e)
             }
         }.onFailure {
+            Log.d("@@@", "${it.stackTraceToString()}")
             onError(listOf(ErrorType.READ_HASH_ERROR))
         }
     }

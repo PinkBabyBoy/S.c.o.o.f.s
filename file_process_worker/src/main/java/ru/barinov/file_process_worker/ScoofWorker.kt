@@ -10,6 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import kotlinx.coroutines.CancellationException
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import ru.barinov.transaction_manager.FileWriter
@@ -39,7 +40,7 @@ class ScoofWorker(private val context: Context, parameters: WorkerParameters) :
                 WorkType.DECRYPTION -> TODO()
             }
         }.onFailure {
-            Log.e("@@@", "${it.stackTraceToString()}")
+            if(it is CancellationException) throw it
             return Result.failure()
         }
         return Result.success()
@@ -63,6 +64,7 @@ class ScoofWorker(private val context: Context, parameters: WorkerParameters) :
             if (isLongJob) {
                 Log.e("@@@", "${it}")
                 accumulation += it
+//                setProgress()
                 val percent = (accumulation.toDouble() / it) * 100
 //                notificationBuilderBase.setProgress(100, percent.toInt(), false).build().also {
 //                    notificationManager.notify(1118, it)

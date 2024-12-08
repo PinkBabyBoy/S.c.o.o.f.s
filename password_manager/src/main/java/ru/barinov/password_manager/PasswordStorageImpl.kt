@@ -49,7 +49,7 @@ internal class PasswordStorageImpl(
             Base64.getDecoder().decode(it)
         } ?: return null
 
-        return cipherFactory.createDecryptionInnerCipherBC(
+        return cipherFactory.createDecryptionInnerCipher(
             key,
             Base64.getDecoder().decode(storage.iv)
         ).doFinal(encryptedHash)
