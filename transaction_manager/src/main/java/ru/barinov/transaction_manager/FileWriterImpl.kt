@@ -77,7 +77,7 @@ internal class FileWriterImpl(
 
     override suspend fun startTransactionToContainer(
         transactionUUID: UUID,
-        progressCallback: (Long) -> Unit
+        progressCallback: suspend (Long) -> Unit
     ) = mutex.withLock {
         val transaction = transactionsRegister[transactionUUID] ?: throw IllegalStateException()
         runCatching {

@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.presentation
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -39,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -179,7 +181,7 @@ private fun buildActions(
                 title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
                 state = onbData,
                 tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
-                onClick = {onEvent(OnboardingFinished(OnBoarding.ADD_SELECTED))},
+                onClick = { onEvent(OnboardingFinished(OnBoarding.ADD_SELECTED)) },
                 width = 42.dp,
                 hasNext = false
             ) {

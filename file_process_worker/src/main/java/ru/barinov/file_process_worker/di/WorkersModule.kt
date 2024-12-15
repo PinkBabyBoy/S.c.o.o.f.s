@@ -7,5 +7,5 @@ import ru.barinov.file_process_worker.WorkersManager
 import ru.barinov.file_process_worker.WorkersManagerImpl
 
 val workersModule = module {
-    single { WorkersManagerImpl(androidContext()) } bind WorkersManager::class
+    single { WorkersManagerImpl(androidContext(), get()) } bind WorkersManager::class
 }

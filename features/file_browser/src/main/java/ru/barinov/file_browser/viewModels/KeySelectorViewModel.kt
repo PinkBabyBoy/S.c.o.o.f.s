@@ -114,7 +114,7 @@ class KeySelectorViewModel(
                             sourceState = sourceData,
                             isInRoot = isInRoot,
                             isPageEmpty = isPageEmpty,
-                            onboardings = keyPickerOnBoarding.getInitial()
+                            onboardings = keyPickerOnBoarding.current()
                         )
                 }
         }
@@ -167,7 +167,7 @@ class KeySelectorViewModel(
     }
 
     private fun onOnboadingFinished(onboarding: OnBoarding) {
-        _uiState.value = uiState.value.onboardingsStateChanged(keyPickerOnBoarding.next(onboarding, viewModelScope))
+        _uiState.value = uiState.value.onboardingsStateChanged(keyPickerOnBoarding.next(onboarding))
     }
 
     private fun onFileClicked(fileId: FileId) {

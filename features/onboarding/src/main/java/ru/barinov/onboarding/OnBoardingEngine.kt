@@ -1,10 +1,15 @@
 package ru.barinov.onboarding
 
+import android.util.Log
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TooltipState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ru.barinov.preferences.AppPreferences
+import java.util.LinkedList
+import java.util.Queue
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.LinkedBlockingQueue
 
 @OptIn(ExperimentalMaterial3Api::class)
 typealias OnboardingState = Map<OnBoarding, TooltipState>
@@ -21,26 +26,32 @@ abstract class OnBoardingEngine(private val appPreferences: AppPreferences) {
     private val unShowedOnBoardings = onboardings.filter { !shownOnboardings.contains(it.ordinal) }
 
     @OptIn(ExperimentalMaterial3Api::class)
-    private val initialStateMap: Map<OnBoarding, TooltipState> =
-        unShowedOnBoardings.associateWith {
+    private val initialStateMap: LinkedHashMap<OnBoarding, TooltipState> =
+        (unShowedOnBoardings.associateWith {
             TooltipState(
                 initialIsVisible = true,
                 isPersistent = true
             )
-        }
+        } as LinkedHashMap)
+
+    private val queue = ConcurrentLinkedQueue(initialStateMap.entries)
+
+    private var current = queue.poll()
 
 
-    fun getInitial() = initialStateMap
+    fun current() = if(current != null)  mapOf(current.toPair()) else mapOf()
 
-    fun next(last: OnBoarding, saveScope: CoroutineScope): OnboardingState {
-        saveScope.launch {
+
+    fun next(last: OnBoarding? = null): OnboardingState {
+        if (last != null)
             appPreferences.shownOnBoardings = savedShownData + setOf(last.ordinal.toString())
+
+        return if (queue.isNotEmpty()) {
+            current = queue.poll()
+            Log.d("@@@", "$current")
+            mapOf(current.toPair())
         }
-        return initialStateMap.mapValues {
-            if (it.key == last)
-                TooltipState(initialIsVisible = false, isPersistent = false)
-            else it.value
-        }
+        else mapOf()
     }
 }
 

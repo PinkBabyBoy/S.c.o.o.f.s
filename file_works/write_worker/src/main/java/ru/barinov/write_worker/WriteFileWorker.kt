@@ -7,7 +7,7 @@ interface WriteFileWorker {
 
     suspend fun putInStorage(
         targetFile: FileEntity,
-        progressCallback: (Long) -> Unit,
+        progressCallback: suspend (Long) -> Unit,
         indexes: File,
         container: File
     )

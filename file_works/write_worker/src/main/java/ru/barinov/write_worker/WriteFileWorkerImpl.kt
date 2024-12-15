@@ -1,9 +1,7 @@
 package ru.barinov.write_worker
 
-import android.util.Log
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
-import ru.barinov.core.Progress
 import ru.barinov.core.util.IndexTypeExtractor
 import ru.barinov.cryptography.Encryptor
 import ru.barinov.cryptography.factories.CipherFactory
@@ -28,7 +26,7 @@ internal class WriteFileWorkerImpl(
 
     override suspend fun putInStorage(
         targetFile: FileEntity,
-        progressCallback: (Long) -> Unit,
+        progressCallback: suspend (Long) -> Unit,
         indexes: File,
         container: File
     ) {
@@ -67,7 +65,7 @@ internal class WriteFileWorkerImpl(
     private suspend fun appendMSDFile(
         targetFile: FileEntity.MassStorageFile,
         container: File,
-        progressCallback: (Long) -> Unit,
+        progressCallback: suspend (Long) -> Unit,
         cipher: Cipher
     ) {
         UsbFileStreamFactory.createBufferedInputStream(
@@ -84,7 +82,7 @@ internal class WriteFileWorkerImpl(
     private suspend fun appendInternalFile(
         targetFile: FileEntity.InternalFile,
         container: File,
-        progressCallback: (Long) -> Unit,
+        progressCallback: suspend (Long) -> Unit,
         cipher: Cipher
     ) {
         cipherStreamsFactory.createOutputStream(FileOutputStream(container, true), cipher).use { output ->

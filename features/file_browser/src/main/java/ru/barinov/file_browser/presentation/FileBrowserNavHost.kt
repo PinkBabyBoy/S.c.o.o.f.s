@@ -127,7 +127,6 @@ fun FileBrowserNavHost(
                 sideEffects = vm.sideEffects,
                 navController = navController,
                 snackbarHostState = snackbarHostState
-
             )
         }
     }

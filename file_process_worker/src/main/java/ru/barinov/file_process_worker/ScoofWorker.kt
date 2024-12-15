@@ -20,6 +20,7 @@ internal const val TYPE_KEY = "WORK_TYPE"
 internal const val TRANSACTION_ID_KEY = "TRANSACTION_ID"
 internal const val IS_LONG_TRANSACTION_KEY = "IS_LONG_TRANSACTION"
 internal const val TOTAL_SIZE_KEY = "TOTAL_SIZE"
+internal const val TOTAL_SIZE_KEY_A = "3445566565654677557757645654"
 
 class ScoofWorker(private val context: Context, parameters: WorkerParameters) :
     CoroutineWorker(context, parameters), KoinComponent {
@@ -60,11 +61,12 @@ class ScoofWorker(private val context: Context, parameters: WorkerParameters) :
                 )
             )
         var accumulation: Long = 0
+        val abs = 434
         fileWriter.startTransactionToContainer(UUID.fromString(transactionId)) {
             if (isLongJob) {
                 Log.e("@@@", "${it}")
+                val abs = 434
                 accumulation += it
-//                setProgress()
                 val percent = (accumulation.toDouble() / it) * 100
 //                notificationBuilderBase.setProgress(100, percent.toInt(), false).build().also {
 //                    notificationManager.notify(1118, it)

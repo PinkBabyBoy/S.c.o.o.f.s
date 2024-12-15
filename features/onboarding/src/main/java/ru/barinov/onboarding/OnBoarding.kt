@@ -32,10 +32,11 @@ fun OnBoarding(
     onClick: () -> Unit = {},
     width: Dp,
     hasNext: Boolean,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ){
     TooltipBox(
-        modifier = Modifier.width(width),
+        modifier = modifier.width(width),
         positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
         tooltip = {
             RichTooltip(
