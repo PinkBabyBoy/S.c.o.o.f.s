@@ -71,20 +71,15 @@ import ru.barinov.onboarding.OnBoarding
 
 private val fileBrowserTopLevelScreens = setOf(
     TopLevelScreen(
-        FileBrowserRout.CONTAINERS,
+        FileBrowserRout.FILE_OBSERVER,
         ru.barinov.core.R.string.containers_label,
         ru.barinov.core.R.drawable.baseline_storage_24
     ),
     TopLevelScreen(
-        FileBrowserRout.FILE_PICKER,
+        FileBrowserRout.SETTINGS,
         ru.barinov.core.R.string.files_label,
         ru.barinov.core.R.drawable.baseline_sd_storage_24
     ),
-    TopLevelScreen(
-        FileBrowserRout.KEY_PICKER,
-        ru.barinov.core.R.string.key_label,
-        ru.barinov.core.R.drawable.baseline_key_24
-    )
 )
 
 private val sortTypes = listOf(
@@ -110,7 +105,6 @@ private val sortTypes = listOf(
     )
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserBottomNavBar(
     navController: NavController

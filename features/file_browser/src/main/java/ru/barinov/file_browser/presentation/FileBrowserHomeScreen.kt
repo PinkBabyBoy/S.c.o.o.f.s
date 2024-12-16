@@ -76,7 +76,7 @@ fun FileBrowserHomeScreen(mainController: NavController) {
             Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars).fillMaxWidth().background(Color.White))
             FileBrowserNavHost(
                 navController = localNavController,
-                startDestination = FileBrowserRout.CONTAINERS.name,
+                startDestination = FileBrowserRout.FILE_OBSERVER.name,
                 scaffoldPaddings = it,
                 snackbarHostState = snackbarHostState,
                 bottomNavBarVisibility = { bottomBarVisibility.value = it }

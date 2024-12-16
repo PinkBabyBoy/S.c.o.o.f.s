@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
@@ -18,15 +17,10 @@ import androidx.navigation.toRoute
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.barinov.core.FileId
-import ru.barinov.core.Filepath
-import ru.barinov.core.Source
 import ru.barinov.file_browser.ContainersContent
 import ru.barinov.file_browser.ImageDetails
 import ru.barinov.file_browser.viewModels.ContainerContentViewModel
-import ru.barinov.file_browser.viewModels.ContainersViewModel
-import ru.barinov.file_browser.viewModels.FileObserverViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
-import ru.barinov.file_browser.viewModels.KeySelectorViewModel
 
 @Composable
 fun FileBrowserNavHost(
@@ -40,20 +34,17 @@ fun FileBrowserNavHost(
     NavHost(
         navController = navController, startDestination = startDestination, modifier = modifier
     ) {
-        composable(route = FileBrowserRout.CONTAINERS.name, enterTransition = {
-            enterSlider(initialState.destination.route, FileBrowserRout.CONTAINERS.name)
+        composable(route = FileBrowserRout.FILE_OBSERVER.name, enterTransition = {
+        enterSlider(initialState.destination.route, FileBrowserRout.SETTINGS.name)
         },
             exitTransition = {
-                exitSlider(initialState.destination.route, FileBrowserRout.CONTAINERS.name)
+                exitSlider(initialState.destination.route, FileBrowserRout.FILE_OBSERVER.name)
             }
         ) {
-            val vm: ContainersViewModel = koinViewModel()
-            Containers(
-                state = vm.uiState.collectAsState().value,
+            HostPager(
                 navController = navController,
                 snackbarHostState = snackbarHostState,
-                sideEffects = vm.sideEffects,
-                onEvent = vm::handleEvent
+                scaffoldPaddings = scaffoldPaddings
             )
         }
 
@@ -77,58 +68,6 @@ fun FileBrowserNavHost(
                 bottomNavBarVisibility = bottomNavBarVisibility
             )
         }
-
-        composable(
-            route = FileBrowserRout.FILE_PICKER.name,
-            enterTransition = {
-                enterSlider(
-                    initialState.destination.route,
-                    FileBrowserRout.FILE_PICKER.name
-                )
-            },
-            exitTransition = {
-                exitSlider(
-                    initialState.destination.route,
-                    FileBrowserRout.CONTAINERS.name
-                )
-            }
-        ) {
-            val vm: FileObserverViewModel = koinViewModel()
-            FileBrowserScreen(
-                state = vm.uiState.collectAsState().value,
-                scaffoldPaddingValues = scaffoldPaddings,
-                sideEffects = vm.sideEffects,
-                navController = navController,
-                onEvent = vm::onNewEvent,
-                snackbarHostState = snackbarHostState
-            )
-        }
-
-        composable(
-            route = FileBrowserRout.KEY_PICKER.name,
-            enterTransition = {
-                enterSlider(
-                    initialState.destination.route,
-                    FileBrowserRout.KEY_PICKER.name
-                )
-            },
-            exitTransition = {
-                exitSlider(
-                    initialState.destination.route,
-                    FileBrowserRout.CONTAINERS.name
-                )
-            }
-        ) {
-            val vm: KeySelectorViewModel = koinViewModel()
-            KeySelector(
-                state = vm.uiState.collectAsState().value,
-                scaffoldPaddings = scaffoldPaddings,
-                onEvent = vm::handleEvent,
-                sideEffects = vm.sideEffects,
-                navController = navController,
-                snackbarHostState = snackbarHostState
-            )
-        }
     }
 }
 
@@ -138,10 +77,8 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterSlider(
 ): EnterTransition? {
     if (fromScreen == null) return null
     val slideDirection = when {
-        openScreen == FileBrowserRout.CONTAINERS.name -> AnimatedContentTransitionScope.SlideDirection.Right
-        openScreen == FileBrowserRout.KEY_PICKER.name -> AnimatedContentTransitionScope.SlideDirection.Left
-        openScreen == FileBrowserRout.FILE_PICKER.name && fromScreen == FileBrowserRout.CONTAINERS.name
-        -> AnimatedContentTransitionScope.SlideDirection.Left
+        openScreen == FileBrowserRout.FILE_OBSERVER.name -> AnimatedContentTransitionScope.SlideDirection.Right
+        openScreen == FileBrowserRout.SETTINGS.name -> AnimatedContentTransitionScope.SlideDirection.Left
 
         else -> AnimatedContentTransitionScope.SlideDirection.Right
     }
@@ -157,12 +94,10 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitSlider(
 ): ExitTransition? {
     if (fromScreen == null) return null
     val slideDirection = when {
-        openScreen == FileBrowserRout.CONTAINERS.name && fromScreen != FileBrowserRout.CONTAINERS.name
+        openScreen == FileBrowserRout.FILE_OBSERVER.name && fromScreen != FileBrowserRout.FILE_OBSERVER.name
         -> AnimatedContentTransitionScope.SlideDirection.Right
 
-        openScreen == FileBrowserRout.KEY_PICKER.name -> AnimatedContentTransitionScope.SlideDirection.Left
-        openScreen == FileBrowserRout.FILE_PICKER.name && fromScreen == FileBrowserRout.CONTAINERS.name
-        -> AnimatedContentTransitionScope.SlideDirection.Right
+        openScreen == FileBrowserRout.SETTINGS.name -> AnimatedContentTransitionScope.SlideDirection.Left
 
         else -> AnimatedContentTransitionScope.SlideDirection.Left
     }

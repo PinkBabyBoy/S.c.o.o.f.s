@@ -54,7 +54,6 @@ import ru.barinov.onboarding.switchDefault
 @Composable
 fun KeySelector(
     state: KeyPickerUiState,
-    scaffoldPaddings: PaddingValues,
     onEvent: (KeySelectorEvent) -> Unit,
     sideEffects: Flow<KeySelectorSideEffect>,
     navController: NavController,
@@ -114,7 +113,6 @@ fun KeySelector(
         BrowserBlock<KeySelectorEvent>(
             files = state.files,
             currentFolderName = state.currentFolderName,
-            paddingBottom = scaffoldPaddings.calculateBottomPadding(),
             isSelectionEnabled = false,
             onEvent = { onEvent(it) },
             isPageEmpty = state.isPageEmpty,

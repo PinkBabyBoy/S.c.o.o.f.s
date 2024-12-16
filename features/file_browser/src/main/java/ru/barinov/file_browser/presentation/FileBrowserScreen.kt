@@ -151,7 +151,6 @@ fun FileBrowserScreen(
         BrowserBlock<FileBrowserEvent>(
             files = state.files,
             currentFolderName = state.currentFolderName,
-            paddingBottom = scaffoldPaddingValues.calculateBottomPadding(),
             isSelectionEnabled = true,
             onEvent = { onEvent(it) },
             actions = buildActions(state, onEvent, deleteDialogVisible),

@@ -40,7 +40,6 @@ import ru.barinov.file_browser.models.FileUiModel
 inline fun <reified T : FieObserverEvent> BrowserBlock(
     files: Flow<PagingData<FileUiModel>>,
     currentFolderName: String,
-    paddingBottom: Dp,
     isSelectionEnabled: Boolean,
     crossinline onEvent: (T) -> Unit,
     isPageEmpty: Boolean,
@@ -82,7 +81,6 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
             LazyColumn(
                 modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
                 contentPadding = PaddingValues(
-                    bottom = paddingBottom + 8.dp,
                     start = 6.dp,
                     end = 6.dp
                 )
