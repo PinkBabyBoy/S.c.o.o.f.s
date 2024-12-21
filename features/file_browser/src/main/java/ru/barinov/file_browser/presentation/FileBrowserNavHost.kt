@@ -48,6 +48,20 @@ fun FileBrowserNavHost(
             )
         }
 
+        composable(route = FileBrowserRout.SETTINGS.name, enterTransition = {
+            enterSlider(initialState.destination.route, FileBrowserRout.FILE_OBSERVER.name)
+        },
+            exitTransition = {
+                exitSlider(initialState.destination.route, FileBrowserRout.SETTINGS.name)
+            }
+        ) {
+            Settings(
+                navController = navController,
+                snackbarHostState = snackbarHostState,
+                scaffoldPaddings = scaffoldPaddings
+            )
+        }
+
         composable<ContainersContent> {
             val args: ContainersContent = it.toRoute()
             val vm: ContainerContentViewModel =

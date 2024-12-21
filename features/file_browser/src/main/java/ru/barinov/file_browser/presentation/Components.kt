@@ -1,8 +1,5 @@
 package ru.barinov.file_browser.presentation
 
-import android.os.Build
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
@@ -10,7 +7,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -33,14 +29,12 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -61,15 +55,13 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import me.jahnen.libaums.core.BuildConfig
 import ru.barinov.core.topBarHeader
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.models.Sort
 import ru.barinov.file_browser.models.TopLevelScreen
 import ru.barinov.core.ui.mainGreen
-import ru.barinov.onboarding.OnBoarding
 
-private val fileBrowserTopLevelScreens = setOf(
+private val topLevelScreens = setOf(
     TopLevelScreen(
         FileBrowserRout.FILE_OBSERVER,
         ru.barinov.core.R.string.containers_label,
@@ -77,8 +69,8 @@ private val fileBrowserTopLevelScreens = setOf(
     ),
     TopLevelScreen(
         FileBrowserRout.SETTINGS,
-        ru.barinov.core.R.string.files_label,
-        ru.barinov.core.R.drawable.baseline_sd_storage_24
+        ru.barinov.core.R.string.settings_label,
+        ru.barinov.core.R.drawable.baseline_settings_24
     ),
 )
 
@@ -123,7 +115,7 @@ fun BrowserBottomNavBar(
             .height(64.dp)
             .clip(RoundedCornerShape(18.dp, 18.dp, 0.dp, 0.dp))
     ) {
-        fileBrowserTopLevelScreens.forEach { destination ->
+        topLevelScreens.forEach { destination ->
             val selected = currentEntry.isSelected(destination.rout)
                 NavigationBarItem(
                     colors = NavigationBarItemDefaults.colors().copy(

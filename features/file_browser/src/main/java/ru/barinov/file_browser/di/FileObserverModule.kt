@@ -26,6 +26,7 @@ import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.GetSerializableCurrentKeyHashUseCase
 import ru.barinov.core.util.IndexTypeExtractor
+import ru.barinov.file_browser.usecases.OpenContainerUseCase
 import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
 import ru.barinov.onboarding.OnBoardingEngine
@@ -76,6 +77,8 @@ val fileObserverModule = module {
     factory {
         CreateContainerUseCase(get(), get())
     }
+
+    factory { OpenContainerUseCase(indexesProvider = get(), readFileWorker = get()) }
 
 
     factory {

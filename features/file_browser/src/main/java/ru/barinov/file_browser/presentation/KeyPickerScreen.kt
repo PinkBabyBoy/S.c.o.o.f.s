@@ -1,6 +1,7 @@
 package ru.barinov.file_browser.presentation
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,7 +58,8 @@ fun KeySelector(
     onEvent: (KeySelectorEvent) -> Unit,
     sideEffects: Flow<KeySelectorSideEffect>,
     navController: NavController,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    onFirstPage: () -> Unit
 ) {
     val keyLoadBsState = remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
     val localCoroutine = rememberCoroutineScope()
@@ -66,7 +68,7 @@ fun KeySelector(
 
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
-            CanGoBack -> navController.navigateUp()
+            CanGoBack -> onFirstPage()
             is KeySelectorSideEffect.AskToLoadKey ->
                 keyLoadBsState.value = BottomSheetPolicy.Expanded(
                     KeyLoadBottomSheetArgs(
@@ -84,6 +86,9 @@ fun KeySelector(
         }
     }
     if (state.isKeyLoaded) {
+        BackHandler {
+            onFirstPage()
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()

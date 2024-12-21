@@ -1,6 +1,7 @@
 package ru.barinov.file_browser.presentation
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -63,6 +64,7 @@ import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.getArgs
 import ru.barinov.core.ui.shouldShow
+import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.OnboardingState
@@ -75,7 +77,8 @@ fun FileBrowserScreen(
     sideEffects: Flow<FileBrowserSideEffect>,
     navController: NavController,
     onEvent: (FileBrowserEvent) -> Unit,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    onFirstPage: () -> Unit
 ) {
     val confirmBsExpanded =
         remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
@@ -84,13 +87,21 @@ fun FileBrowserScreen(
     val localCoroutine = rememberCoroutineScope()
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
-            CanGoBack -> navController.navigateUp()
-            is ShowInfo -> localCoroutine.launch {  snackbarHostState.showSnackbar(context.getString(sideEffect.text), withDismissAction = true) }
+            CanGoBack -> onFirstPage()
+            is ShowInfo -> localCoroutine.launch {
+                snackbarHostState.showSnackbar(
+                    context.getString(
+                        sideEffect.text
+                    ), withDismissAction = true
+                )
+            }
+
             is FileBrowserSideEffect.OpenImageFile
-            -> navController.navigate(toImageDetails(sideEffect.fileId, sideEffect.source))
+                -> navController.navigate(toImageDetails(sideEffect.fileId, sideEffect.source))
 
             is FileBrowserSideEffect.ShowAddFilesDialog -> {
-                confirmBsExpanded.value = BottomSheetPolicy.Expanded(InitializationMode.Selected(sideEffect.selectedFiles))
+                confirmBsExpanded.value =
+                    BottomSheetPolicy.Expanded(InitializationMode.Selected(sideEffect.selectedFiles))
             }
         }
     }
@@ -108,6 +119,9 @@ fun FileBrowserScreen(
     }
 
     if (!state.isKeyLoaded) {
+        BackHandler {
+            onFirstPage()
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -202,7 +216,7 @@ private fun buildActions(
                         modifier = Modifier
                             .combinedClickable(
                                 interactionSource = remember {
-                                    mutableStateOf( MutableInteractionSource() )
+                                    mutableStateOf(MutableInteractionSource())
                                 }.value,
                                 indication = ripple(),
                                 onLongClick = {
@@ -241,7 +255,7 @@ private fun buildActions(
                 title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
                 state = onbData,
                 tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
-                onClick = {onEvent(OnboardingFinished(OnBoarding.CHANGE_SOURCE))},
+                onClick = { onEvent(OnboardingFinished(OnBoarding.CHANGE_SOURCE)) },
                 width = 42.dp,
                 hasNext = false
             ) {
@@ -270,7 +284,7 @@ private fun buildActions(
                 title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
                 state = onbData,
                 tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
-                onClick = {onEvent(OnboardingFinished(OnBoarding.SORT_FILES))},
+                onClick = { onEvent(OnboardingFinished(OnBoarding.SORT_FILES)) },
                 width = 42.dp,
                 hasNext = false
             ) {
