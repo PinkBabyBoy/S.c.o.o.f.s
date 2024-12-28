@@ -4,6 +4,6 @@ enum class EnterScreenRoute {
     ENTER_SCREEN, PERMISSION_INFO
 }
 
-enum class FileBrowserHome {
-    FILE_BROWSER_HOME
+enum class TopDestinations {
+    FILE_BROWSER_HOME, SETTINGS
 }

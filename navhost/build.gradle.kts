@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.material)
     implementation(project(":features:protected_enter:routes"))
     implementation(project(":features:file_browser:navigation"))
+    implementation(project(":features:settings:navigation"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

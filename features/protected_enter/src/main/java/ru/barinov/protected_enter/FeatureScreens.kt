@@ -20,7 +20,7 @@ fun NavGraphBuilder.enterScreen(
             state = vm.uiState.collectAsState().value,
             sideEffects = vm.sideEffects,
             enterScreenEvent = vm::handleEvent,
-            rebase = { navController.navigate(Routes.MAIN.name) },
+            rebase = { navController.navigate(Routes.BROWSER.name) },
         )
     }
 }

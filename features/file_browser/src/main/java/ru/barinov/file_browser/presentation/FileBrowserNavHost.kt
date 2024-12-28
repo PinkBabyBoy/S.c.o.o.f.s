@@ -1,17 +1,12 @@
 package ru.barinov.file_browser.presentation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import org.koin.androidx.compose.koinViewModel
@@ -21,41 +16,17 @@ import ru.barinov.file_browser.ContainersContent
 import ru.barinov.file_browser.ImageDetails
 import ru.barinov.file_browser.viewModels.ContainerContentViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
+import ru.barinov.routes.TopDestinations
 
-@Composable
-fun FileBrowserNavHost(
-    navController: NavHostController,
-    startDestination: String,
+fun NavGraphBuilder.fileBrowserPager(
+    navController: NavController,
     scaffoldPaddings: PaddingValues,
     snackbarHostState: SnackbarHostState,
     bottomNavBarVisibility: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    NavHost(
-        navController = navController, startDestination = startDestination, modifier = modifier
-    ) {
-        composable(route = FileBrowserRout.FILE_OBSERVER.name, enterTransition = {
-        enterSlider(initialState.destination.route, FileBrowserRout.SETTINGS.name)
-        },
-            exitTransition = {
-                exitSlider(initialState.destination.route, FileBrowserRout.FILE_OBSERVER.name)
-            }
-        ) {
+        composable(route = TopDestinations.FILE_BROWSER_HOME.name) {
             HostPager(
-                navController = navController,
-                snackbarHostState = snackbarHostState,
-                scaffoldPaddings = scaffoldPaddings
-            )
-        }
-
-        composable(route = FileBrowserRout.SETTINGS.name, enterTransition = {
-            enterSlider(initialState.destination.route, FileBrowserRout.FILE_OBSERVER.name)
-        },
-            exitTransition = {
-                exitSlider(initialState.destination.route, FileBrowserRout.SETTINGS.name)
-            }
-        ) {
-            Settings(
                 navController = navController,
                 snackbarHostState = snackbarHostState,
                 scaffoldPaddings = scaffoldPaddings
@@ -82,41 +53,6 @@ fun FileBrowserNavHost(
                 bottomNavBarVisibility = bottomNavBarVisibility
             )
         }
-    }
 }
 
-private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterSlider(
-    fromScreen: String?,
-    openScreen: String
-): EnterTransition? {
-    if (fromScreen == null) return null
-    val slideDirection = when {
-        openScreen == FileBrowserRout.FILE_OBSERVER.name -> AnimatedContentTransitionScope.SlideDirection.Right
-        openScreen == FileBrowserRout.SETTINGS.name -> AnimatedContentTransitionScope.SlideDirection.Left
 
-        else -> AnimatedContentTransitionScope.SlideDirection.Right
-    }
-    return slideIntoContainer(
-        slideDirection,
-        animationSpec = tween(250)
-    )
-}
-
-private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitSlider(
-    fromScreen: String?,
-    openScreen: String
-): ExitTransition? {
-    if (fromScreen == null) return null
-    val slideDirection = when {
-        openScreen == FileBrowserRout.FILE_OBSERVER.name && fromScreen != FileBrowserRout.FILE_OBSERVER.name
-        -> AnimatedContentTransitionScope.SlideDirection.Right
-
-        openScreen == FileBrowserRout.SETTINGS.name -> AnimatedContentTransitionScope.SlideDirection.Left
-
-        else -> AnimatedContentTransitionScope.SlideDirection.Left
-    }
-    return slideOutOfContainer(
-        slideDirection,
-        animationSpec = tween(250)
-    )
-}

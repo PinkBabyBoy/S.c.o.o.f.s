@@ -1,17 +1,16 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.settings.presentation
 
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import ru.barinov.routes.FileBrowserHome
+import ru.barinov.routes.TopDestinations
 
-fun NavGraphBuilder.home(
+fun NavGraphBuilder.settings(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    composable(route = FileBrowserHome.FILE_BROWSER_HOME.name) {
-        FileBrowserHomeScreen(mainController = navController)
+    composable(route = TopDestinations.SETTINGS.name) {
+        SettingsScreen(emptyList())
     }
 }
-

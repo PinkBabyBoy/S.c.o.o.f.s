@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,11 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import ru.barinov.core.ui.getActivity
 import ru.barinov.file_browser.viewModels.ContainersViewModel
 import ru.barinov.file_browser.viewModels.FileObserverViewModel
 import ru.barinov.file_browser.viewModels.KeySelectorViewModel
@@ -39,6 +42,11 @@ fun HostPager(
 ) {
     val state = rememberPagerState { Pages.entries.size }
     val localCoroutine = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    BackHandler {
+        context.getActivity()?.finish()
+    }
     val onFirstScreen = {
         localCoroutine.launch {
             state.scrollToPage(0)

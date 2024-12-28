@@ -1,6 +1,5 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.navhost
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -29,21 +28,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import ru.barinov.core.navigation.Routes
 import ru.barinov.core.ui.getActivity
 import ru.barinov.core.ui.mainGreen
 
 @Composable
-fun FileBrowserHomeScreen(mainController: NavController) {
-    val context = LocalContext.current
-    val localNavController = rememberNavController()
-
-    BackHandler {
-        context.getActivity()?.finish()
-    }
+fun Host() {
+    val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
-    val bottomBarVisibility = remember { mutableStateOf(true) }
+    val bottomBarVisibility = remember { mutableStateOf(false) }
 
 
     Scaffold(
@@ -68,25 +62,27 @@ fun FileBrowserHomeScreen(mainController: NavController) {
                 visible = bottomBarVisibility.value,
                 enter = fadeIn(),
                 exit = fadeOut()
-            ) { BrowserBottomNavBar(navController = localNavController) }
+            ) { BrowserBottomNavBar(navController = navController) }
 
         },
     ) {
         Column (modifier = Modifier.fillMaxSize()) {
-            Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars).fillMaxWidth().background(Color.White))
-            FileBrowserNavHost(
-                navController = localNavController,
-                startDestination = FileBrowserRout.FILE_OBSERVER.name,
+            Spacer(
+                Modifier.windowInsetsTopHeight(WindowInsets.statusBars).fillMaxWidth().background(
+                    Color.White))
+            ScoofNavHost(
+                navController = navController,
+                startDestination = Routes.ENTER.name,
                 scaffoldPaddings = it,
                 snackbarHostState = snackbarHostState,
                 bottomNavBarVisibility = { bottomBarVisibility.value = it }
             )
         }
-            AnimatedVisibility(
-                visible = bottomBarVisibility.value,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) { ProtectNavigationBar() }
+        AnimatedVisibility(
+            visible = bottomBarVisibility.value,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) { ProtectNavigationBar() }
 
     }
 }

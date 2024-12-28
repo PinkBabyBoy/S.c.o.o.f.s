@@ -1,34 +1,53 @@
 package ru.barinov.navhost
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.navigation
-import androidx.navigation.compose.rememberNavController
 import ru.barinov.core.navigation.Routes
 import ru.barinov.navigation.deployMainScreens
+import ru.barinov.navigation.deploySettings
 import ru.barinov.protected_enter.navigation.deployEnterFeature
 import ru.barinov.routes.EnterScreenRoute
-import ru.barinov.routes.FileBrowserHome
+import ru.barinov.routes.TopDestinations
 
 @Composable
-fun ScoofNavHost() {
-    val navController = rememberNavController()
+fun ScoofNavHost(
+    navController: NavHostController,
+    startDestination: String,
+    scaffoldPaddings: PaddingValues,
+    snackbarHostState: SnackbarHostState,
+    bottomNavBarVisibility: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.ENTER.name
+        startDestination = startDestination
     ) {
         navigation(
             route = Routes.ENTER.name,
             startDestination = EnterScreenRoute.ENTER_SCREEN.name
         ) {
+            bottomNavBarVisibility(false)
             deployEnterFeature(navController)
         }
         navigation(
-            route = Routes.MAIN.name,
-            startDestination = FileBrowserHome.FILE_BROWSER_HOME.name
+            route = Routes.BROWSER.name,
+            startDestination = TopDestinations.FILE_BROWSER_HOME.name
         ) {
-            deployMainScreens(navController)
+            bottomNavBarVisibility(true)
+            deployMainScreens(navController, scaffoldPaddings, snackbarHostState, bottomNavBarVisibility, modifier)
+        }
+
+        navigation(
+            route = Routes.SETTINGS.name,
+            startDestination = TopDestinations.SETTINGS.name
+        ) {
+            deploySettings(navController)
         }
     }
 }

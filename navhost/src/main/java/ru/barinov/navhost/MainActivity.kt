@@ -19,7 +19,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ScoofTheme {
-                ScoofNavHost()
+                Host()
             }
         }
     }
@@ -30,6 +30,6 @@ class MainActivity : FragmentActivity() {
 @Composable
 fun GreetingPreview() {
     ScoofTheme {
-        ScoofNavHost()
+        Host()
     }
 }
