@@ -21,6 +21,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,12 +60,14 @@ fun KeySelector(
     sideEffects: Flow<KeySelectorSideEffect>,
     navController: NavController,
     snackbarHostState: SnackbarHostState,
-    onFirstPage: () -> Unit
+    onFirstPage: () -> Unit,
+    pageState: MutableIntState
 ) {
     val keyLoadBsState = remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
     val localCoroutine = rememberCoroutineScope()
     val context = LocalContext.current
     val isKeystoreCreatorBsVisible = remember { mutableStateOf(false) }
+    val isPageOnScreen = pageState.intValue == Pages.KEY_PICKER.ordinal
 
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
@@ -86,7 +89,7 @@ fun KeySelector(
         }
     }
     if (state.isKeyLoaded) {
-        BackHandler {
+        BackHandler(enabled = isPageOnScreen) {
             onFirstPage()
         }
         Box(
@@ -125,7 +128,7 @@ fun KeySelector(
             actions = buildSet {
                 if (state.sourceState.isMsdAttached) {
                     add {
-                        val onbData = state.onboardings[OnBoarding.CHANGE_SOURCE].orEmpty()
+                        val onbData = state.onboardings[OnBoarding.CHANGE_SOURCE].takeIf { isPageOnScreen }.orEmpty()
                         OnBoarding(
                             title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
                             state = onbData,
@@ -153,7 +156,7 @@ fun KeySelector(
                     add { Spacer(modifier = Modifier.width(16.dp)) }
                 }
                 add {
-                    val onbData = state.onboardings[OnBoarding.KEY_CREATION].orEmpty()
+                    val onbData = state.onboardings[OnBoarding.KEY_CREATION].takeIf { isPageOnScreen }.orEmpty()
                     OnBoarding(
                         title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
                         state = onbData,

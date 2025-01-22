@@ -11,8 +11,10 @@ import ru.barinov.routes.EnterScreenRoute
 
 
 fun NavGraphBuilder.enterScreen(
-    navController: NavController,
-    modifier: Modifier = Modifier
+navController: NavController,
+bottomNavBarVisibility: (Boolean) -> Unit,
+changeColor: () -> Unit,
+modifier: Modifier = Modifier
 ) {
     composable(route = EnterScreenRoute.ENTER_SCREEN.name) {
         val vm: EnterScreenViewModel = koinViewModel()
@@ -20,7 +22,10 @@ fun NavGraphBuilder.enterScreen(
             state = vm.uiState.collectAsState().value,
             sideEffects = vm.sideEffects,
             enterScreenEvent = vm::handleEvent,
-            rebase = { navController.navigate(Routes.BROWSER.name) },
+            rebase = {
+                navController.navigate(Routes.BROWSER.name)
+                bottomNavBarVisibility(true)
+                changeColor() },
         )
     }
 }

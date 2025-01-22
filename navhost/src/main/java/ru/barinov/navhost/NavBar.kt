@@ -74,9 +74,6 @@ fun BrowserBottomNavBar(
                 onClick = {
                     if (!selected) {
                         navController.navigate(destination.rout.name) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
                             restoreState = true
                             launchSingleTop = true
                         }

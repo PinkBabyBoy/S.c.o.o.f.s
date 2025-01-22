@@ -10,7 +10,7 @@ fun NavGraphBuilder.settings(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    composable(route = TopDestinations.SETTINGS.name) {
+    composable(route = TopDestinations.SETTINGS_HOME.name) {
         SettingsScreen(emptyList())
     }
 }

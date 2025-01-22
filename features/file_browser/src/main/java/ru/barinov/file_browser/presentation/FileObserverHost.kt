@@ -17,8 +17,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +57,13 @@ fun HostPager(
             state.scrollToPage(0)
         }
     }
+    val pageState = remember { mutableIntStateOf(state.currentPage) }
+    LaunchedEffect(state) {
+        // Collect from the pager state a snapshotFlow reading the currentPage
+        snapshotFlow { state.currentPage }.collect { page ->
+            pageState.intValue = page
+        }
+    }
     Box(
         Modifier
             .fillMaxSize()
@@ -82,7 +94,8 @@ fun HostPager(
                             navController = navController,
                             onEvent = vm::onNewEvent,
                             snackbarHostState = snackbarHostState,
-                            onFirstPage = { onFirstScreen() }
+                            onFirstPage = { onFirstScreen() },
+                            pageState
                         )
                     }
 
@@ -94,7 +107,8 @@ fun HostPager(
                             sideEffects = vm.sideEffects,
                             navController = navController,
                             snackbarHostState = snackbarHostState,
-                            onFirstPage = { onFirstScreen() }
+                            onFirstPage = { onFirstScreen() },
+                            pageState
                         )
                     }
                 }
@@ -135,6 +149,6 @@ fun HostPager(
     }
 }
 
-private enum class Pages{
+internal enum class Pages{
     CONTAINERS, FILE_BROWSER, KEY_PICKER
 }

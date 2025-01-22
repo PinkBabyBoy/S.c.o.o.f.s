@@ -21,6 +21,7 @@ fun ScoofNavHost(
     scaffoldPaddings: PaddingValues,
     snackbarHostState: SnackbarHostState,
     bottomNavBarVisibility: (Boolean) -> Unit,
+    changeColor: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -32,20 +33,18 @@ fun ScoofNavHost(
             route = Routes.ENTER.name,
             startDestination = EnterScreenRoute.ENTER_SCREEN.name
         ) {
-            bottomNavBarVisibility(false)
-            deployEnterFeature(navController)
+            deployEnterFeature(navController, bottomNavBarVisibility, changeColor)
         }
         navigation(
             route = Routes.BROWSER.name,
             startDestination = TopDestinations.FILE_BROWSER_HOME.name
         ) {
-            bottomNavBarVisibility(true)
             deployMainScreens(navController, scaffoldPaddings, snackbarHostState, bottomNavBarVisibility, modifier)
         }
 
         navigation(
             route = Routes.SETTINGS.name,
-            startDestination = TopDestinations.SETTINGS.name
+            startDestination = TopDestinations.SETTINGS_HOME.name
         ) {
             deploySettings(navController)
         }

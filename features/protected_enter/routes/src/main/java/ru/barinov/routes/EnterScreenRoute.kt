@@ -5,5 +5,5 @@ enum class EnterScreenRoute {
 }
 
 enum class TopDestinations {
-    FILE_BROWSER_HOME, SETTINGS
+    FILE_BROWSER_HOME, SETTINGS_HOME
 }

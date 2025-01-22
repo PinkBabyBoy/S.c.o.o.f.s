@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,7 +79,8 @@ fun FileBrowserScreen(
     navController: NavController,
     onEvent: (FileBrowserEvent) -> Unit,
     snackbarHostState: SnackbarHostState,
-    onFirstPage: () -> Unit
+    onFirstPage: () -> Unit,
+    pageState: MutableIntState
 ) {
     val confirmBsExpanded =
         remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }

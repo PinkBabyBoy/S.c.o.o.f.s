@@ -8,8 +8,10 @@ import ru.barinov.protected_enter.permissionInfoScreen
 
 fun NavGraphBuilder.deployEnterFeature(
     navController: NavController,
+    bottomNavBarVisibility: (Boolean) -> Unit,
+    changeColor: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    enterScreen(navController, modifier)
+    enterScreen(navController, bottomNavBarVisibility, changeColor, modifier)
     permissionInfoScreen()
 }

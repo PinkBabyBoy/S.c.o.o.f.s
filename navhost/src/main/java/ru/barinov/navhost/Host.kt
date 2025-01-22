@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import ru.barinov.core.navigation.Routes
 import ru.barinov.core.ui.getActivity
+import ru.barinov.core.ui.lightGreen
 import ru.barinov.core.ui.mainGreen
 
 @Composable
@@ -38,6 +39,7 @@ fun Host() {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val bottomBarVisibility = remember { mutableStateOf(false) }
+    val topShieldColor  = remember { mutableStateOf( lightGreen) }
 
 
     Scaffold(
@@ -68,14 +70,14 @@ fun Host() {
     ) {
         Column (modifier = Modifier.fillMaxSize()) {
             Spacer(
-                Modifier.windowInsetsTopHeight(WindowInsets.statusBars).fillMaxWidth().background(
-                    Color.White))
+                Modifier.windowInsetsTopHeight(WindowInsets.statusBars).fillMaxWidth().background(topShieldColor.value))
             ScoofNavHost(
                 navController = navController,
                 startDestination = Routes.ENTER.name,
                 scaffoldPaddings = it,
                 snackbarHostState = snackbarHostState,
-                bottomNavBarVisibility = { bottomBarVisibility.value = it }
+                bottomNavBarVisibility = { bottomBarVisibility.value = it },
+                changeColor = {topShieldColor.value = Color.White}
             )
         }
         AnimatedVisibility(
@@ -83,6 +85,5 @@ fun Host() {
             enter = fadeIn(),
             exit = fadeOut()
         ) { ProtectNavigationBar() }
-
     }
 }
