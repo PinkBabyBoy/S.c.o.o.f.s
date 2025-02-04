@@ -16,7 +16,7 @@ private const val ENC_TAG = "EncryptionWork"
 private const val DEC_TAG = "DecryptionWork"
 
 internal class WorkersManagerImpl(
-    private val appContext: Context,
+    appContext: Context,
     private val preferences: AppPreferences
 ): WorkersManager {
 
@@ -32,7 +32,7 @@ internal class WorkersManagerImpl(
             .putInt(TYPE_KEY, WorkType.ENCRYPTION.ordinal)
             .putString(TRANSACTION_ID_KEY, transactionId)
             .putBoolean(IS_LONG_TRANSACTION_KEY, isLongTransaction)
-            .putLong(IS_LONG_TRANSACTION_KEY, totalSize)
+            .putLong(TOTAL_SIZE_KEY, totalSize)
             .build()
         val workRequest =
             OneTimeWorkRequest.Builder(ScoofWorker::class)

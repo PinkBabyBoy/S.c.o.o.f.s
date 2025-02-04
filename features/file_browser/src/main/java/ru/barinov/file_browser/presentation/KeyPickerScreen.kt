@@ -1,13 +1,11 @@
 package ru.barinov.file_browser.presentation
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -19,9 +17,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,12 +43,10 @@ import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.core.ui.BottomSheetPolicy
 import ru.barinov.core.ui.ScoofButton
 import ru.barinov.core.ui.SingleEventEffect
-import ru.barinov.file_browser.R
 import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.orEmpty
-import ru.barinov.onboarding.switchDefault
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +63,9 @@ fun KeySelector(
     val localCoroutine = rememberCoroutineScope()
     val context = LocalContext.current
     val isKeystoreCreatorBsVisible = remember { mutableStateOf(false) }
-    val isPageOnScreen = pageState.intValue == Pages.KEY_PICKER.ordinal
+    val isPageOnScreen = remember {  derivedStateOf{
+        pageState.intValue == Pages.KEY_PICKER.ordinal
+    }}
 
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
@@ -89,7 +87,7 @@ fun KeySelector(
         }
     }
     if (state.isKeyLoaded) {
-        BackHandler(enabled = isPageOnScreen) {
+        BackHandler(enabled = isPageOnScreen.value) {
             onFirstPage()
         }
         Box(
@@ -128,7 +126,7 @@ fun KeySelector(
             actions = buildSet {
                 if (state.sourceState.isMsdAttached) {
                     add {
-                        val onbData = state.onboardings[OnBoarding.CHANGE_SOURCE].takeIf { isPageOnScreen }.orEmpty()
+                        val onbData = state.onboardings[OnBoarding.CHANGE_SOURCE].takeIf { isPageOnScreen.value }.orEmpty()
                         OnBoarding(
                             title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
                             state = onbData,
@@ -156,7 +154,7 @@ fun KeySelector(
                     add { Spacer(modifier = Modifier.width(16.dp)) }
                 }
                 add {
-                    val onbData = state.onboardings[OnBoarding.KEY_CREATION].takeIf { isPageOnScreen }.orEmpty()
+                    val onbData = state.onboardings[OnBoarding.KEY_CREATION].takeIf { isPageOnScreen.value }.orEmpty()
                     OnBoarding(
                         title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
                         state = onbData,
