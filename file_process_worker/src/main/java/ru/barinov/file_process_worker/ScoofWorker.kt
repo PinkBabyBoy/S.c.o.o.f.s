@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -44,7 +45,7 @@ class ScoofWorker(private val context: Context, parameters: WorkerParameters) :
             if (it is CancellationException) throw it
             return Result.failure()
         }
-        return Result.success()
+        return Result.success().also { Log.e("@@@", "RES SUCC") }
     }
 
     private suspend fun encrypt() {

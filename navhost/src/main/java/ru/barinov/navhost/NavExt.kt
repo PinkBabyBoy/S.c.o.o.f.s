@@ -5,17 +5,18 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.navigation.NavBackStackEntry
+import ru.barinov.core.navigation.Routes
 
-private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterSlider(
+fun AnimatedContentTransitionScope<NavBackStackEntry>.enterSlider(
     fromScreen: String?,
     openScreen: String
 ): EnterTransition? {
     if (fromScreen == null) return null
     val slideDirection = when {
-        openScreen == BottomBarRout.FILE_OBSERVER.name -> AnimatedContentTransitionScope.SlideDirection.Right
-        openScreen == BottomBarRout.SETTINGS.name -> AnimatedContentTransitionScope.SlideDirection.Left
+        openScreen == Routes.BROWSER.name -> AnimatedContentTransitionScope.SlideDirection.Right
+        openScreen == Routes.SETTINGS.name -> AnimatedContentTransitionScope.SlideDirection.Left
 
-        else -> AnimatedContentTransitionScope.SlideDirection.Right
+        else -> error("Wrong direction")
     }
     return slideIntoContainer(
         slideDirection,
@@ -23,18 +24,18 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterSlider(
     )
 }
 
-private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitSlider(
+fun AnimatedContentTransitionScope<NavBackStackEntry>.exitSlider(
     fromScreen: String?,
     openScreen: String
 ): ExitTransition? {
     if (fromScreen == null) return null
     val slideDirection = when {
-        openScreen == BottomBarRout.FILE_OBSERVER.name && fromScreen != BottomBarRout.FILE_OBSERVER.name
+        openScreen == Routes.BROWSER.name && fromScreen != Routes.BROWSER.name
             -> AnimatedContentTransitionScope.SlideDirection.Right
 
-        openScreen == BottomBarRout.SETTINGS.name -> AnimatedContentTransitionScope.SlideDirection.Left
+        openScreen == Routes.SETTINGS.name -> AnimatedContentTransitionScope.SlideDirection.Left
 
-        else -> AnimatedContentTransitionScope.SlideDirection.Left
+        else -> error("Wrong direction")
     }
     return slideOutOfContainer(
         slideDirection,

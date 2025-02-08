@@ -1,5 +1,6 @@
 package ru.barinov.cryptography.factories
 
+import android.util.Log
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import ru.barinov.cryptography.KeyMemoryCache
 import java.security.SecureRandom
@@ -40,7 +41,7 @@ internal class CipherFactoryImpl(
      * */
     override fun createDecryptionInnerCipherBC(key: SecretKey, iv: ByteArray?): Cipher {
         val keySpec = SecretKeySpec(key.encoded, "AES")
-        val gcmSpec = GCMParameterSpec(16 * 8, nonce)
+        val gcmSpec = GCMParameterSpec(128, iv ?: ivLocal)
         return Cipher.getInstance(AES_MODE, BCProvider).also {
             it.init(Cipher.DECRYPT_MODE, keySpec, gcmSpec)
         }
@@ -56,7 +57,7 @@ internal class CipherFactoryImpl(
     }
 
     override fun createEnvelopeWrapperCipher(): Cipher {
-        val sessionKey = keyMemoryCache.getPrivateKey()
+        val sessionKey = keyMemoryCache.getPublicKey()
         return Cipher.getInstance("RSA").also {
             it.init(Cipher.WRAP_MODE, sessionKey)
         }
@@ -83,7 +84,7 @@ internal class CipherFactoryImpl(
      * */
     override fun createEncryptionInnerCipherBC(key: SecretKey): Cipher {
         val keySpec = SecretKeySpec(key.encoded, "AES")
-        val gcmSpec = GCMParameterSpec(16 * 8, nonce)
+        val gcmSpec = GCMParameterSpec(128, ivLocal)
         return Cipher.getInstance(AES_MODE, BCProvider).also {
             it.init(Cipher.ENCRYPT_MODE, keySpec, gcmSpec)
         }

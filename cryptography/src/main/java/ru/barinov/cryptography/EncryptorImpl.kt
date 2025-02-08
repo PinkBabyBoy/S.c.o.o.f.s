@@ -1,5 +1,7 @@
 package ru.barinov.cryptography
 
+import android.util.Log
+import ru.barinov.core.getBytes
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.keygens.SecretKeyGenerator
 import javax.crypto.SecretKey
@@ -17,7 +19,8 @@ internal class EncryptorImpl(
     override fun encryptIndex(indexRaw: ByteArray): ByteArray {
         val key = keyGenerator.generateNewSecretKey()
         val innerCipher = cipherFactory.createEncryptionInnerCipherBC(key)
-        //todo indexSize
-        return encryptSyncBlockKey(key) + innerCipher.doFinal(indexRaw)
+        val indexWrappedKey = encryptSyncBlockKey(key)
+        val encIndex = innerCipher.doFinal(indexRaw)
+        return indexWrappedKey.size.getBytes() + indexWrappedKey +  encIndex.size.getBytes() + encIndex
     }
 }

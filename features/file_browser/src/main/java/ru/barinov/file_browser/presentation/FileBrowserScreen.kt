@@ -29,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
@@ -42,7 +41,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,10 +63,8 @@ import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.getArgs
 import ru.barinov.core.ui.shouldShow
-import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.onboarding.OnBoarding
-import ru.barinov.onboarding.OnboardingState
 import ru.barinov.onboarding.orEmpty
 
 @Composable

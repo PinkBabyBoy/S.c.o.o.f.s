@@ -81,7 +81,8 @@ fun HostPager(
                             navController = navController,
                             snackbarHostState = snackbarHostState,
                             sideEffects = vm.sideEffects,
-                            onEvent = vm::handleEvent
+                            onEvent = vm::handleEvent,
+                            pageState = pageState
                         )
                     }
 
@@ -95,7 +96,7 @@ fun HostPager(
                             onEvent = vm::onNewEvent,
                             snackbarHostState = snackbarHostState,
                             onFirstPage = { onFirstScreen() },
-                            pageState
+                            pageState = pageState
                         )
                     }
 
@@ -108,7 +109,7 @@ fun HostPager(
                             navController = navController,
                             snackbarHostState = snackbarHostState,
                             onFirstPage = { onFirstScreen() },
-                            pageState
+                            pageState = pageState
                         )
                     }
                 }

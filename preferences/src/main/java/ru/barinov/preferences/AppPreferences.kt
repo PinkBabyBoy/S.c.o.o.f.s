@@ -6,5 +6,5 @@ interface AppPreferences {
     var fPass: String?
     var iv: String?
     var shownOnBoardings: Set<String>?
-    var workId: String?
+    var workUniqName: String?
 }

@@ -1,7 +1,9 @@
 package ru.barinov.write_worker
 
+import android.util.Log
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
+import ru.barinov.core.getBytes
 import ru.barinov.core.util.IndexTypeExtractor
 import ru.barinov.cryptography.Encryptor
 import ru.barinov.cryptography.factories.CipherFactory
@@ -13,6 +15,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import javax.crypto.Cipher
 
 internal class WriteFileWorkerImpl(
@@ -49,8 +52,7 @@ internal class WriteFileWorkerImpl(
             is FileEntity.Index -> error("Container is not allowed here")
         }
         runCatching {
-            indexes.appendBytes(index.size.getBytes())
-            indexes.appendBytes(index)
+            indexes.appendBytes(index.size.getBytes() + index) // total size + size of wrappedKey + wrappedKey + size of index + index
         }.onFailure { throw IndexCreationException() }
     }
 

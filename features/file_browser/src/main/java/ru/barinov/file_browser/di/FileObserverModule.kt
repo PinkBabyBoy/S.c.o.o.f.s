@@ -116,7 +116,8 @@ val fileObserverModule = module {
             containerHashExtractor = get(),
             fileToUiModelMapper = get(),
             workersManager = get(),
-            fileWriter = get()
+            fileWriter = get(),
+            selectedCache = get()
         )
     }
 

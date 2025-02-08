@@ -9,5 +9,5 @@ class CreateContainerUseCase(
 
     suspend operator fun invoke(name: String): Result<Unit> = runCatching {
         containersManager.addContainer(name, getCurrentKeyHashUseCase())
-    }.also { it.getOrThrow() }
+    }
 }

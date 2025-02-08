@@ -21,6 +21,7 @@ import ru.barinov.file_browser.base.SideEffectViewModel
 import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
 import ru.barinov.file_browser.states.FilesLoadInitializationUiState
 import ru.barinov.cryptography.hash.utils.ContainerHashExtractor
+import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.core.FileProvider
 import ru.barinov.file_browser.events.FileLoadInitializationEvent
 import ru.barinov.file_browser.events.OnFileClicked
@@ -36,7 +37,8 @@ class FilesLoadInitializationViewModel(
     private val containerHashExtractor: ContainerHashExtractor,
     private val fileToUiModelMapper: FileToUiModelMapper,
     private val workersManager: WorkersManager,
-    private val fileWriter: FileWriter
+    private val fileWriter: FileWriter,
+    private val selectedCache: SelectedCache //To Interface
 ) : SideEffectViewModel<FilesLoadInitializationSideEffects>() {
 
     private val _uiState = MutableStateFlow(FilesLoadInitializationUiState.empty())
@@ -104,6 +106,7 @@ class FilesLoadInitializationViewModel(
             files = selectedFiles,
             onEvaluated = { data, isLong ->
                 workersManager.startEncryptWork(data.uuid.toString(), isLong, data.totalSize)
+                selectedCache.removeAll()
                 viewModelScope.launch { _sideEffects.send(FilesLoadInitializationSideEffects.CloseOnLongTransaction) }
             }
         )

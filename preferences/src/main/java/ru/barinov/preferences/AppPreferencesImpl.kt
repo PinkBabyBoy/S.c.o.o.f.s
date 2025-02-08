@@ -17,9 +17,9 @@ internal class AppPreferencesImpl(sharedPreferences: SharedPreferences): AppPref
     override var fPass by sharedPreferences.string(F_PASS_KEY, null)
     override var iv: String? by sharedPreferences.string(IV_KEY, null)
     override var shownOnBoardings: Set<String>? by sharedPreferences.stringSet(SHOWED_ONBOARDINGS_KEY, setOf())
-    override var workId: String? by sharedPreferences.string(WORKER_KEY, null)
+    override var workUniqName: String? by sharedPreferences.string(WORKER_KEY, null)
 
     init {
-        if(workId == null) workId = UUID.randomUUID().toString()
+        if(workUniqName == null) workUniqName = UUID.randomUUID().toString()
     }
 }

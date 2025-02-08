@@ -82,8 +82,14 @@ fun String.trimFileName(limit: Int): String = when{
     }
 }
 
+
 fun Long.getBytes(): ByteArray{
     return ByteBuffer.allocate(Long.SIZE_BYTES).putLong(this).array()
+
+}
+
+fun Short.getBytes(): ByteArray{
+    return ByteBuffer.allocate(Short.SIZE_BYTES).putShort(this).array()
 
 }
 

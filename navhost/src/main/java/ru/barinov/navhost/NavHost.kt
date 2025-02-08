@@ -37,6 +37,8 @@ fun ScoofNavHost(
         }
         navigation(
             route = Routes.BROWSER.name,
+            enterTransition = {enterSlider(navController.currentDestination?.route, Routes.BROWSER.name)},
+            exitTransition = {exitSlider(navController.currentDestination?.route, Routes.SETTINGS.name)},
             startDestination = TopDestinations.FILE_BROWSER_HOME.name
         ) {
             deployMainScreens(navController, scaffoldPaddings, snackbarHostState, bottomNavBarVisibility, modifier)
@@ -44,9 +46,12 @@ fun ScoofNavHost(
 
         navigation(
             route = Routes.SETTINGS.name,
+            enterTransition = {enterSlider(navController.currentDestination?.route, Routes.SETTINGS.name)},
+            exitTransition = {exitSlider(navController.currentDestination?.route, Routes.BROWSER.name)},
             startDestination = TopDestinations.SETTINGS_HOME.name
         ) {
             deploySettings(navController)
         }
     }
 }
+
