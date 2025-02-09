@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import ru.barinov.file_browser.events.ImageDetailsEvent
 import ru.barinov.file_browser.sideEffects.ImageFileDetailsSideEffects
 import ru.barinov.file_browser.states.ImageFileScreenUiState
-import ru.barinov.file_browser.viewModels.InitializationMode
+import ru.barinov.file_browser.viewModels.InitializationParams
 import ru.barinov.core.ui.BottomSheetPolicy
 import ru.barinov.core.ui.RegisterLifecycleCallbacks
 import ru.barinov.core.ui.SingleEventEffect
@@ -54,7 +54,7 @@ fun ImageFileScreen(
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
             is ImageFileDetailsSideEffects.ShowAddFilesDialog ->
-                confirmBsExpanded.value = BottomSheetPolicy.Expanded(InitializationMode.Direct(sideEffect.fileId, sideEffect.source))
+                confirmBsExpanded.value = BottomSheetPolicy.Expanded(InitializationParams.Direct(sideEffect.file))
         }
     }
     Box(
@@ -102,9 +102,8 @@ fun ImageFileScreen(
             }
         }
     }
-    val bsState = confirmBsExpanded.value
-    if(bsState.shouldShow()) {
-        FilesLoadInitialization(bsState.getArgs()) { confirmBsExpanded.value = BottomSheetPolicy.Collapsed }
+    if(confirmBsExpanded.value.shouldShow()) {
+        FilesLoadInitialization(confirmBsExpanded.value.getArgs()) { confirmBsExpanded.value = BottomSheetPolicy.Collapsed }
     }
 
 }

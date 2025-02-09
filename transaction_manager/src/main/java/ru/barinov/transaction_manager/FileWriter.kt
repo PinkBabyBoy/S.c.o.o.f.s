@@ -1,13 +1,14 @@
 package ru.barinov.transaction_manager
 
 import ru.barinov.core.FileEntity
+import ru.barinov.core.InteractableFile
 import java.util.UUID
 
 interface FileWriter: Cleaner {
 
     fun evaluateTransaction(
         containersName: String,
-        files: List<FileEntity>,
+        files: List<InteractableFile>,
         onEvaluated: (InitialTransactionData, Boolean) -> Unit
     )
 

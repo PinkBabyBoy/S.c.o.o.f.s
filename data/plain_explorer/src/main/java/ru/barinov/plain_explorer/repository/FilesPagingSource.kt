@@ -1,6 +1,5 @@
-package ru.barinov.file_browser
+package ru.barinov.plain_explorer.repository
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import ru.barinov.core.FileEntity

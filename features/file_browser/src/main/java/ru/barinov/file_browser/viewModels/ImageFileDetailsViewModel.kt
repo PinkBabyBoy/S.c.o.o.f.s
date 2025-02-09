@@ -8,20 +8,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
-import ru.barinov.core.Source
 import ru.barinov.core.inputStream
 import ru.barinov.file_browser.base.SideEffectViewModel
-import ru.barinov.file_browser.core.FileProvider
 import ru.barinov.file_browser.events.ImageDetailsEvent
 import ru.barinov.file_browser.sideEffects.ImageFileDetailsSideEffects
-import ru.barinov.file_browser.sideEffects.SideEffect
 import ru.barinov.file_browser.states.ImageFileScreenUiState
+import ru.barinov.file_browser.utils.FileSingleShareBus
 
 class ImageFileDetailsViewModel(
-    fileProvider: FileProvider,
-    private val fileId: FileId,
-    private val source: Source
+    fileSingleShareBus: FileSingleShareBus,
+    private val fileId: FileId
 ) : SideEffectViewModel<ImageFileDetailsSideEffects>() {
 
     private val _uiState = MutableStateFlow(ImageFileScreenUiState.idle())
@@ -29,9 +27,12 @@ class ImageFileDetailsViewModel(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val fileStream = fileProvider.getFileByID(fileId, source).inputStream()
+            val sharedFile = fileSingleShareBus.get() ?: return@launch
+            if((sharedFile as? FileEntity)?.fileId != fileId) return@launch // Double check
+            val fileStream = sharedFile.inputStream()
             val bitmap = BitmapFactory.decodeStream(fileStream)
-            _uiState.value = uiState.value.copy(bitmapToShow = bitmap)
+            fileStream.close()
+            _uiState.value = uiState.value.copy(bitmapToShow = bitmap, imgFile = sharedFile)
         }
     }
 
@@ -40,7 +41,10 @@ class ImageFileDetailsViewModel(
             ImageDetailsEvent.RotateLeft -> rotate90Left()
             ImageDetailsEvent.RotateRight -> rotate90Right()
             ImageDetailsEvent.SaveToContainer
-            -> viewModelScope.launch { _sideEffects.send(ImageFileDetailsSideEffects.ShowAddFilesDialog(source, fileId)) }
+            -> viewModelScope.launch {
+                 val shareFile = _uiState.value.imgFile ?: return@launch
+                _sideEffects.send(ImageFileDetailsSideEffects.ShowAddFilesDialog(shareFile))
+            }
         }
     }
 

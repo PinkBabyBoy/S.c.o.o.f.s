@@ -1,6 +1,5 @@
 package ru.barinov.file_browser.presentation
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -57,7 +56,7 @@ import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.file_browser.toImageDetails
-import ru.barinov.file_browser.viewModels.InitializationMode
+import ru.barinov.file_browser.viewModels.InitializationParams
 import ru.barinov.core.ui.BottomSheetPolicy
 import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
@@ -95,11 +94,11 @@ fun FileBrowserScreen(
             }
 
             is FileBrowserSideEffect.OpenImageFile
-                -> navController.navigate(toImageDetails(sideEffect.fileId, sideEffect.source))
+                -> navController.navigate(toImageDetails(sideEffect.fileId))
 
             is FileBrowserSideEffect.ShowAddFilesDialog -> {
                 confirmBsExpanded.value =
-                    BottomSheetPolicy.Expanded(InitializationMode.Selected(sideEffect.selectedFiles))
+                    BottomSheetPolicy.Expanded(InitializationParams.Selected(sideEffect.selectedFiles))
             }
         }
     }

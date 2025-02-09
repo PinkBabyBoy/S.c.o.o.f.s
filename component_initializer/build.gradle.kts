@@ -53,5 +53,7 @@ dependencies {
     implementation(project(":file_works:read_worker"))
     implementation(project(":file_works:write_worker"))
     implementation(project(":file_process_worker"))
+    implementation(project(":data:plain_explorer"))
+    implementation(project(":data:crypto_container_explorer"))
 
 }

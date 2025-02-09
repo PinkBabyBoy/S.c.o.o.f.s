@@ -7,7 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import ru.barinov.core.Addable
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.FileEntity
 import ru.barinov.core.launchWithMutex
 import ru.barinov.core.truncate
@@ -45,14 +45,15 @@ internal class FileWriterImpl(
 
     override fun evaluateTransaction(
         containersName: String,
-        files: List<FileEntity>,
+        files: List<InteractableFile>,
         onEvaluated: (InitialTransactionData, Boolean) -> Unit
     ) {
         serviceCoroutine.launchWithMutex(mutex) {
-            val size = files.sumOf { it.calculateSize() }
+            val fileModels = files.filterIsInstance<FileEntity>()
+            val size = fileModels.sumOf { it.calculateSize() }
             val containerData = getCurrentContainerUseCase(containersName)
             val isLongTransaction = size > SHORT_TRANSACTION_LIMIT
-            val transaction = registerTransaction(files, containerData, size)
+            val transaction = registerTransaction(fileModels, containerData, size)
             onEvaluated(transaction, isLongTransaction)
         }
     }
@@ -142,5 +143,5 @@ class TransactionError(fileName: String, resultSuccess: Int, total: Int, reason:
 private suspend fun Collection<FileEntity>.flatMapFiles(): List<FileEntity> {
     val files = filter { !it.isDir }
     val folders = filter { it.isDir }
-    return files + folders.map { (it as Addable).innerFilesAsync().values.flatMapFiles() }.flatten()
+    return files + folders.map { (it as InteractableFile).innerFilesAsync().values.flatMapFiles() }.flatten()
 }

@@ -25,10 +25,9 @@ import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
 import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.file_browser.core.FileTreeProvider
-import ru.barinov.file_browser.FilesPagingSource
+import ru.barinov.plain_explorer.repository.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
-import ru.barinov.file_browser.PAGE_SIZE
+import ru.barinov.plain_explorer.repository.PAGE_SIZE
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
 import ru.barinov.file_browser.events.KeySelectorEvent
@@ -45,6 +44,7 @@ import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.OnBoardingEngine
+import ru.barinov.plain_explorer.FileTreeProvider
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 class KeySelectorViewModel(

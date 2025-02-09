@@ -1,12 +1,9 @@
 package ru.barinov.file_browser.models
 
 import androidx.annotation.StringRes
+import ru.barinov.core.SortType
 
 class Sort(
     @StringRes val text: Int,
-    val type: Type
-) {
-    enum class Type {
-        AS_IS, NEW_FIRST, OLD_FIRST, BIG_FIRST, SMALL_FIRST
-    }
-}
+    val type: SortType
+)

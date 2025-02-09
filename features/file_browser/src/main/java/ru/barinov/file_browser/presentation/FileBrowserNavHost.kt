@@ -43,8 +43,7 @@ fun NavGraphBuilder.fileBrowserPager(
 
         composable<ImageDetails> {
             val args: ImageDetails = it.toRoute()
-            val vm: ImageFileDetailsViewModel =
-                koinViewModel(parameters = { parametersOf(FileId.restore(args.fileId), args.source) })
+            val vm: ImageFileDetailsViewModel = koinViewModel(parameters = { parametersOf(FileId.restore(args.fileId)) })
             ImageFileScreen(
                 paddingValues = scaffoldPaddings,
                 sideEffects = vm.sideEffects,

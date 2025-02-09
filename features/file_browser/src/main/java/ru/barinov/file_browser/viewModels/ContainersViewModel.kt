@@ -15,8 +15,8 @@ import kotlinx.coroutines.launch
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.file_browser.ContainersManager
 import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.file_browser.FilesPagingSource
-import ru.barinov.file_browser.PAGE_SIZE
+import ru.barinov.plain_explorer.repository.FilesPagingSource
+import ru.barinov.plain_explorer.repository.PAGE_SIZE
 import ru.barinov.file_browser.base.SideEffectViewModel
 import ru.barinov.file_browser.events.ContainersEvent
 import ru.barinov.file_browser.events.OnFileClicked

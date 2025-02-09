@@ -6,7 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import ru.barinov.core.Addable
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.inputStream
 import ru.barinov.core.launchCatching
 
@@ -23,7 +23,7 @@ internal class KeyManagerImpl(
     override val isKeyLoaded: StateFlow<Boolean> = keyCache.isLoaded
 
     override fun loadKey(
-        keyFile: Addable,
+        keyFile: InteractableFile,
         password: CharArray,
         onSuccess: () -> Unit,
         onError: (Throwable) -> Unit

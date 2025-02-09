@@ -2,7 +2,7 @@ package ru.barinov.cryptography.factories
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import ru.barinov.core.Addable
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.outputStream
 import ru.barinov.cryptography.keygens.AsymmetricKeyGenerator
 import java.security.KeyStore
@@ -17,7 +17,7 @@ internal class KeyStoreFactoryImpl(
 ) : KeyStoreFactory {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    override fun create(fileToStore: Addable, pass: CharArray): Result<KeyStore> = runCatching {
+    override fun create(fileToStore: InteractableFile, pass: CharArray): Result<KeyStore> = runCatching {
         KeyStore.getInstance(KeyStore.getDefaultType()).apply {
             load(null)
             keygen.generateNewKeyPair().apply {

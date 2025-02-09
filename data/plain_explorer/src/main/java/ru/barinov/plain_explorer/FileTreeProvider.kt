@@ -1,10 +1,8 @@
-package ru.barinov.file_browser.core
+package ru.barinov.plain_explorer
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,24 +11,20 @@ import kotlinx.coroutines.launch
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filepath
-import ru.barinov.core.Addable
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.Source
-import ru.barinov.external_data.MassStorageEventBus
-import ru.barinov.file_browser.RootNameProvider
-import ru.barinov.file_browser.RootProvider
 import java.io.Closeable
 import java.util.Stack
 
 //TODO interface
 class FileTreeProvider(
     private val rootProvider: RootProvider,
-    private val massStorageEventBus: MassStorageEventBus,
     private val rootNameProvider: RootNameProvider
 ) : Closeable, FileProvider {
 
     private val localCoroutine = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val innerFolderBackStack = Stack<Addable>()
-    private val massStorageFolderBackStack = Stack<Addable>()
+    private val innerFolderBackStack = Stack<InteractableFile>()
+    private val massStorageFolderBackStack = Stack<InteractableFile>()
 
     private val _innerFiles: MutableStateFlow<Map<FileId, FileEntity>?> =
         MutableStateFlow(rootProvider.getRootFile(Source.INTERNAL)?.innerFiles())
@@ -49,16 +43,16 @@ class FileTreeProvider(
         return path to !stack.hasBackFolder()
     }
 
-    fun getCurrentFolder(source: Source): Addable {
+    fun getCurrentFolder(source: Source): InteractableFile {
         val stack =
             if (source == Source.INTERNAL) innerFolderBackStack else massStorageFolderBackStack
-        return if (stack.isNotEmpty()) stack.peek() as Addable else rootProvider.getRootFile(source)!!
+        return if (stack.isNotEmpty()) stack.peek() as InteractableFile else rootProvider.getRootFile(source)!!
     }
 
     fun getCurrentList(source: Source): Collection<FileEntity>? =
         if (source == Source.INTERNAL) innerFiles.value?.values else massStorageFiles.value?.values
 
-    override fun getFileByID(fileId: FileId, source: Source): Addable =
+    override fun getFileByID(fileId: FileId, source: Source): InteractableFile =
         when (source) {
             Source.INTERNAL -> innerFiles.getFileByID(fileId)
             Source.MASS_STORAGE -> massStorageFiles.getFileByID(fileId)
@@ -80,7 +74,7 @@ class FileTreeProvider(
         }
     }
 
-    private suspend fun onBack(source: Source, folder: Addable) {
+    private suspend fun onBack(source: Source, folder: InteractableFile) {
         when (source) {
             Source.INTERNAL -> _innerFiles.value = folder.parent?.innerFilesAsync()
             Source.MASS_STORAGE -> _massStorageFiles.value = folder.parent?.innerFilesAsync()
@@ -127,11 +121,11 @@ class FileTreeProvider(
     }
 }
 
-fun StateFlow<Map<FileId, FileEntity>?>.getFileByID(fileId: FileId): Addable? {
+fun StateFlow<Map<FileId, FileEntity>?>.getFileByID(fileId: FileId): InteractableFile? {
     val currentFiles = value
     if (currentFiles.isNullOrEmpty()) return null
-    return currentFiles[fileId] as? Addable
+    return currentFiles[fileId] as? InteractableFile
 }
 
-fun Stack<Addable>.hasBackFolder(): Boolean =
+fun Stack<InteractableFile>.hasBackFolder(): Boolean =
     isNotEmpty() && peek()?.parent != null

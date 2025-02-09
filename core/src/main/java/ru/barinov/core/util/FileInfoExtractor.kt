@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import ru.barinov.core.Addable
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.FileIndex
@@ -90,8 +90,8 @@ class FileInfoExtractor(
                         fileEntity.size.value.bytesToMbSting()
                     )
 
-                    (fileEntity as? Addable)?.inputStream()?.isImage() == true -> {
-                        val iStream = (fileEntity as? Addable)?.inputStream() ?: return@launch
+                    (fileEntity as? InteractableFile)?.inputStream()?.isImage() == true -> {
+                        val iStream = (fileEntity as? InteractableFile)?.inputStream() ?: return@launch
                         iStream.use {
                             val preview = it.getBitMapPreview()
                             if (preview == null) {

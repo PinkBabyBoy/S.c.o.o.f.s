@@ -1,23 +1,17 @@
 package ru.barinov.file_browser.base
 
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import ru.barinov.core.Source
 import ru.barinov.external_data.MassStorageState
-import ru.barinov.file_browser.core.FileTreeProvider
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.sideEffects.SideEffect
+import ru.barinov.plain_explorer.FileTreeProvider
 
 abstract class FileWalkViewModel<S: SideEffect>(
     protected val fileTreeProvider: FileTreeProvider,
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     tryLoadMsdFirst: Boolean
-) : ViewModel() {
-
-    protected val _sideEffects = Channel<S>(capacity = Channel.BUFFERED)
-    val sideEffects = _sideEffects.receiveAsFlow()
+) : SideEffectViewModel<S>() {
 
     protected val sourceType: MutableStateFlow<Source> = MutableStateFlow(
         if (getMSDAttachStateProvider.invoke().value is MassStorageState.Ready && tryLoadMsdFirst)

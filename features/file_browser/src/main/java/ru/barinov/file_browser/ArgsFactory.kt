@@ -3,8 +3,8 @@ package ru.barinov.file_browser
 import ru.barinov.core.FileId
 import ru.barinov.core.Source
 
-fun toImageDetails(fileId: FileId, source: Source): ImageDetails {
-    return ImageDetails(fileId.value, source)
+fun toImageDetails(fileId: FileId): ImageDetails {
+    return ImageDetails(fileId.value)
 }
 
 fun toContainerContent(fileId: FileId): ContainersContent {
@@ -15,4 +15,4 @@ fun toContainerContent(fileId: FileId): ContainersContent {
 class ContainersContent(val fileId: String)
 
 @kotlinx.serialization.Serializable
-class ImageDetails(val fileId: String, val source: Source)
+class ImageDetails(val fileId: String)

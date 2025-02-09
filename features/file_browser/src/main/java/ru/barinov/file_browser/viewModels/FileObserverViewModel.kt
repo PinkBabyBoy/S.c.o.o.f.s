@@ -22,14 +22,15 @@ import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.FileTypeInfo
 import ru.barinov.core.Filepath
+import ru.barinov.core.InteractableFile
+import ru.barinov.core.SortType
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
 import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.file_browser.core.FileTreeProvider
-import ru.barinov.file_browser.FilesPagingSource
+import ru.barinov.plain_explorer.repository.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
-import ru.barinov.file_browser.PAGE_SIZE
+import ru.barinov.plain_explorer.repository.PAGE_SIZE
 import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
@@ -40,14 +41,15 @@ import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
-import ru.barinov.file_browser.models.Sort
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
-import ru.barinov.file_browser.utils.sort
+import ru.barinov.plain_explorer.repository.sort
 import ru.barinov.file_browser.states.FileBrowserUiState
+import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.OnBoardingEngine
+import ru.barinov.plain_explorer.FileTreeProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("OPT_IN_USAGE")
@@ -57,14 +59,15 @@ class FileObserverViewModel(
     private val fileToUiModelMapper: FileToUiModelMapper,
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     keyManager: KeyManager,
-    private val fileBrowserOnboarding: OnBoardingEngine
+    private val fileBrowserOnboarding: OnBoardingEngine,
+    private val singleShareBus: FileSingleShareBus
 ) : FileWalkViewModel<FileBrowserSideEffect>(fileTreeProvider, getMSDAttachStateProvider, false) {
 
     private val _uiState: MutableStateFlow<FileBrowserUiState> =
         MutableStateFlow(FileBrowserUiState.idle())
     val uiState = _uiState.asStateFlow()
 
-    private val sortType = MutableStateFlow(Sort.Type.AS_IS)
+    private val sortType = MutableStateFlow(SortType.AS_IS)
 
 
     init {
@@ -202,7 +205,8 @@ class FileObserverViewModel(
             is FileTypeInfo.Dir -> fileTreeProvider.open(fileId, sourceType.value)
             is FileTypeInfo.ImageFile -> {
                 viewModelScope.launch{
-                    _sideEffects.send(FileBrowserSideEffect.OpenImageFile(sourceType.value, fileId))
+                    singleShareBus.share(fileTreeProvider.getFileByID(fileId, sourceType.value))
+                    _sideEffects.send(FileBrowserSideEffect.OpenImageFile(fileId))
                 }
             }
             is FileTypeInfo.Index -> error("")
@@ -218,7 +222,7 @@ class FileObserverViewModel(
 
     private fun askTransactionWithSelected() {
         viewModelScope.launch {
-            _sideEffects.send(FileBrowserSideEffect.ShowAddFilesDialog(selectedCache.getCache().values))
+            _sideEffects.send(FileBrowserSideEffect.ShowAddFilesDialog(selectedCache.getCache().values.filterIsInstance<InteractableFile>()))
         }
     }
 
@@ -227,6 +231,7 @@ class FileObserverViewModel(
         fileToUiModelMapper.clear()
     }
 }
+
 
 private data class RawUiModel(
     val files: Flow<PagingData<FileUiModel>>,

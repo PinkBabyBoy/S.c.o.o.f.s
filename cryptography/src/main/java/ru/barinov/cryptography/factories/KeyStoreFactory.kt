@@ -1,9 +1,9 @@
 package ru.barinov.cryptography.factories
 
-import ru.barinov.core.Addable
+import ru.barinov.core.InteractableFile
 import java.security.KeyStore
 
 fun interface KeyStoreFactory {
 
-    fun create(fileToStore: Addable, pass: CharArray): Result<KeyStore>
+    fun create(fileToStore: InteractableFile, pass: CharArray): Result<KeyStore>
 }

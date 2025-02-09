@@ -26,9 +26,9 @@ value class Filepath(val value: String) {
 @JvmInline
 value class FileSize(val value: Long)
 
-sealed interface Addable {
+sealed interface InteractableFile {
     val isDir: Boolean
-    val parent: Addable?
+    val parent: InteractableFile?
     val path: Filepath
     suspend fun innerFilesAsync(): Map<FileId, FileEntity>
     fun innerFiles(): Map<FileId, FileEntity>
@@ -41,7 +41,7 @@ sealed class FileEntity(
     val isDir: Boolean,
     val name: Filename,
     val path: Filepath,
-    val parent: Addable?
+    val parent: InteractableFile?
 ) {
 
     abstract suspend fun calculateSize(): Long
@@ -58,7 +58,7 @@ sealed class FileEntity(
         name = Filename(attachedOrigin.name),
         path = Filepath(attachedOrigin.absolutePath),
         parent = attachedOrigin.parent?.toInternalFileEntity()
-    ), Addable {
+    ), InteractableFile {
 
         override fun innerFiles(): Map<FileId, FileEntity> = runCatching {
             attachedOrigin.listFiles().map { it.toInternalFileEntity() }.associateBy { it.fileId }
@@ -89,7 +89,7 @@ sealed class FileEntity(
         name = Filename(attachedOrigin.name),
         path = Filepath(attachedOrigin.path),
         parent = attachedOrigin.parentFile?.toInternalFileEntity()
-    ), Addable {
+    ), InteractableFile {
 
         override fun innerFiles(): Map<FileId, FileEntity> = runCatching {
             attachedOrigin.listFiles()?.map { it.toInternalFileEntity() }?.associateBy { it.fileId }
@@ -159,14 +159,14 @@ fun File.toContainerFileEntity(): FileEntity.Index =
 fun UsbFile.toInternalFileEntity(): FileEntity.MassStorageFile =
     FileEntity.MassStorageFile(this)
 
-fun Addable.inputStream(): InputStream {
+fun InteractableFile.inputStream(): InputStream {
     return when (this) {
         is FileEntity.InternalFile -> attachedOrigin.inputStream()
         is FileEntity.MassStorageFile -> UsbFileInputStream(attachedOrigin)
     }
 }
 
-fun Addable.outputStream(): OutputStream {
+fun InteractableFile.outputStream(): OutputStream {
     return when (this) {
         is FileEntity.InternalFile -> attachedOrigin.outputStream()
         is FileEntity.MassStorageFile -> UsbFileOutputStream(attachedOrigin)

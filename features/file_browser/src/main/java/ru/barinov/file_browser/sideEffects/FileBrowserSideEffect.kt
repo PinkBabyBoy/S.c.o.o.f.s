@@ -4,18 +4,19 @@ import androidx.annotation.StringRes
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filename
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.Source
 
 interface SideEffect
 
 sealed interface ImageFileDetailsSideEffects : SideEffect {
 
-    class ShowAddFilesDialog(val source: Source, val fileId: FileId) : ImageFileDetailsSideEffects
+    class ShowAddFilesDialog(val file: InteractableFile) : ImageFileDetailsSideEffects
 }
 
 sealed interface FileBrowserSideEffect : SideEffect {
-    class OpenImageFile(val source: Source, val fileId: FileId) : FileBrowserSideEffect
-    class ShowAddFilesDialog(val selectedFiles: Collection<FileEntity>) : FileBrowserSideEffect
+    class OpenImageFile(val fileId: FileId) : FileBrowserSideEffect
+    class ShowAddFilesDialog(val selectedFiles: Collection<InteractableFile>) : FileBrowserSideEffect
 }
 
 sealed interface FilesLoadInitializationSideEffects : SideEffect {
