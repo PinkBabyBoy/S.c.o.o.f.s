@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateSizeAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -74,7 +76,7 @@ fun FileBrowserScreen(
     navController: NavController,
     onEvent: (FileBrowserEvent) -> Unit,
     snackbarHostState: SnackbarHostState,
-    onFirstPage: () -> Unit,
+    openPage: (Int) -> Unit,
     pageState: MutableIntState
 ) {
     val confirmBsExpanded =
@@ -84,7 +86,7 @@ fun FileBrowserScreen(
     val localCoroutine = rememberCoroutineScope()
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
-            CanGoBack -> onFirstPage()
+            CanGoBack -> openPage(Pages.CONTAINERS.ordinal)
             is ShowInfo -> localCoroutine.launch {
                 snackbarHostState.showSnackbar(
                     context.getString(
@@ -117,7 +119,7 @@ fun FileBrowserScreen(
 
     if (!state.isKeyLoaded) {
         BackHandler {
-            onFirstPage()
+            openPage(Pages.CONTAINERS.ordinal)
         }
         Box(
             modifier = Modifier
@@ -129,34 +131,35 @@ fun FileBrowserScreen(
                 modifier = Modifier.align(Alignment.Center)
             ) {
                 Text(text = "First, need to load key")
+                val transitionSize = rememberInfiniteTransition(label = "infSize").animateFloat(
+                    initialValue = 32f,
+                    targetValue = 54f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(2000, easing = FastOutLinearInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "arrow_pointer"
+                )
                 Image(
                     painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier.clickable { openPage(Pages.KEY_PICKER.ordinal) }.padding(top = 24.dp).size(transitionSize.value.toInt().dp)
                 )
             }
-            val transition = rememberInfiniteTransition(label = "inf").animateFloat(
-                initialValue = 0f,
-                targetValue = 42f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(800, easing = FastOutLinearInEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "arrow_pointer"
-            )
-            Image(
-                painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(
-                        bottom = scaffoldPaddingValues.calculateBottomPadding() + 18.dp,
-                        end = 62.dp
-                    )
-                    .align(Alignment.BottomEnd)
-                    .rotate(-90f)
-                    .graphicsLayer {
-                        translationX = transition.value
-                    }
-            )
+//            Image(
+//                painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .padding(
+//                        bottom = scaffoldPaddingValues.calculateBottomPadding() - 24.dp,
+//                        end = 134.dp
+//                    )
+//                    .align(Alignment.BottomEnd)
+//                    .rotate(-90f)
+//                    .graphicsLayer {
+//                        translationX = transition.value
+//                    }
+//            )
         }
     } else {
         BrowserBlock<FileBrowserEvent>(

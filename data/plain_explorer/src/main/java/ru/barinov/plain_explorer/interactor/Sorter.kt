@@ -1,4 +1,4 @@
-package ru.barinov.plain_explorer.repository
+package ru.barinov.plain_explorer.interactor
 
 import ru.barinov.core.FileEntity
 import ru.barinov.core.SortType

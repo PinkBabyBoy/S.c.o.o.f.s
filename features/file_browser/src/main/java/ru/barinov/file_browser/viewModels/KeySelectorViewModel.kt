@@ -25,9 +25,9 @@ import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
 import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.plain_explorer.repository.FilesPagingSource
+import ru.barinov.plain_explorer.interactor.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
-import ru.barinov.plain_explorer.repository.PAGE_SIZE
+import ru.barinov.plain_explorer.interactor.PAGE_SIZE
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
 import ru.barinov.file_browser.events.KeySelectorEvent
@@ -44,17 +44,22 @@ import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.OnBoardingEngine
-import ru.barinov.plain_explorer.FileTreeProvider
+import ru.barinov.plain_explorer.FolderTreeAgentImpl
+import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 class KeySelectorViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
-    fileTreeProvider: FileTreeProvider,
+    folderDataInteractor: FolderDataInteractor,
     private val fileToUiModelMapper: FileToUiModelMapper,
     private val keyManager: KeyManager,
     private val createKeyStoreUseCase: CreateKeyStoreUseCase,
     private val keyPickerOnBoarding: OnBoardingEngine
-) : FileWalkViewModel<KeySelectorSideEffect>(fileTreeProvider, getMSDAttachStateProvider, true) {
+) : FileWalkViewModel<KeySelectorSideEffect>(
+    folderDataInteractor,
+    getMSDAttachStateProvider,
+    true
+) {
 
 
     private val _uiState: MutableStateFlow<KeyPickerUiState> =
@@ -67,32 +72,28 @@ class KeySelectorViewModel(
             .combine(sourceType, ::SourceState)
 
         val files = sourceState.flatMapLatest { sourceData ->
-            if (sourceData.currentSource == Source.INTERNAL)
-                fileTreeProvider.innerFiles
-            else
-                fileTreeProvider.massStorageFiles
-        }.map {
-            Pager(
-                config = PagingConfig(
-                    pageSize = PAGE_SIZE,
-                    enablePlaceholders = false,
-                    initialLoadSize = PAGE_SIZE
-                ),
-                pagingSourceFactory = {
-                    FilesPagingSource(it?.values?.toList())
-                }
-            ).flow.map { page ->
-                fileToUiModelMapper(page, hashSetOf(), false)
-            }.cachedIn(viewModelScope) to it.isNullOrEmpty()
+            val sourceToOpen =
+                if (sourceData.currentSource == Source.MASS_STORAGE && sourceData.isMsdAttached)
+                    Source.MASS_STORAGE
+                else Source.INTERNAL
+
+            folderDataInteractor.getFolderFiles(
+                source = sourceToOpen
+            ) {
+                map { page ->
+                    fileToUiModelMapper(page, hashSetOf(), false)
+                }.cachedIn(viewModelScope)
+            }
         }
 
 
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(Dispatchers.Default)
+        {
             combine(keyManager.isKeyLoaded, sourceState, files, ::Triple)
                 .map {
                     val (isKeyLoaded, sourceData, page) = it
                     val (name, isRoot) =
-                        fileTreeProvider.getCurrentFolderInfo(sourceData.currentSource)
+                        folderDataInteractor.getCurrentFolderInfo(sourceData.currentSource)
                     val (folderFiles, isPageEmpty) = page
                     RawUiState(
                         isKeyLoaded = isKeyLoaded,
@@ -126,8 +127,8 @@ class KeySelectorViewModel(
             is OnFileClicked -> onFileClicked(event.fileId)
             SourceChanged -> sourceType.value = sourceType.value.change()
             is KeySelectorEvent.KeyLoadConfirmed
-            -> keyManager.loadKey(
-                keyFile = fileTreeProvider.getFileByID(event.fileId, sourceType.value),
+                -> keyManager.loadKey(
+                keyFile = folderDataInteractor.getFileByID(event.fileId, sourceType.value),
                 password = event.password,
                 onSuccess = {
                     viewModelScope.launch {
@@ -143,7 +144,7 @@ class KeySelectorViewModel(
 
             is KeySelectorEvent.CreateKeyStoreConfirmed -> {
                 viewModelScope.launch(Dispatchers.Default) {
-                    val folder = fileTreeProvider.getCurrentFolder(sourceType.value)
+                    val folder = folderDataInteractor.getCurrentFolder(sourceType.value)
                     createKeyStoreUseCase(
                         folder = folder,
                         password = event.password,
@@ -151,7 +152,7 @@ class KeySelectorViewModel(
                         loadInstantly = event.loadInstantly
                     ).fold(
                         onSuccess = {
-                            fileTreeProvider.update(sourceType.value)
+                            folderDataInteractor.update(sourceType.value)
                             _sideEffects.send(ShowInfo(R.string.keystore_create_success))
                         },
                         onFailure = {
@@ -171,7 +172,7 @@ class KeySelectorViewModel(
     }
 
     private fun onFileClicked(fileId: FileId) {
-        val file = fileTreeProvider.getFileByID(fileId, sourceType.value) as FileEntity
+        val file = folderDataInteractor.getFileByID(fileId, sourceType.value) as FileEntity
         if (file.isDir) {
             openFolder(fileId)
         } else {
@@ -194,7 +195,7 @@ class KeySelectorViewModel(
 
     private fun openFolder(fileId: FileId) {
         runCatching {
-            fileTreeProvider.open(fileId, sourceType.value)
+            folderDataInteractor.open(fileId, sourceType.value)
         }
     }
 

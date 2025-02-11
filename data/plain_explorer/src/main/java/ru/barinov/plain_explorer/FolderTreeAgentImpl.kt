@@ -17,7 +17,7 @@ import java.io.Closeable
 import java.util.Stack
 
 //TODO interface
-class FileTreeProvider(
+class FolderTreeAgentImpl(
     private val rootProvider: RootProvider,
     private val rootNameProvider: RootNameProvider
 ) : Closeable, FileProvider {

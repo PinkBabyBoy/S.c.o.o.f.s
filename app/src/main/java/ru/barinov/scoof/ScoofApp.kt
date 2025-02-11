@@ -8,6 +8,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import ru.barinov.component_initializer.CoreModuleInitializer
+import ru.barinov.component_initializer.CryptoExplorerInitializer
 import ru.barinov.component_initializer.CryptographyInitializer
 import ru.barinov.component_initializer.EnterScreenInitializer
 import ru.barinov.component_initializer.FileObserverInitializer
@@ -16,6 +17,7 @@ import ru.barinov.component_initializer.InternalStorageInitializer
 import ru.barinov.component_initializer.MsdProviderInitializer
 import ru.barinov.component_initializer.PasswordManagerInitializer
 import ru.barinov.component_initializer.PermissionManagerInitializer
+import ru.barinov.component_initializer.PlainExplorerInitializer
 import ru.barinov.component_initializer.PreferencesInitializer
 import ru.barinov.component_initializer.ProtectedEnterInitializer
 import ru.barinov.component_initializer.TransactionManagerInitializer
@@ -40,6 +42,8 @@ class ScoofApp: Application() {
             initializeComponent(PreferencesInitializer::class.java)
             initializeComponent(MsdProviderInitializer::class.java)
             initializeComponent(CryptographyInitializer::class.java)
+            initializeComponent(PlainExplorerInitializer::class.java)
+            initializeComponent(CryptoExplorerInitializer::class.java)
             initializeComponent(PermissionManagerInitializer::class.java)
             initializeComponent(UsbConnectionInitializer::class.java)
             initializeComponent(EnterScreenInitializer::class.java)

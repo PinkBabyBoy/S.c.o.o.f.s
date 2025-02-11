@@ -2,6 +2,7 @@ package ru.barinov.file_browser.events
 
 import ru.barinov.core.FileId
 import ru.barinov.core.FileTypeInfo
+import ru.barinov.core.SortType
 import ru.barinov.file_browser.models.Sort
 import ru.barinov.onboarding.OnBoarding
 
@@ -15,7 +16,7 @@ sealed interface FileBrowserEvent : FieObserverEvent {
 
     data object DeleteSelected : FileBrowserEvent
 
-    class SortSelected(val type: Sort.Type) : FileBrowserEvent
+    class SortSelected(val type: SortType) : FileBrowserEvent
 }
 
 sealed interface KeySelectorEvent : FieObserverEvent {

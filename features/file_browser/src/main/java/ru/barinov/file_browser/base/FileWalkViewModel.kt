@@ -5,10 +5,10 @@ import ru.barinov.core.Source
 import ru.barinov.external_data.MassStorageState
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.sideEffects.SideEffect
-import ru.barinov.plain_explorer.FileTreeProvider
+import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 
 abstract class FileWalkViewModel<S: SideEffect>(
-    protected val fileTreeProvider: FileTreeProvider,
+    protected val folderDataInteractor: FolderDataInteractor,
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     tryLoadMsdFirst: Boolean
 ) : SideEffectViewModel<S>() {
@@ -20,11 +20,11 @@ abstract class FileWalkViewModel<S: SideEffect>(
     )
 
     protected fun goBack(onAllowed: suspend () -> Unit) {
-        fileTreeProvider.goBack(sourceType.value, onAllowed)
+        folderDataInteractor.openParent(sourceType.value, onAllowed)
     }
 }
 
-fun Source.change(): Source =
+internal fun Source.change(): Source =
     when(this){
         Source.INTERNAL ->  Source.MASS_STORAGE
         Source.MASS_STORAGE ->  Source.INTERNAL

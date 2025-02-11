@@ -3,8 +3,6 @@ package ru.barinov.file_browser.viewModels
 import android.util.Log
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
@@ -28,9 +26,7 @@ import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
 import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.plain_explorer.repository.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
-import ru.barinov.plain_explorer.repository.PAGE_SIZE
 import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
@@ -44,24 +40,27 @@ import ru.barinov.file_browser.models.SourceState
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.sideEffects.ShowInfo
-import ru.barinov.plain_explorer.repository.sort
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.OnBoardingEngine
-import ru.barinov.plain_explorer.FileTreeProvider
+import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("OPT_IN_USAGE")
 class FileObserverViewModel(
+    folderDataInteractor: FolderDataInteractor,
     private val selectedCache: SelectedCache,
-    fileTreeProvider: FileTreeProvider,
     private val fileToUiModelMapper: FileToUiModelMapper,
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     keyManager: KeyManager,
     private val fileBrowserOnboarding: OnBoardingEngine,
     private val singleShareBus: FileSingleShareBus
-) : FileWalkViewModel<FileBrowserSideEffect>(fileTreeProvider, getMSDAttachStateProvider, false) {
+) : FileWalkViewModel<FileBrowserSideEffect>(
+    folderDataInteractor,
+    getMSDAttachStateProvider,
+    false
+) {
 
     private val _uiState: MutableStateFlow<FileBrowserUiState> =
         MutableStateFlow(FileBrowserUiState.idle())
@@ -76,37 +75,32 @@ class FileObserverViewModel(
             .combine(sourceType, ::SourceState)
 
         val files = sourceState.flatMapLatest { sourceData ->
-            if (sourceData.currentSource == Source.MASS_STORAGE && sourceData.isMsdAttached)
-                fileTreeProvider.massStorageFiles
-            else
-                fileTreeProvider.innerFiles
-        }.combine(sortType) { files, sort ->
-            files?.values?.sort(sort)
-        }.map { sortedFiles ->
-            Pager(
-                config = PagingConfig(
-                    prefetchDistance = PAGE_SIZE,
-                    pageSize = PAGE_SIZE,
-                    enablePlaceholders = false,
-                    initialLoadSize = PAGE_SIZE
-                ),
-                pagingSourceFactory = {
-                    FilesPagingSource(sortedFiles)
+            sortType.flatMapLatest { sort ->
+                val sourceToOpen =
+                    if (sourceData.currentSource == Source.MASS_STORAGE && sourceData.isMsdAttached)
+                        Source.MASS_STORAGE
+                    else Source.INTERNAL
+
+                folderDataInteractor.getFolderFiles(
+                    source = sourceToOpen,
+                    sortType = sort
+                ) {
+                    cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selection ->
+                        fileToUiModelMapper(files, selection, true, 700)
+                    }
                 }
-            ).flow.cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selection ->
-                fileToUiModelMapper(files, selection, true, 700)
-            } to sortedFiles.isNullOrEmpty()
+            }
         }
 
         viewModelScope.launch(Dispatchers.Default) {
             combine(sourceState, files, keyManager.isKeyLoaded, ::Triple).map {
                 val (sourceData, page, isKeyLoaded) = it
-                val (name, isRoot) =
-                    fileTreeProvider.getCurrentFolderInfo(sourceData.currentSource)
+                val (path, isRoot) =
+                    folderDataInteractor.getCurrentFolderInfo(sourceData.currentSource)
                 val (folderFiles, isPageEmpty) = page
                 RawUiModel(
                     files = folderFiles,
-                    currentFolderName = name,
+                    currentFolderName = path,
                     sourceState = sourceData,
                     isInRoot = isRoot,
                     isKeyLoaded = isKeyLoaded,
@@ -148,7 +142,8 @@ class FileObserverViewModel(
     }
 
     private fun onOnboadingFinished(onboarding: OnBoarding) {
-       _uiState.value = uiState.value.onboardingsStateChanged(fileBrowserOnboarding.next(onboarding))
+        _uiState.value =
+            uiState.value.onboardingsStateChanged(fileBrowserOnboarding.next(onboarding))
     }
 
     private fun deleteSelected() {
@@ -161,16 +156,16 @@ class FileObserverViewModel(
                     is FileEntity.Index -> TODO()
                 }
             }
-            fileTreeProvider.update(sourceType.value)
+            folderDataInteractor.update(sourceType.value)
         }
     }
 
 
     private fun onSelect(fileId: FileId, selected: Boolean, info: FileTypeInfo) {
         viewModelScope.launch {
-            val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
+            val file = folderDataInteractor.getFileByID(fileId, sourceType.value)
             if (!selected) {
-                if(file.isDir && info is FileTypeInfo.Dir) {
+                if (file.isDir && info is FileTypeInfo.Dir) {
                     _sideEffects.send(ShowInfo(ru.barinov.core.R.string.select_folder_warning))
                 }
                 selectedCache.add(fileId, file as FileEntity)
@@ -201,23 +196,19 @@ class FileObserverViewModel(
 
 
     private fun openFile(fileId: FileId, info: FileTypeInfo) {
-        when(info) {
-            is FileTypeInfo.Dir -> fileTreeProvider.open(fileId, sourceType.value)
+        when (info) {
+            is FileTypeInfo.Dir -> folderDataInteractor.open(fileId, sourceType.value)
             is FileTypeInfo.ImageFile -> {
-                viewModelScope.launch{
-                    singleShareBus.share(fileTreeProvider.getFileByID(fileId, sourceType.value))
+                viewModelScope.launch {
+                    singleShareBus.share(folderDataInteractor.getFileByID(fileId, sourceType.value))
                     _sideEffects.send(FileBrowserSideEffect.OpenImageFile(fileId))
                 }
             }
+
             is FileTypeInfo.Index -> error("")
             is FileTypeInfo.Other -> {}
             FileTypeInfo.Unconfirmed -> {}
         }
-    }
-
-    private fun directFolderAdd(fileId: FileId) {
-        val file = fileTreeProvider.getFileByID(fileId, sourceType.value)
-        if (!file.isDir) error("")
     }
 
     private fun askTransactionWithSelected() {
@@ -227,7 +218,7 @@ class FileObserverViewModel(
     }
 
     override fun onCleared() {
-        fileTreeProvider.close()
+        folderDataInteractor.close()
         fileToUiModelMapper.clear()
     }
 }

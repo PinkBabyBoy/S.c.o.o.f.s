@@ -8,6 +8,7 @@ import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import ru.barinov.core.Filepath
+import ru.barinov.core.SortType
 import ru.barinov.core.Source
 import ru.barinov.core.folderName
 import ru.barinov.file_browser.models.FileUiModel
@@ -25,7 +26,7 @@ data class FileBrowserUiState internal constructor(
     val selectedCount: Int,
     val isInRoot: Boolean,
     val isPageEmpty: Boolean,
-    val selectedSortType: Sort.Type,
+    val selectedSortType: SortType,
     val fileBrowserOnboarding: OnboardingState
 ) {
     val isKeyLoaded = type == Type.LOADED
@@ -49,7 +50,7 @@ data class FileBrowserUiState internal constructor(
             isInRoot: Boolean,
             isKeyLoaded: Boolean,
             isPageEmpty: Boolean,
-            selectedSortType: Sort.Type,
+            selectedSortType: SortType,
             fileBrowserOnboarding: OnboardingState
         ) = FileBrowserUiState(
             type = if(isKeyLoaded) Type.LOADED else Type.KEY_NOT_LOADED,
@@ -72,7 +73,7 @@ data class FileBrowserUiState internal constructor(
                 selectedCount = 0,
                 isInRoot = true,
                 true,
-                selectedSortType =  Sort.Type.AS_IS,
+                selectedSortType =  SortType.AS_IS,
                 fileBrowserOnboarding =  emptyMap()
             )
     }

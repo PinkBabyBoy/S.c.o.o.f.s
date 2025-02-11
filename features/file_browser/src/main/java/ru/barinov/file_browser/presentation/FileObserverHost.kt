@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
@@ -52,9 +51,9 @@ fun HostPager(
     BackHandler {
         context.getActivity()?.finish()
     }
-    val onFirstScreen = {
+    val openPage: (Int) -> Unit = { pageIndex ->
         localCoroutine.launch {
-            state.scrollToPage(0)
+            state.scrollToPage(pageIndex)
         }
     }
     val pageState = remember { mutableIntStateOf(state.currentPage) }
@@ -82,7 +81,8 @@ fun HostPager(
                             snackbarHostState = snackbarHostState,
                             sideEffects = vm.sideEffects,
                             onEvent = vm::handleEvent,
-                            pageState = pageState
+                            pageState = pageState,
+                            openPage = openPage
                         )
                     }
 
@@ -95,7 +95,7 @@ fun HostPager(
                             navController = navController,
                             onEvent = vm::onNewEvent,
                             snackbarHostState = snackbarHostState,
-                            onFirstPage = { onFirstScreen() },
+                            openPage = openPage,
                             pageState = pageState
                         )
                     }
@@ -108,7 +108,7 @@ fun HostPager(
                             sideEffects = vm.sideEffects,
                             navController = navController,
                             snackbarHostState = snackbarHostState,
-                            onFirstPage = { onFirstScreen() },
+                            openPage = openPage,
                             pageState = pageState
                         )
                     }

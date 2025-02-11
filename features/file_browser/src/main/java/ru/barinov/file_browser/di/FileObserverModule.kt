@@ -128,7 +128,7 @@ val fileObserverModule = module {
     viewModel {
         KeySelectorViewModel(
             getMSDAttachStateProvider = get(),
-            fileTreeProvider = get(),
+            folderDataInteractor = get(),
             fileToUiModelMapper = get(),
             keyManager = get(),
             createKeyStoreUseCase = get(),
@@ -139,11 +139,12 @@ val fileObserverModule = module {
     viewModel {
         FileObserverViewModel(
             selectedCache = get(),
-            fileTreeProvider = get(),
+            folderDataInteractor = get(),
             fileToUiModelMapper = get(),
             getMSDAttachStateProvider = get(),
             keyManager = get(),
-            fileBrowserOnboarding = get(Qualifiers.fbOnboardings)
+            fileBrowserOnboarding = get(Qualifiers.fbOnboardings),
+            singleShareBus = get()
         )
     }
 }

@@ -56,7 +56,7 @@ fun KeySelector(
     sideEffects: Flow<KeySelectorSideEffect>,
     navController: NavController,
     snackbarHostState: SnackbarHostState,
-    onFirstPage: () -> Unit,
+    openPage: (Int) -> Unit,
     pageState: MutableIntState
 ) {
     val keyLoadBsState = remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
@@ -69,7 +69,7 @@ fun KeySelector(
 
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
-            CanGoBack -> onFirstPage()
+            CanGoBack -> openPage(Pages.CONTAINERS.ordinal)
             is KeySelectorSideEffect.AskToLoadKey ->
                 keyLoadBsState.value = BottomSheetPolicy.Expanded(
                     KeyLoadBottomSheetArgs(
@@ -88,7 +88,7 @@ fun KeySelector(
     }
     if (state.isKeyLoaded) {
         BackHandler(enabled = isPageOnScreen.value) {
-            onFirstPage()
+            openPage(Pages.CONTAINERS.ordinal)
         }
         Box(
             modifier = Modifier
@@ -102,12 +102,10 @@ fun KeySelector(
                 Text(text = stringResource(id = ru.barinov.core.R.string.key_loaded))
                 Image(
                     painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
+                    modifier = Modifier.size(54.dp).padding(top = 24.dp),
                     contentDescription = null
                 )
-                Spacer(
-                    modifier = Modifier
-                        .height(32.dp)
-                )
+                Spacer(modifier = Modifier.height(32.dp))
                 ScoofButton(
                     onClick = { onEvent(KeySelectorEvent.UnbindKey) },
                     modifier = Modifier.padding(8.dp),

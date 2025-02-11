@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import ru.barinov.file_browser.events.ContainersEvent
@@ -50,7 +53,8 @@ fun Containers(
     snackbarHostState: SnackbarHostState,
     sideEffects: Flow<ContainersSideEffect>,
     onEvent: (ContainersEvent) -> Unit,
-    pageState: MutableIntState
+    pageState: MutableIntState,
+    openPage: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val exitConfirmDialogVisible = remember { mutableStateOf(false) }
@@ -105,7 +109,17 @@ fun Containers(
                                 if (state.isKeyLoaded)
                                     navController.navigate(toContainerContent(it.fileId))
                                 else coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Can't open without key")
+                                   val result = snackbarHostState.showSnackbar(
+                                        "Can't open without key",
+                                        withDismissAction = true,
+                                        actionLabel = "Select key file"
+                                    )
+                                    when(result){
+                                        SnackbarResult.Dismissed -> {}
+                                        SnackbarResult.ActionPerformed -> {
+                                            openPage(Pages.KEY_PICKER.ordinal)
+                                        }
+                                    }
                                 }
                             }
                         },

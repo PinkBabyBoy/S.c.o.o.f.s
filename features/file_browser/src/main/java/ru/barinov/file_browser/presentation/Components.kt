@@ -6,32 +6,15 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.tappableElement
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -39,16 +22,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ru.barinov.core.SortType
 import ru.barinov.core.topBarHeader
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.models.Sort
@@ -58,23 +39,23 @@ import ru.barinov.core.ui.mainGreen
 private val sortTypes = listOf(
     Sort(
         ru.barinov.core.R.string.sort_new_first,
-        Sort.Type.NEW_FIRST
+        SortType.NEW_FIRST
     ),
     Sort(
         ru.barinov.core.R.string.sort_old_first,
-        Sort.Type.OLD_FIRST
+        SortType.OLD_FIRST
     ),
     Sort(
         ru.barinov.core.R.string.sort_big_first,
-        Sort.Type.BIG_FIRST
+        SortType.BIG_FIRST
     ),
     Sort(
         ru.barinov.core.R.string.sort_small_first,
-        Sort.Type.SMALL_FIRST
+        SortType.SMALL_FIRST
     ),
     Sort(
         ru.barinov.core.R.string.sort_default,
-        Sort.Type.AS_IS
+        SortType.AS_IS
     )
 )
 
@@ -147,7 +128,7 @@ private fun NavigationIcon(@DrawableRes resId: Int, selected: Boolean) {
 @Composable
 fun SortDropDownMenu(
     isExpanded: Boolean,
-    selectedSort: Sort.Type,
+    selectedSort: SortType,
     onDismissRequest: () -> Unit,
     onEvent: (FileBrowserEvent) -> Unit
 ) {

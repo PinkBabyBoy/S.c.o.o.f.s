@@ -1,4 +1,4 @@
-package ru.barinov.plain_explorer.repository
+package ru.barinov.plain_explorer.interactor
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
