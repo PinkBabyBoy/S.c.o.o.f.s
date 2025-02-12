@@ -3,45 +3,43 @@ package ru.barinov.file_browser
 import androidx.annotation.DrawableRes
 import androidx.paging.PagingData
 import androidx.paging.map
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.FileTypeInfo
 import ru.barinov.core.Source
 import ru.barinov.core.trimFileName
 import ru.barinov.core.trimFilePath
-import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.core.util.FileInfoExtractor
+import ru.barinov.file_browser.models.FileUiModel
 
-class FileToUiModelMapper(
-    private val infoExtractor: FileInfoExtractor
-) {
+internal class PlaintFileToUiModelMapper(
+    private val infoExtractor: FileInfoExtractor<FileEntity>
+): ViewableFileMapper<FileUiModel> {
 
-    fun clear() {
+    override fun clear() {
         infoExtractor.clear()
     }
 
-    operator fun invoke(
+
+    override operator fun invoke(
         files: PagingData<FileEntity>,
         selected: HashSet<FileId>,
         recognizerOn: Boolean,
-        delay: Long = 0L
     ): PagingData<FileUiModel> {
         return files.map {
             mapFile(
                 file = it,
                 isSelected =  it.fileId in selected,
-                typeState = infoExtractor(it, recognizerOn, delay)
+                typeState = infoExtractor(it, recognizerOn)
             )
         }
     }
 
-    fun mapFile(
+    override fun mapFile(
         file: FileEntity,
         isSelected: Boolean,
-        typeState: StateFlow<FileTypeInfo> = MutableStateFlow(FileTypeInfo.Unconfirmed).asStateFlow(),
+        typeState: StateFlow<FileTypeInfo>
     ): FileUiModel =
         file.run {
             FileUiModel(
@@ -54,7 +52,7 @@ class FileToUiModelMapper(
                 placeholderRes = fetchPlaceholderRes(this),
                 isSelected = isSelected,
                 info = typeState,
-                size = size,
+                fileSize = size,
             )
         }
 
@@ -66,7 +64,7 @@ class FileToUiModelMapper(
             is FileEntity.MassStorageFile
             -> if (!file.isDir) ru.barinov.core.R.drawable.file else ru.barinov.core.R.drawable.folder
 
-            is FileEntity.Index -> ru.barinov.core.R.drawable.outline_archive_24 //FIXME
+            is FileEntity.IndexStorage -> ru.barinov.core.R.drawable.outline_archive_24 //FIXME
         }
     }
 }

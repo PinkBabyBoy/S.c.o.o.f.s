@@ -2,8 +2,6 @@ package ru.barinov.file_browser.viewModels
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
@@ -24,10 +22,8 @@ import ru.barinov.core.R
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
-import ru.barinov.file_browser.FileToUiModelMapper
-import ru.barinov.plain_explorer.interactor.FilesPagingSource
 import ru.barinov.file_browser.GetMSDAttachStateProvider
-import ru.barinov.plain_explorer.interactor.PAGE_SIZE
+import ru.barinov.file_browser.ViewableFileMapper
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
 import ru.barinov.file_browser.events.KeySelectorEvent
@@ -44,14 +40,13 @@ import ru.barinov.file_browser.states.KeyPickerUiState
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.OnBoardingEngine
-import ru.barinov.plain_explorer.FolderTreeAgentImpl
 import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 class KeySelectorViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     folderDataInteractor: FolderDataInteractor,
-    private val fileToUiModelMapper: FileToUiModelMapper,
+    private val fileToUiModelMapper: ViewableFileMapper<FileUiModel>,
     private val keyManager: KeyManager,
     private val createKeyStoreUseCase: CreateKeyStoreUseCase,
     private val keyPickerOnBoarding: OnBoardingEngine

@@ -8,7 +8,7 @@ internal class ContainerHashExtractorImpl(
     private val snapshotKeyStorage: SnapshotKeyStorage
 ): ContainerHashExtractor {
 
-    override fun extractHash(index: FileEntity.Index): ByteArray =
+    override fun extractHash(index: FileEntity.IndexStorage): ByteArray =
         index.attachedOrigin.inputStream().use {
             val totalSize = ByteArray(Int.SIZE_BYTES).run {
                 it.read(this)
@@ -34,5 +34,5 @@ internal class ContainerHashExtractorImpl(
 
 fun interface ContainerHashExtractor{
 
-    fun extractHash(index: FileEntity.Index): ByteArray
+    fun extractHash(index: FileEntity.IndexStorage): ByteArray
 }

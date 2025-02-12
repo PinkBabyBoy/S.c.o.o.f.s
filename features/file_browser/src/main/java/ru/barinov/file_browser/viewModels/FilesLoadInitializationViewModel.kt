@@ -16,14 +16,15 @@ import ru.barinov.core.InteractableFile
 import ru.barinov.cryptography.KeyMemoryCache
 import ru.barinov.cryptography.hash.HashValidator
 import ru.barinov.file_browser.ContainersManager
-import ru.barinov.file_browser.FileToUiModelMapper
 import ru.barinov.file_browser.base.SideEffectViewModel
 import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
 import ru.barinov.file_browser.states.FilesLoadInitializationUiState
 import ru.barinov.cryptography.hash.utils.ContainerHashExtractor
 import ru.barinov.file_browser.SelectedCache
+import ru.barinov.file_browser.ViewableFileMapper
 import ru.barinov.file_browser.events.FileLoadInitializationEvent
 import ru.barinov.file_browser.events.OnFileClicked
+import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_process_worker.WorkersManager
 import ru.barinov.transaction_manager.FileWriter
 
@@ -33,7 +34,7 @@ class FilesLoadInitializationViewModel(
     private val hashValidator: HashValidator,
     private val keyMemoryCache: KeyMemoryCache,
     private val containerHashExtractor: ContainerHashExtractor,
-    private val fileToUiModelMapper: FileToUiModelMapper,
+    private val fileToUiModelMapper: ViewableFileMapper<FileUiModel>,
     private val workersManager: WorkersManager,
     private val fileWriter: FileWriter,
     private val selectedCache: SelectedCache //To Interface

@@ -10,7 +10,10 @@ class FileIndex(
     val fileChangeTimeStamp: Long,
     val fileType: FileType,//byte
     val state: State // byte
-) {
+): EncryptedData, StorageAble {
+
+    val id: FileId = FileId.byPointer(indexStartPoint)
+
     enum class FileType {
         COMMON, PHOTO
     }

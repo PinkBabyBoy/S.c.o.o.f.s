@@ -25,9 +25,9 @@ import ru.barinov.core.SortType
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
-import ru.barinov.file_browser.FileToUiModelMapper
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.SelectedCache
+import ru.barinov.file_browser.ViewableFileMapper
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
 import ru.barinov.file_browser.events.FileBrowserEvent
@@ -51,7 +51,7 @@ import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 class FileObserverViewModel(
     folderDataInteractor: FolderDataInteractor,
     private val selectedCache: SelectedCache,
-    private val fileToUiModelMapper: FileToUiModelMapper,
+    private val fileToUiModelMapper: ViewableFileMapper<FileUiModel>,
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     keyManager: KeyManager,
     private val fileBrowserOnboarding: OnBoardingEngine,
@@ -86,7 +86,7 @@ class FileObserverViewModel(
                     sortType = sort
                 ) {
                     cachedIn(viewModelScope).combine(selectedCache.cacheFlow) { files, selection ->
-                        fileToUiModelMapper(files, selection, true, 700)
+                        fileToUiModelMapper(files, selection, true)
                     }
                 }
             }
@@ -153,7 +153,7 @@ class FileObserverViewModel(
                 when (it) {
                     is FileEntity.InternalFile -> it.attachedOrigin.delete()
                     is FileEntity.MassStorageFile -> it.attachedOrigin.delete()
-                    is FileEntity.Index -> TODO()
+                    is FileEntity.IndexStorage -> TODO()
                 }
             }
             folderDataInteractor.update(sourceType.value)
@@ -205,7 +205,7 @@ class FileObserverViewModel(
                 }
             }
 
-            is FileTypeInfo.Index -> error("")
+            is FileTypeInfo.IndexStorage -> error("")
             is FileTypeInfo.Other -> {}
             FileTypeInfo.Unconfirmed -> {}
         }

@@ -21,7 +21,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -227,7 +226,7 @@ fun FilePreview(file: FileUiModel, info: FileTypeInfo, showLoading: Boolean) {
             )
         }
 
-        is FileTypeInfo.Index, is FileTypeInfo.Other, is FileTypeInfo.Dir -> {
+        is FileTypeInfo.IndexStorage, is FileTypeInfo.Other, is FileTypeInfo.Dir -> {
             Image(
                 painter = painterResource(id = file.placeholderRes),
                 contentDescription = null,
@@ -261,7 +260,7 @@ fun FileTypeInfo.getText(): String =
     when (this) {
         is FileTypeInfo.Dir -> contentText
         is FileTypeInfo.ImageFile -> size
-        is FileTypeInfo.Index -> creationDate
+        is FileTypeInfo.IndexStorage -> creationDate
         is FileTypeInfo.Other -> size
         is FileTypeInfo.Unconfirmed -> String()
     }
@@ -278,7 +277,7 @@ fun FileItemPreview() {
             isDir = false,
             isFile = true,
             name = "my_pron.mp4",
-            size = FileSize(656565L),
+            fileSize = FileSize(656565L),
             placeholderRes = ru.barinov.core.R.drawable.file,
             isSelected = true,
             info = MutableStateFlow(FileTypeInfo.Other(false, ""))
@@ -298,7 +297,7 @@ fun FileItemGridPreview() {
             isDir = false,
             isFile = true,
             name = "my_pron.mp4",
-            size = FileSize(656565L),
+            fileSize = FileSize(656565L),
             placeholderRes = ru.barinov.core.R.drawable.file,
             isSelected = true,
             info = MutableStateFlow(FileTypeInfo.Other(false, ""))

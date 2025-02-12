@@ -6,7 +6,7 @@ import java.io.File
 
 interface ContainersManager {
 
-    val indexes: StateFlow<List<FileEntity.Index>>
+    val indexes: StateFlow<List<FileEntity.IndexStorage>>
 
     suspend fun addContainer(name: String,  keysHash: ByteArray)
 

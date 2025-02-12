@@ -9,13 +9,14 @@ import ru.barinov.file_browser.ContainersManagerImpl
 import ru.barinov.file_browser.FileBrowserOnboarding
 import ru.barinov.file_browser.viewModels.ContainersViewModel
 import ru.barinov.file_browser.viewModels.FileObserverViewModel
-import ru.barinov.file_browser.FileToUiModelMapper
+import ru.barinov.file_browser.PlaintFileToUiModelMapper
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.IsMSDAttachedUseCase
 import ru.barinov.file_browser.KeyPickerOnboarding
 import ru.barinov.file_browser.viewModels.KeySelectorViewModel
 import ru.barinov.file_browser.RootProviderImpl
 import ru.barinov.file_browser.SelectedCache
+import ru.barinov.file_browser.ViewableFileMapper
 import ru.barinov.file_browser.usecases.CreateContainerUseCase
 import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
@@ -30,9 +31,9 @@ import ru.barinov.onboarding.OnBoardingEngine
 
 val fileObserverModule = module {
 
-    factory {
-        FileToUiModelMapper(get())
-    }
+    factory(Qualifiers.fileEntityMapper) {
+        PlaintFileToUiModelMapper(get(ru.barinov.core.di.Qualifiers.plaintFileInfoExtractor))
+    } bind ViewableFileMapper::class
 
     factory {
         SelectedCache()
@@ -104,7 +105,7 @@ val fileObserverModule = module {
             hashValidator = get(),
             keyMemoryCache = get(),
             containerHashExtractor = get(),
-            fileToUiModelMapper = get(),
+            fileToUiModelMapper = get(Qualifiers.fileEntityMapper),
             workersManager = get(),
             fileWriter = get(),
             selectedCache = get()
@@ -118,7 +119,7 @@ val fileObserverModule = module {
     viewModel {
         ContainersViewModel(
             containersManager = get(),
-            fileToUiModelMapper = get(),
+            fileToUiModelMapper = get(Qualifiers.fileEntityMapper),
             createContainerUseCase = get(),
             keyManager = get(),
             workersManager = get()
@@ -129,7 +130,7 @@ val fileObserverModule = module {
         KeySelectorViewModel(
             getMSDAttachStateProvider = get(),
             folderDataInteractor = get(),
-            fileToUiModelMapper = get(),
+            fileToUiModelMapper = get(Qualifiers.fileEntityMapper),
             keyManager = get(),
             createKeyStoreUseCase = get(),
             keyPickerOnBoarding =  get(Qualifiers.kpOnboardings)

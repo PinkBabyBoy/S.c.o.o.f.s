@@ -1,12 +1,6 @@
 package ru.barinov.file_browser.models
 
-import android.graphics.Bitmap
-import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.Stable
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import ru.barinov.core.FileId
 import ru.barinov.core.FileSize
@@ -20,11 +14,11 @@ data class FileUiModel(
     val origin: Source,
     val isDir: Boolean,
     val isFile: Boolean,
-    val name: String,
-    val size: FileSize,
-    @DrawableRes val placeholderRes: Int,
-    val isSelected: Boolean,
-    val info: StateFlow<FileTypeInfo>,
-)
+    override val name: String,
+    override val fileSize: FileSize,
+    override val placeholderRes: Int,
+    override val isSelected: Boolean,
+    override val info: StateFlow<FileTypeInfo>,
+): ViewableFileModel(name, fileSize, placeholderRes, isSelected, info)
 
 

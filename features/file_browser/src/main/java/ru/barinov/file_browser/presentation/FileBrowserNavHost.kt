@@ -37,8 +37,7 @@ fun NavGraphBuilder.fileBrowserPager(
             val args: ContainersContent = it.toRoute()
             val vm: ContainerContentViewModel =
                 koinViewModel(parameters = { parametersOf(args.fileId) })
-            val uiState = vm.uiState.collectAsState(0)
-            ContainerContent(uiState)
+            ContainerContent(vm.uiState)
         }
 
         composable<ImageDetails> {

@@ -14,12 +14,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.file_browser.ContainersManager
-import ru.barinov.file_browser.FileToUiModelMapper
+import ru.barinov.file_browser.ViewableFileMapper
 import ru.barinov.plain_explorer.interactor.FilesPagingSource
 import ru.barinov.plain_explorer.interactor.PAGE_SIZE
 import ru.barinov.file_browser.base.SideEffectViewModel
 import ru.barinov.file_browser.events.ContainersEvent
 import ru.barinov.file_browser.events.OnFileClicked
+import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.sideEffects.ContainersSideEffect
 import ru.barinov.file_browser.states.ContainersUiState
 import ru.barinov.file_browser.usecases.CreateContainerUseCase
@@ -27,7 +28,7 @@ import ru.barinov.file_process_worker.WorkersManager
 
 class ContainersViewModel(
     private val containersManager: ContainersManager,
-    private val fileToUiModelMapper: FileToUiModelMapper,
+    private val fileToUiModelMapper: ViewableFileMapper<FileUiModel>,
     private val createContainerUseCase: CreateContainerUseCase,
     private val workersManager: WorkersManager,
     keyManager: KeyManager

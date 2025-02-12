@@ -16,4 +16,17 @@ internal object Qualifiers {
             get() = "fb_onboardings"
 
     }
+
+    val fileEntityMapper = object : Qualifier {
+        override val value: QualifierValue
+            get() = "fileEntityMapper"
+
+    }
+
+    val fileIndex = object : Qualifier {
+        override val value: QualifierValue
+            get() = "fileIndex"
+
+    }
+
 }

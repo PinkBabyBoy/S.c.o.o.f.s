@@ -10,7 +10,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.io.Serializable
 
-//Вынести в домейн
+//TODO To Domain
 
 @JvmInline
 value class Filename(val value: String)
@@ -34,6 +34,8 @@ sealed interface InteractableFile {
     fun innerFiles(): Map<FileId, FileEntity>
 }
 
+sealed interface EncryptedData
+
 sealed class FileEntity(
     val lastModifiedTimeStamp: Long,
     val fileId: FileId,
@@ -42,7 +44,7 @@ sealed class FileEntity(
     val name: Filename,
     val path: Filepath,
     val parent: InteractableFile?
-) {
+): StorageAble {
 
     abstract suspend fun calculateSize(): Long
 
@@ -112,7 +114,7 @@ sealed class FileEntity(
         }
     }
 
-    class Index internal constructor(
+    class IndexStorage internal constructor(
         val attachedOrigin: File
     ) : FileEntity(
         lastModifiedTimeStamp = attachedOrigin.lastModified(),
@@ -145,6 +147,10 @@ value class FileId private constructor(val value: String): Serializable {
             return FileId(name)
         }
 
+        fun byPointer(pointer: Long): FileId {
+            return FileId(pointer.toString())
+        }
+
         fun restore(fileId: String) = FileId(fileId)
     }
 }
@@ -152,8 +158,8 @@ value class FileId private constructor(val value: String): Serializable {
 fun File.toInternalFileEntity(): FileEntity.InternalFile =
     FileEntity.InternalFile(this)
 
-fun File.toContainerFileEntity(): FileEntity.Index =
-    FileEntity.Index(this)
+fun File.toContainerFileEntity(): FileEntity.IndexStorage =
+    FileEntity.IndexStorage(this)
 
 
 fun UsbFile.toInternalFileEntity(): FileEntity.MassStorageFile =
@@ -173,4 +179,4 @@ fun InteractableFile.outputStream(): OutputStream {
     }
 }
 
-typealias FileEntityBundle = Pair<FileEntity, FileIndex.FileType>
+sealed interface StorageAble
