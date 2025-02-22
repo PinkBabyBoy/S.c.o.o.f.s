@@ -64,7 +64,11 @@ import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.getArgs
 import ru.barinov.core.ui.shouldShow
+import ru.barinov.file_browser.events.DeleteSelected
 import ru.barinov.file_browser.events.OnboardingFinished
+import ru.barinov.file_browser.events.RemoveSelection
+import ru.barinov.file_browser.models.FileUiModel
+import ru.barinov.file_browser.sideEffects.OpenImageFile
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.orEmpty
 
@@ -95,7 +99,7 @@ fun FileBrowserScreen(
                 )
             }
 
-            is FileBrowserSideEffect.OpenImageFile
+            is OpenImageFile
                 -> navController.navigate(toImageDetails(sideEffect.fileId))
 
             is FileBrowserSideEffect.ShowAddFilesDialog -> {
@@ -111,7 +115,7 @@ fun FileBrowserScreen(
             message = "All selected files will be removed",
             onDismissRequest = { deleteDialogVisible.value = false },
             onConfirmed = {
-                onEvent(FileBrowserEvent.DeleteSelected)
+                onEvent(DeleteSelected)
                 deleteDialogVisible.value = false
             }
         )
@@ -162,7 +166,7 @@ fun FileBrowserScreen(
 //            )
         }
     } else {
-        BrowserBlock<FileBrowserEvent>(
+        BrowserBlock<FileBrowserEvent, FileUiModel>(
             files = state.files,
             currentFolderName = state.currentFolderName,
             isSelectionEnabled = true,
@@ -220,7 +224,7 @@ private fun buildActions(
                                 }.value,
                                 indication = ripple(),
                                 onLongClick = {
-                                    onEvent(FileBrowserEvent.RemoveSelection)
+                                    onEvent(RemoveSelection)
                                 },
                                 onClick = {
                                     onEvent(FileBrowserEvent.AddSelection)

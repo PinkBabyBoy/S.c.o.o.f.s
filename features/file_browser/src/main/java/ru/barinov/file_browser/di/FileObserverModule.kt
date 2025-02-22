@@ -1,7 +1,9 @@
 package ru.barinov.file_browser.di
 
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.bind
+import org.koin.dsl.binds
 import org.koin.dsl.module
 import ru.barinov.file_browser.viewModels.ContainerContentViewModel
 import ru.barinov.file_browser.ContainersManager
@@ -22,8 +24,12 @@ import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.GetSerializableCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.OpenContainerUseCase
+import ru.barinov.file_browser.utils.EncryptedFileInfoExtractor
+import ru.barinov.file_browser.utils.EncryptedIndexMapper
+import ru.barinov.file_browser.utils.FileInfoExtractor
 import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.file_browser.utils.FileSingleShareBusImpl
+import ru.barinov.file_browser.utils.IndexTypeExtractor
 import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
 import ru.barinov.onboarding.OnBoardingEngine
@@ -32,7 +38,11 @@ import ru.barinov.onboarding.OnBoardingEngine
 val fileObserverModule = module {
 
     factory(Qualifiers.fileEntityMapper) {
-        PlaintFileToUiModelMapper(get(ru.barinov.core.di.Qualifiers.plaintFileInfoExtractor))
+        PlaintFileToUiModelMapper(get(Qualifiers.plaintFileInfoExtractor))
+    } bind ViewableFileMapper::class
+
+    factory(Qualifiers.fileIndexMapper) {
+        EncryptedIndexMapper(get(Qualifiers.encryptedFileInfoExtractor))
     } bind ViewableFileMapper::class
 
     factory {
@@ -91,6 +101,16 @@ val fileObserverModule = module {
     } bind FileSingleShareBus::class
 
 
+    //TODO Separate to other module
+    factory(Qualifiers.plaintFileInfoExtractor) {
+        ru.barinov.file_browser.utils.PlainFileInfoExtractor(androidContext())
+    } binds arrayOf(IndexTypeExtractor::class, FileInfoExtractor::class)
+
+    factory(Qualifiers.encryptedFileInfoExtractor) {
+        EncryptedFileInfoExtractor(get())
+    } bind FileInfoExtractor::class
+
+
     viewModel { params ->
         ImageFileDetailsViewModel(
             fileSingleShareBus = get(),
@@ -113,7 +133,12 @@ val fileObserverModule = module {
     }
 
     viewModel { params ->
-        ContainerContentViewModel(params.get(), get())
+        ContainerContentViewModel(
+            containerName = params.get(),
+            indexMapper = get(Qualifiers.fileIndexMapper),
+            selectedCache = get(),
+            openContainerUseCase = get()
+        )
     }
 
     viewModel {
@@ -141,7 +166,7 @@ val fileObserverModule = module {
         FileObserverViewModel(
             selectedCache = get(),
             folderDataInteractor = get(),
-            fileToUiModelMapper = get(),
+            fileToUiModelMapper = get(Qualifiers.fileEntityMapper),
             getMSDAttachStateProvider = get(),
             keyManager = get(),
             fileBrowserOnboarding = get(Qualifiers.fbOnboardings),

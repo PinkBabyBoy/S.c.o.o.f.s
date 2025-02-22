@@ -23,9 +23,21 @@ internal object Qualifiers {
 
     }
 
-    val fileIndex = object : Qualifier {
+    val fileIndexMapper = object : Qualifier {
         override val value: QualifierValue
             get() = "fileIndex"
+
+    }
+
+    val encryptedFileInfoExtractor = object : Qualifier {
+        override val value: QualifierValue
+            get() = "encryptedFileInfoExtractor"
+
+    }
+
+    val plaintFileInfoExtractor = object : Qualifier {
+        override val value: QualifierValue
+            get() = "plaintFileInfoExtractor"
 
     }
 

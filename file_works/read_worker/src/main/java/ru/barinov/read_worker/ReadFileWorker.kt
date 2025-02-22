@@ -6,8 +6,8 @@ import java.io.File
 interface ReadFileWorker {
 
     @Deprecated("Use paging implementation")
-    suspend fun readIndexes(file: File, limit: Int): List<FileIndex>
+    suspend fun readIndexes(container: File, limit: Int): List<FileIndex>
 
-    suspend fun getIndexesByOffsetAndLimit(file: File, from: Long, limit: Int): List<FileIndex>
+    suspend fun getIndexesByOffsetAndLimit(container: File, from: Long, limit: Int): List<FileIndex>
 
 }

@@ -3,7 +3,7 @@ package ru.barinov.write_worker
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
 import ru.barinov.core.getBytes
-import ru.barinov.core.util.IndexTypeExtractor
+import ru.barinov.file_browser.utils.IndexTypeExtractor
 import ru.barinov.cryptography.Encryptor
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.factories.CipherStreamsFactory
@@ -22,7 +22,7 @@ internal class WriteFileWorkerImpl(
     private val encryptor: Encryptor,
     private val cipherStreamsFactory: CipherStreamsFactory,
     private val getMSDFileSystemUseCase: GetMSDFileSystemUseCase,
-    private val indexTypeExtractor: IndexTypeExtractor
+    private val indexTypeExtractor: ru.barinov.file_browser.utils.IndexTypeExtractor
 ) : WriteFileWorker {
 
     override suspend fun putInStorage(

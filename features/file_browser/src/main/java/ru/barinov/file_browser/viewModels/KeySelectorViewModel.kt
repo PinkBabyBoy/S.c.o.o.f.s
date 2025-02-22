@@ -46,7 +46,7 @@ import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 class KeySelectorViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     folderDataInteractor: FolderDataInteractor,
-    private val fileToUiModelMapper: ViewableFileMapper<FileUiModel>,
+    private val fileToUiModelMapper: ViewableFileMapper<FileEntity, FileUiModel>,
     private val keyManager: KeyManager,
     private val createKeyStoreUseCase: CreateKeyStoreUseCase,
     private val keyPickerOnBoarding: OnBoardingEngine

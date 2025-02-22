@@ -45,6 +45,7 @@ import ru.barinov.core.ui.ScoofButton
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.file_browser.events.SourceChanged
+import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.orEmpty
 
@@ -114,7 +115,7 @@ fun KeySelector(
             }
         }
     } else {
-        BrowserBlock<KeySelectorEvent>(
+        BrowserBlock<KeySelectorEvent, FileUiModel>(
             files = state.files,
             currentFolderName = state.currentFolderName,
             isSelectionEnabled = false,

@@ -1,4 +1,4 @@
-package ru.barinov.core.util
+package ru.barinov.file_browser.utils
 
 import kotlinx.coroutines.flow.StateFlow
 import ru.barinov.core.FileTypeInfo

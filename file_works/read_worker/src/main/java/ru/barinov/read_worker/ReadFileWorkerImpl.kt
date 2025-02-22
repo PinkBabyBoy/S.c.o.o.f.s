@@ -23,12 +23,12 @@ internal class ReadFileWorkerImpl(
 ) : ReadFileWorker {
 
     @Deprecated("Use paging implementation")
-    override suspend fun readIndexes(file: File, limit: Int): List<FileIndex> {
-        if (file.length() < 1) return emptyList()
-        return FileInputStream(file).use { iStream ->
+    override suspend fun readIndexes(container: File, limit: Int): List<FileIndex> {
+        if (container.length() < 1) return emptyList()
+        return FileInputStream(container).use { iStream ->
             val hashSkipped = iStream.skipHash()
             mutableListOf<FileIndex>().apply {
-                iStream.readIndex(this, limit, hashSkipped)
+                iStream.readIndex(this, limit, hashSkipped, container)
             }
         }
     }
@@ -38,7 +38,8 @@ internal class ReadFileWorkerImpl(
     private suspend fun InputStream.readIndex(
         to: MutableList<FileIndex>,
         limit: Int,
-        startPosition: Int
+        startPosition: Int,
+        container: File
     ) {
         var pos: Long = 0
         while (available() > 0 && to.size < limit) {
@@ -48,9 +49,10 @@ internal class ReadFileWorkerImpl(
                 pos += read(indexBuffer) + startPosition + Int.SIZE_BYTES
                 to.add(
                     IndexCreator.restoreIndex(
-                        decodeIndex(indexBuffer, indexSize),
-                        startPos,
-                        indexSize
+                        decryptedIndex = decodeIndex(indexBuffer, indexSize),
+                        startPos = startPos,
+                        rawSize = indexSize,
+                        container = container
                     )
                 )
             }
@@ -60,7 +62,8 @@ internal class ReadFileWorkerImpl(
     private suspend fun RandomAccessFile.readIndex(
         to: MutableList<FileIndex>,
         limit: Int,
-        startPosition: Long
+        startPosition: Long,
+        container: File
     ) {
         var pos: Long = 0
         while ((length() - filePointer) > 0 && to.size < limit) {
@@ -72,7 +75,8 @@ internal class ReadFileWorkerImpl(
                     IndexCreator.restoreIndex(
                         decryptedIndex = decodeIndex(indexBuffer, indexSize),
                         startPos = startPos,
-                        rawSize = indexSize
+                        rawSize = indexSize,
+                        container = container
                     )
                 )
             }
@@ -80,11 +84,11 @@ internal class ReadFileWorkerImpl(
     }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    override suspend fun getIndexesByOffsetAndLimit(file: File, from: Long, limit: Int): List<FileIndex> =
-        RandomAccessFile(file, "r").use { ra ->
+    override suspend fun getIndexesByOffsetAndLimit(container:  File, from: Long, limit: Int): List<FileIndex> =
+        RandomAccessFile(container, "r").use { ra ->
             val resolvedOffset = ra.resolvePointer(from)
             mutableListOf<FileIndex>().apply {
-                ra.readIndex(this, limit, resolvedOffset)
+                ra.readIndex(this, limit, resolvedOffset, container)
             }
         }
 

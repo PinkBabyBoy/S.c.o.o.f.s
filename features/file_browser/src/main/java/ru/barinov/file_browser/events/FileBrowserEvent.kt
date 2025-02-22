@@ -10,14 +10,15 @@ interface FieObserverEvent //root and stub
 
 sealed interface FileBrowserEvent : FieObserverEvent {
 
-    data object RemoveSelection: FileBrowserEvent
-
     data object AddSelection : FileBrowserEvent
-
-    data object DeleteSelected : FileBrowserEvent
 
     class SortSelected(val type: SortType) : FileBrowserEvent
 }
+
+sealed interface OpenedContainerEvent: FieObserverEvent
+data object DeleteSelected : FileBrowserEvent, OpenedContainerEvent
+
+data object RemoveSelection: FileBrowserEvent, OpenedContainerEvent
 
 sealed interface KeySelectorEvent : FieObserverEvent {
 
@@ -41,11 +42,11 @@ sealed interface ContainersEvent : FieObserverEvent {
     class ContainerCreateConfirmed(val name: String): ContainersEvent
 }
 
-data object OnBackPressed : FileBrowserEvent, KeySelectorEvent
+data object OnBackPressed : FileBrowserEvent, KeySelectorEvent, OpenedContainerEvent
 
 class OnFileClicked(
     val fileId: FileId, val selectionMode: Boolean, val fileInfo: FileTypeInfo, val isDir: Boolean
-) : FileBrowserEvent, KeySelectorEvent, ContainersEvent, FileLoadInitializationEvent
+) : FileBrowserEvent, KeySelectorEvent, ContainersEvent, FileLoadInitializationEvent, OpenedContainerEvent
 
 data object SourceChanged : FileBrowserEvent, KeySelectorEvent
 

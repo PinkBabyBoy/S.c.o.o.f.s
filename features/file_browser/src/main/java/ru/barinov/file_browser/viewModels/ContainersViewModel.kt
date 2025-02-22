@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.barinov.core.FileEntity
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.file_browser.ContainersManager
 import ru.barinov.file_browser.ViewableFileMapper
@@ -28,7 +29,7 @@ import ru.barinov.file_process_worker.WorkersManager
 
 class ContainersViewModel(
     private val containersManager: ContainersManager,
-    private val fileToUiModelMapper: ViewableFileMapper<FileUiModel>,
+    private val fileToUiModelMapper: ViewableFileMapper<FileEntity, FileUiModel>,
     private val createContainerUseCase: CreateContainerUseCase,
     private val workersManager: WorkersManager,
     keyManager: KeyManager

@@ -1,4 +1,4 @@
-package ru.barinov.core.util
+package ru.barinov.file_browser.utils
 
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileIndex

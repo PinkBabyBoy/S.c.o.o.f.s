@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -34,11 +33,12 @@ import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.models.FileUiModel
+import ru.barinov.file_browser.models.ViewableFileModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-inline fun <reified T : FieObserverEvent> BrowserBlock(
-    files: Flow<PagingData<FileUiModel>>,
+inline fun <reified T : FieObserverEvent, reified M: ViewableFileModel> BrowserBlock(
+    files: Flow<PagingData<M>>,
     currentFolderName: String,
     isSelectionEnabled: Boolean,
     crossinline onEvent: (T) -> Unit,
@@ -49,7 +49,7 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
     actions: Set<@Composable (RowScope) -> Unit> = emptySet()
 ) {
     val selectionMode = remember { mutableStateOf(false) }
-    val folderFiles = files.collectAsLazyPagingItems(Dispatchers.IO)
+    val pagedFFiles = files.collectAsLazyPagingItems(Dispatchers.IO)
     val appBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(appBarState)
     BackHandler {
@@ -86,11 +86,11 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
                 )
             ) {
                 items(
-                    count = folderFiles.itemCount,
-                    key = { folderFiles[it]?.fileId?.value ?: String() },
-                    contentType = {folderFiles[it]?.isDir}
+                    count = pagedFFiles.itemCount,
+                    key = { pagedFFiles[it]?.fileId?.value ?: String() },
+                    contentType = {(pagedFFiles[it] as? FileUiModel)?.isDir}
                 ) { index ->
-                    val fileModel = folderFiles[index]
+                    val fileModel = pagedFFiles[index]
                     if (fileModel != null) {
                         FileItem<T>(
                             file = fileModel,
@@ -113,7 +113,7 @@ inline fun <reified T : FieObserverEvent> BrowserBlock(
         if (isPageEmpty) {
             Text(text = "Folder is empty", modifier = Modifier.align(Alignment.Center))
         }
-        if (folderFiles.loadState.refresh is LoadState.Error) {
+        if (pagedFFiles.loadState.refresh is LoadState.Error) {
             Text(
                 text = "Error",
                 modifier = Modifier

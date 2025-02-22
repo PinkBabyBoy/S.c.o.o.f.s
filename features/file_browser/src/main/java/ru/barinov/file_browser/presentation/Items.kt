@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.FileSize
 import ru.barinov.core.FileTypeInfo
@@ -51,6 +52,7 @@ import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.core.ui.fileItemColor
 import ru.barinov.core.ui.mainGreen
+import ru.barinov.file_browser.models.ViewableFileModel
 
 @Composable
 inline fun <reified T : FieObserverEvent> FileGridItem(
@@ -121,7 +123,7 @@ inline fun <reified T : FieObserverEvent> FileGridItem(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 inline fun <reified T : FieObserverEvent> FileItem(
-    file: FileUiModel,
+    file: ViewableFileModel,
     selectionMode: Boolean,
     selectionAvailable: Boolean,
     showLoading: Boolean,
@@ -165,7 +167,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
                             fileId = file.fileId,
                             selectionMode = selectionMode,
                             fileInfo = file.info.value,
-                            isDir = file.isDir
+                            isDir = (file as? FileUiModel)?.isDir ?: false
                         ) as T
                     )
                 }
@@ -199,7 +201,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
                                     fileId = file.fileId,
                                     selectionMode = selectionMode,
                                     fileInfo = file.info.value,
-                                    isDir = file.isDir
+                                    isDir = (file as? FileUiModel)?.isDir ?: false
                                 ) as T
                             )
                         })
@@ -210,10 +212,7 @@ inline fun <reified T : FieObserverEvent> FileItem(
 }
 
 @Composable
-fun FilePreview(file: FileUiModel, info: FileTypeInfo, showLoading: Boolean) {
-    val context = LocalContext.current
-
-
+fun FilePreview(file: ViewableFileModel, info: FileTypeInfo, showLoading: Boolean) {
     when (info) {
         is FileTypeInfo.ImageFile -> {
             Image(

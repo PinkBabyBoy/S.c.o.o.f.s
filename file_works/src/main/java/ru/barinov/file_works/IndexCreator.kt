@@ -4,6 +4,7 @@ import android.util.Log
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileIndex
 import ru.barinov.core.getBytes
+import java.io.File
 import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 
@@ -28,7 +29,7 @@ object IndexCreator {
 
     }
 
-    fun restoreIndex(decryptedIndex: ByteArray, startPos: Long, rawSize: Int): FileIndex =
+    fun restoreIndex(decryptedIndex: ByteArray, startPos: Long, rawSize: Int, container: File): FileIndex =
         ByteBuffer.wrap(decryptedIndex).run {
             //S/Sn/L/L/L/L/I/I
             FileIndex(
@@ -41,6 +42,7 @@ object IndexCreator {
                 state = FileIndex.State.entries[getInt()],
                 sizeInIndexes = rawSize,
                 indexStartPoint = startPos,
+                container = container
             )
         }
 }

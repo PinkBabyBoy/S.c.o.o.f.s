@@ -34,7 +34,7 @@ class FilesLoadInitializationViewModel(
     private val hashValidator: HashValidator,
     private val keyMemoryCache: KeyMemoryCache,
     private val containerHashExtractor: ContainerHashExtractor,
-    private val fileToUiModelMapper: ViewableFileMapper<FileUiModel>,
+    private val fileToUiModelMapper: ViewableFileMapper<FileEntity, FileUiModel>,
     private val workersManager: WorkersManager,
     private val fileWriter: FileWriter,
     private val selectedCache: SelectedCache //To Interface

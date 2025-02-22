@@ -30,15 +30,18 @@ import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.ViewableFileMapper
 import ru.barinov.file_browser.base.FileWalkViewModel
 import ru.barinov.file_browser.base.change
+import ru.barinov.file_browser.events.DeleteSelected
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.events.OnboardingFinished
+import ru.barinov.file_browser.events.RemoveSelection
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
+import ru.barinov.file_browser.sideEffects.OpenImageFile
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.file_browser.utils.FileSingleShareBus
@@ -51,7 +54,7 @@ import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 class FileObserverViewModel(
     folderDataInteractor: FolderDataInteractor,
     private val selectedCache: SelectedCache,
-    private val fileToUiModelMapper: ViewableFileMapper<FileUiModel>,
+    private val fileToUiModelMapper: ViewableFileMapper<FileEntity, FileUiModel>,
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     keyManager: KeyManager,
     private val fileBrowserOnboarding: OnBoardingEngine,
@@ -131,11 +134,11 @@ class FileObserverViewModel(
     fun onNewEvent(event: FileBrowserEvent) {
         when (event) {
             is OnFileClicked -> onFileClicked(event.fileId, event.selectionMode, event.fileInfo)
-            is FileBrowserEvent.RemoveSelection -> selectedCache.removeAll()
+            is RemoveSelection -> selectedCache.removeAll()
             OnBackPressed -> goBack()
             FileBrowserEvent.AddSelection -> askTransactionWithSelected()
             SourceChanged -> changeSource()
-            FileBrowserEvent.DeleteSelected -> deleteSelected()
+            DeleteSelected -> deleteSelected()
             is FileBrowserEvent.SortSelected -> sortType.value = event.type
             is OnboardingFinished -> onOnboadingFinished(event.onBoarding)
         }
@@ -201,7 +204,7 @@ class FileObserverViewModel(
             is FileTypeInfo.ImageFile -> {
                 viewModelScope.launch {
                     singleShareBus.share(folderDataInteractor.getFileByID(fileId, sourceType.value))
-                    _sideEffects.send(FileBrowserSideEffect.OpenImageFile(fileId))
+                    _sideEffects.send(OpenImageFile(fileId))
                 }
             }
 

@@ -9,7 +9,7 @@ import ru.barinov.core.Source
 
 @Immutable
 data class FileUiModel(
-    val fileId: FileId,
+    override val fileId: FileId,
     val filePath: String,
     val origin: Source,
     val isDir: Boolean,
@@ -19,6 +19,6 @@ data class FileUiModel(
     override val placeholderRes: Int,
     override val isSelected: Boolean,
     override val info: StateFlow<FileTypeInfo>,
-): ViewableFileModel(name, fileSize, placeholderRes, isSelected, info)
+): ViewableFileModel(fileId, name, fileSize, placeholderRes, isSelected, info)
 
 

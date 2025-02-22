@@ -10,7 +10,7 @@ class OpenContainerUseCase(
 ) {
 
     operator fun invoke(name: String): Flow<PagingData<FileIndex>> {
-       return  cryptoRepository.openContainer(name)
+       return cryptoRepository.openContainer(name)
     }
 
 }

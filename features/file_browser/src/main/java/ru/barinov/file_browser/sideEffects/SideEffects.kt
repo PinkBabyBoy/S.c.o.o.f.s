@@ -1,13 +1,13 @@
 package ru.barinov.file_browser.sideEffects
 
 import androidx.annotation.StringRes
-import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filename
 import ru.barinov.core.InteractableFile
-import ru.barinov.core.Source
 
 interface SideEffect
+
+sealed interface OpenedContainerSideEffect: SideEffect
 
 sealed interface ImageFileDetailsSideEffects : SideEffect {
 
@@ -15,9 +15,10 @@ sealed interface ImageFileDetailsSideEffects : SideEffect {
 }
 
 sealed interface FileBrowserSideEffect : SideEffect {
-    class OpenImageFile(val fileId: FileId) : FileBrowserSideEffect
     class ShowAddFilesDialog(val selectedFiles: Collection<InteractableFile>) : FileBrowserSideEffect
 }
+
+class OpenImageFile(val fileId: FileId) : FileBrowserSideEffect, OpenedContainerSideEffect
 
 sealed interface FilesLoadInitializationSideEffects : SideEffect {
     data object CloseOnShortTransaction: FilesLoadInitializationSideEffects
@@ -40,4 +41,4 @@ sealed interface KeySelectorSideEffect : SideEffect {
 class ShowInfo(@StringRes val text: Int) : KeySelectorSideEffect, FileBrowserSideEffect
 
 
-data object CanGoBack : FileBrowserSideEffect, KeySelectorSideEffect
+data object CanGoBack : FileBrowserSideEffect, KeySelectorSideEffect, OpenedContainerSideEffect
