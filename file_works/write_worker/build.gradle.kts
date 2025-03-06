@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":providers:external_data"))
     implementation(project(":file_works"))
     implementation(project(":file_works:read_worker"))
+    implementation(project(":data:file_prober"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

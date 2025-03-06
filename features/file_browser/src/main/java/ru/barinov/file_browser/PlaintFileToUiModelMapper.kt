@@ -10,7 +10,7 @@ import ru.barinov.core.FileTypeInfo
 import ru.barinov.core.Source
 import ru.barinov.core.trimFileName
 import ru.barinov.core.trimFilePath
-import ru.barinov.file_browser.utils.FileInfoExtractor
+import ru.barinov.file_prober.FileInfoExtractor
 import ru.barinov.file_browser.models.FileUiModel
 
 internal class PlaintFileToUiModelMapper(

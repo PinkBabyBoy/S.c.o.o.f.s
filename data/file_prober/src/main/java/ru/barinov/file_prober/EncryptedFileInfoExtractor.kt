@@ -1,4 +1,4 @@
-package ru.barinov.file_browser.utils
+package ru.barinov.file_prober
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

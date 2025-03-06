@@ -36,6 +36,8 @@ sealed interface KeySelectorSideEffect : SideEffect {
         val name: Filename,
         val fileId: FileId
     ) : KeySelectorSideEffect
+
+    data object ShowKeyCreationDialog: KeySelectorSideEffect
 }
 
 class ShowInfo(@StringRes val text: Int) : KeySelectorSideEffect, FileBrowserSideEffect

@@ -55,5 +55,6 @@ dependencies {
     implementation(project(":file_process_worker"))
     implementation(project(":data:plain_explorer"))
     implementation(project(":data:crypto_container_explorer"))
+    implementation(project(":data:file_prober"))
 
 }

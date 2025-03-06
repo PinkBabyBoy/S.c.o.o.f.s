@@ -6,8 +6,11 @@ import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileIndex
 import ru.barinov.cryptography.Decryptor
+import ru.barinov.cryptography.factories.CipherFactory
+import ru.barinov.cryptography.factories.CipherStreamsFactory
 import ru.barinov.external_data.GetMSDFileSystemUseCase
 import ru.barinov.file_works.IndexCreator
+import ru.barinov.read_worker.util.LimitedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -19,8 +22,25 @@ private const val KEY_FILE_LIMIT_SIZE = 4 * 1024 * 1024
 
 internal class ReadFileWorkerImpl(
     private val getMSDFileSystemUseCase: GetMSDFileSystemUseCase,
-    private val decryptor: Decryptor
+    private val decryptor: Decryptor,
+    private val cipherFactory: CipherFactory,
+    private val cipherStreamsFactory: CipherStreamsFactory,
 ) : ReadFileWorker {
+
+    fun readFile(index: FileIndex): InputStream{
+        //File is stub for CONTAINER!!! not index
+        val container = File("")
+        RandomAccessFile(container, "r").use { ra ->
+            ra.seek(index.startPoint)
+            val keySize = ra.readSize()
+            val wrappedKey = ByteArray(keySize).apply(ra::readFully)
+            val decryptionInnerCipher = cipherFactory.createDecryptionInnerCipher(wrappedKey)
+            val sizeSectorLen = Long.SIZE_BYTES + 16
+            val fileSize = decryptionInnerCipher.doFinal(ByteArray(sizeSectorLen).apply(ra::readFully)).run { ByteBuffer.wrap(this).getLong()}
+            val containerIStream = LimitedInputStream(container.inputStream(), fileSize)
+            return  cipherStreamsFactory.createInputStream(containerIStream.also { it.skip( index.startPoint + Int.SIZE_BYTES + keySize  + sizeSectorLen) }, decryptionInnerCipher)
+        }
+    }
 
     @Deprecated("Use paging implementation")
     override suspend fun readIndexes(container: File, limit: Int): List<FileIndex> {

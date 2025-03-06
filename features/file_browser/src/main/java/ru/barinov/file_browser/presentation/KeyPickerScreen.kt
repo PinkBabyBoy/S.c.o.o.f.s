@@ -1,6 +1,7 @@
 package ru.barinov.file_browser.presentation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,9 +48,8 @@ import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.onboarding.OnBoarding
-import ru.barinov.onboarding.orEmpty
+import ru.barinov.onboarding.Tooltip
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeySelector(
     state: KeyPickerUiState,
@@ -64,9 +64,11 @@ fun KeySelector(
     val localCoroutine = rememberCoroutineScope()
     val context = LocalContext.current
     val isKeystoreCreatorBsVisible = remember { mutableStateOf(false) }
-    val isPageOnScreen = remember {  derivedStateOf{
-        pageState.intValue == Pages.KEY_PICKER.ordinal
-    }}
+    val isPageOnScreen = remember {
+        derivedStateOf {
+            pageState.intValue == Pages.KEY_PICKER.ordinal
+        }
+    }
 
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
@@ -85,6 +87,8 @@ fun KeySelector(
                     snackbarHostState.showSnackbar(context.getString(sideEffect.text))
                 }
             }
+
+            KeySelectorSideEffect.ShowKeyCreationDialog -> isKeystoreCreatorBsVisible.value = true
         }
     }
     if (state.isKeyLoaded) {
@@ -103,7 +107,9 @@ fun KeySelector(
                 Text(text = stringResource(id = ru.barinov.core.R.string.key_loaded))
                 Image(
                     painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
-                    modifier = Modifier.size(54.dp).padding(top = 24.dp),
+                    modifier = Modifier
+                        .size(54.dp)
+                        .padding(top = 24.dp),
                     contentDescription = null
                 )
                 Spacer(modifier = Modifier.height(32.dp))
@@ -122,57 +128,9 @@ fun KeySelector(
             onEvent = { onEvent(it) },
             isPageEmpty = state.isPageEmpty,
             isInRoot = state.isInRoot,
-            actions = buildSet {
-                if (state.sourceState.isMsdAttached) {
-                    add {
-                        val onbData = state.onboardings[OnBoarding.CHANGE_SOURCE].takeIf { isPageOnScreen.value }.orEmpty()
-                        OnBoarding(
-                            title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
-                            state = onbData,
-                            tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
-                            onClick = { onEvent(OnboardingFinished(OnBoarding.CHANGE_SOURCE)) },
-                            width = 42.dp,
-                            hasNext = false
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    id = if (state.sourceState.currentSource == Source.INTERNAL)
-                                        ru.barinov.core.R.drawable.baseline_sd_storage_24
-                                    else ru.barinov.core.R.drawable.mass_storage_device
-                                ),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .clickable {
-                                        onEvent(SourceChanged)
-                                    }
-                                    .size(26.dp),
-                                tint = if (state.sourceState.currentSource == Source.INTERNAL) Color.Black else LocalContentColor.current
-                            )
-                        }
-                    }
-                    add { Spacer(modifier = Modifier.width(16.dp)) }
-                }
-                add {
-                    val onbData = state.onboardings[OnBoarding.KEY_CREATION].takeIf { isPageOnScreen.value }.orEmpty()
-                    OnBoarding(
-                        title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
-                        state = onbData,
-                        tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
-                        onClick = {onEvent(OnboardingFinished(OnBoarding.KEY_CREATION))},
-                        width = 42.dp,
-                        hasNext = false
-                    ) {
-                        Icon(
-                            painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
-                            contentDescription = null,
-                            modifier = Modifier.clickable { isKeystoreCreatorBsVisible.value = true }
-                        )
-                    }
-                }
-                add { Spacer(modifier = Modifier.width(16.dp)) }
-            },
             showLoading = false,
-            additionalInfoEnabled = false
+            additionalInfoEnabled = false,
+            isInOnBoarding = false
         )
     }
     if (isKeystoreCreatorBsVisible.value) {

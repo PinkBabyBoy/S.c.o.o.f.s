@@ -42,7 +42,7 @@ import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.OnBoardingEngine
 import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class KeySelectorViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     folderDataInteractor: FolderDataInteractor,
@@ -51,9 +51,9 @@ class KeySelectorViewModel(
     private val createKeyStoreUseCase: CreateKeyStoreUseCase,
     private val keyPickerOnBoarding: OnBoardingEngine
 ) : FileWalkViewModel<KeySelectorSideEffect>(
-    folderDataInteractor,
-    getMSDAttachStateProvider,
-    true
+    folderDataInteractor = folderDataInteractor,
+    getMSDAttachStateProvider = getMSDAttachStateProvider,
+    tryLoadMsdFirst = true
 ) {
 
 
@@ -82,8 +82,7 @@ class KeySelectorViewModel(
         }
 
 
-        viewModelScope.launch(Dispatchers.Default)
-        {
+        viewModelScope.launch(Dispatchers.Default) {
             combine(keyManager.isKeyLoaded, sourceState, files, ::Triple)
                 .map {
                     val (isKeyLoaded, sourceData, page) = it
@@ -158,12 +157,15 @@ class KeySelectorViewModel(
             }
 
             KeySelectorEvent.UnbindKey -> unbindKey()
-            is OnboardingFinished -> onOnboadingFinished(event.onBoarding)
+            is OnboardingFinished -> onOnboardingFinished()
+            KeySelectorEvent.KeyStoreCreateClicked -> viewModelScope.launch {
+                _sideEffects.send(KeySelectorSideEffect.ShowKeyCreationDialog)
+            }
         }
     }
 
-    private fun onOnboadingFinished(onboarding: OnBoarding) {
-        _uiState.value = uiState.value.onboardingsStateChanged(keyPickerOnBoarding.next(onboarding))
+    private fun onOnboardingFinished() {
+        _uiState.value = uiState.value.onboardingsStateChanged(keyPickerOnBoarding.next())
     }
 
     private fun onFileClicked(fileId: FileId) {

@@ -10,10 +10,9 @@ import ru.barinov.core.Source
 import ru.barinov.core.folderName
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
-import ru.barinov.onboarding.OnboardingState
+import ru.barinov.onboarding.OnboardingInfo
 
 @Stable
-@OptIn(ExperimentalMaterial3Api::class)
 data class KeyPickerUiState(
     val type: Type,
     val files: Flow<PagingData<FileUiModel>>,
@@ -21,12 +20,12 @@ data class KeyPickerUiState(
     val sourceState: SourceState,
     val isInRoot: Boolean,
     val isPageEmpty: Boolean,
-    val onboardings: OnboardingState
+    val onboardings: OnboardingInfo
 ) {
 
     val isKeyLoaded = type == Type.LOADED
 
-    fun onboardingsStateChanged(state: OnboardingState) = copy(
+    fun onboardingsStateChanged(state: OnboardingInfo) = copy(
         onboardings = state
     )
 
@@ -43,7 +42,7 @@ data class KeyPickerUiState(
             sourceState: SourceState,
             isInRoot: Boolean,
             isPageEmpty: Boolean,
-            onboardings: OnboardingState
+            onboardings: OnboardingInfo
         ) = KeyPickerUiState(
             type = if (isKeyLoaded) Type.LOADED else Type.UNLOADED,
             files = files,
@@ -62,7 +61,7 @@ data class KeyPickerUiState(
                 sourceState = SourceState(false, Source.INTERNAL),
                 isInRoot = true,
                 isPageEmpty = true,
-                onboardings = emptyMap()
+                onboardings = null to false
             )
     }
 }

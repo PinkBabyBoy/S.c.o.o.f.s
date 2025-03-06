@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.inputStream
 import ru.barinov.file_browser.base.SideEffectViewModel
 import ru.barinov.file_browser.events.ImageDetailsEvent
@@ -18,7 +19,7 @@ import ru.barinov.file_browser.states.ImageFileScreenUiState
 import ru.barinov.file_browser.utils.FileSingleShareBus
 
 class ImageFileDetailsViewModel(
-    fileSingleShareBus: FileSingleShareBus,
+    fileSingleShareBus: FileSingleShareBus<InteractableFile>,
     private val fileId: FileId
 ) : SideEffectViewModel<ImageFileDetailsSideEffects>() {
 

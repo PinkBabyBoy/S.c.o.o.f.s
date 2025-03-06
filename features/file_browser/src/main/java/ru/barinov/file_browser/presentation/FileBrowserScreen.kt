@@ -1,19 +1,17 @@
 package ru.barinov.file_browser.presentation
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateSizeAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,28 +21,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
@@ -66,11 +64,10 @@ import ru.barinov.core.ui.getArgs
 import ru.barinov.core.ui.shouldShow
 import ru.barinov.file_browser.events.DeleteSelected
 import ru.barinov.file_browser.events.OnboardingFinished
-import ru.barinov.file_browser.events.RemoveSelection
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.sideEffects.OpenImageFile
 import ru.barinov.onboarding.OnBoarding
-import ru.barinov.onboarding.orEmpty
+import ru.barinov.onboarding.Tooltip
 
 @Composable
 fun FileBrowserScreen(
@@ -147,7 +144,10 @@ fun FileBrowserScreen(
                 Image(
                     painter = painterResource(id = ru.barinov.core.R.drawable.baseline_key_24),
                     contentDescription = null,
-                    modifier = Modifier.clickable { openPage(Pages.KEY_PICKER.ordinal) }.padding(top = 24.dp).size(transitionSize.value.toInt().dp)
+                    modifier = Modifier
+                        .clickable { openPage(Pages.KEY_PICKER.ordinal) }
+                        .padding(top = 24.dp)
+                        .size(transitionSize.value.toInt().dp)
                 )
             }
 //            Image(
@@ -174,7 +174,7 @@ fun FileBrowserScreen(
             actions = buildActions(state, onEvent, deleteDialogVisible),
             isPageEmpty = state.isPageEmpty,
             isInRoot = state.isInRoot,
-            showLoading = true
+            showLoading = true,
         )
     }
 
@@ -185,132 +185,5 @@ fun FileBrowserScreen(
         }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
-private fun buildActions(
-    state: FileBrowserUiState,
-    onEvent: (FileBrowserEvent) -> Unit,
-    deleteDialogVisible: MutableState<Boolean>,
-): Set<@Composable (RowScope) -> Unit> = buildSet {
-    if (state.hasSelected) {
-        add {
-            val onbData = state.fileBrowserOnboarding[OnBoarding.ADD_SELECTED].orEmpty()
-            OnBoarding(
-                title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
-                state = onbData,
-                tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
-                onClick = { onEvent(OnboardingFinished(OnBoarding.ADD_SELECTED)) },
-                width = 42.dp,
-                hasNext = false
-            ) {
-                BadgedBox(
-                    badge = {
-                        Text(
-                            text = state.selectedCount.toString(),
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(start = 8.dp),
-                            color = Color.Red,
-                        )
-                    },
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = ru.barinov.core.R.drawable.baseline_post_add_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .combinedClickable(
-                                interactionSource = remember {
-                                    mutableStateOf(MutableInteractionSource())
-                                }.value,
-                                indication = ripple(),
-                                onLongClick = {
-                                    onEvent(RemoveSelection)
-                                },
-                                onClick = {
-                                    onEvent(FileBrowserEvent.AddSelection)
-                                }
-                            )
-                            .size(26.dp),
-                        tint = Color.Black
-                    )
-                }
 
-            }
-        }
-        add { Spacer(modifier = Modifier.width(16.dp)) }
-        add {
-            Icon(
-                painter = painterResource(id = ru.barinov.core.R.drawable.baseline_delete_outline_24),
-                contentDescription = null,
-                modifier = Modifier
-                    .clickable {
-                        deleteDialogVisible.value = true
-                    }
-                    .size(26.dp),
-                tint = Color.Black
-            )
-        }
-        add { Spacer(modifier = Modifier.width(16.dp)) }
-    }
-    if (state.sourceState.isMsdAttached) {
-        add {
-            val onbData = state.fileBrowserOnboarding[OnBoarding.CHANGE_SOURCE].orEmpty()
-            OnBoarding(
-                title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
-                state = onbData,
-                tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
-                onClick = { onEvent(OnboardingFinished(OnBoarding.CHANGE_SOURCE)) },
-                width = 42.dp,
-                hasNext = false
-            ) {
-                Icon(
-                    painter = painterResource(
-                        id = if (state.sourceState.currentSource == Source.INTERNAL)
-                            ru.barinov.core.R.drawable.baseline_sd_storage_24
-                        else ru.barinov.core.R.drawable.mass_storage_device
-                    ),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable {
-                            onEvent(SourceChanged)
-                        }
-                        .size(26.dp),
-                    tint = if (state.sourceState.currentSource == Source.INTERNAL) Color.Black else LocalContentColor.current
-                )
-            }
-        }
-        add { Spacer(modifier = Modifier.width(16.dp)) }
-    }
-    if (!state.isPageEmpty) {
-        add {
-            val onbData = state.fileBrowserOnboarding[OnBoarding.SORT_FILES].orEmpty()
-            OnBoarding(
-                title = stringResource(ru.barinov.core.R.string.key_creation_title_ond),
-                state = onbData,
-                tooltipText = stringResource(ru.barinov.core.R.string.key_creation_message_ond),
-                onClick = { onEvent(OnboardingFinished(OnBoarding.SORT_FILES)) },
-                width = 42.dp,
-                hasNext = false
-            ) {
-                val sortDropDownExpanded = remember { mutableStateOf(false) }
-                Box {
-                    Icon(
-                        painter = painterResource(id = ru.barinov.core.R.drawable.outline_sort_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable { sortDropDownExpanded.value = true }
-                            .size(26.dp),
-                        tint = Color.Black
-                    )
-                    SortDropDownMenu(
-                        isExpanded = sortDropDownExpanded.value,
-                        selectedSort = state.selectedSortType,
-                        onDismissRequest = { sortDropDownExpanded.value = false },
-                        onEvent = { onEvent(it) }
-                    )
-                }
-            }
-        }
-        add { Spacer(modifier = Modifier.width(16.dp)) }
-    }
-}
+

@@ -28,17 +28,4 @@ internal object Qualifiers {
             get() = "fileIndex"
 
     }
-
-    val encryptedFileInfoExtractor = object : Qualifier {
-        override val value: QualifierValue
-            get() = "encryptedFileInfoExtractor"
-
-    }
-
-    val plaintFileInfoExtractor = object : Qualifier {
-        override val value: QualifierValue
-            get() = "plaintFileInfoExtractor"
-
-    }
-
 }

@@ -2,8 +2,8 @@ package ru.barinov.write_worker
 
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
+import ru.barinov.file_prober.IndexTypeExtractor
 import ru.barinov.core.getBytes
-import ru.barinov.file_browser.utils.IndexTypeExtractor
 import ru.barinov.cryptography.Encryptor
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.factories.CipherStreamsFactory
@@ -22,7 +22,7 @@ internal class WriteFileWorkerImpl(
     private val encryptor: Encryptor,
     private val cipherStreamsFactory: CipherStreamsFactory,
     private val getMSDFileSystemUseCase: GetMSDFileSystemUseCase,
-    private val indexTypeExtractor: ru.barinov.file_browser.utils.IndexTypeExtractor
+    private val indexTypeExtractor: IndexTypeExtractor
 ) : WriteFileWorker {
 
     override suspend fun putInStorage(
@@ -85,11 +85,13 @@ internal class WriteFileWorkerImpl(
         progressCallback: suspend (Long) -> Unit,
         cipher: Cipher
     ) {
+        val precalculatedSize = targetFile.attachedOrigin.length() + 16
+        container.appendBytes(cipher.doFinal(precalculatedSize.getBytes()))
         cipherStreamsFactory.createOutputStream(FileOutputStream(container, true), cipher).use { output ->
-                targetFile.attachedOrigin.inputStream().use { input ->
-                    input.copyWithProgress(output) { progressCallback.invoke(it) }
-                }
+            targetFile.attachedOrigin.inputStream().use { input ->
+                input.copyWithProgress(output) { progressCallback.invoke(it) }
             }
+        }
     }
 }
 

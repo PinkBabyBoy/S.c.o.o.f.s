@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.Flow
 import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnFileClicked
+import ru.barinov.file_browser.events.RemoveSelection
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.ViewableFileModel
 
@@ -46,7 +48,7 @@ inline fun <reified T : FieObserverEvent, reified M: ViewableFileModel> BrowserB
     isInRoot: Boolean,
     showLoading: Boolean,
     additionalInfoEnabled: Boolean = true,
-    actions: Set<@Composable (RowScope) -> Unit> = emptySet()
+    actions: Set<Action> = emptySet()
 ) {
     val selectionMode = remember { mutableStateOf(false) }
     val pagedFFiles = files.collectAsLazyPagingItems(Dispatchers.IO)
@@ -55,6 +57,7 @@ inline fun <reified T : FieObserverEvent, reified M: ViewableFileModel> BrowserB
     BackHandler {
         if (selectionMode.value) {
             selectionMode.value = false
+            onEvent(RemoveSelection as T)
         } else {
             onEvent(OnBackPressed as T)
             appBarState.heightOffset = 0f
@@ -76,7 +79,7 @@ inline fun <reified T : FieObserverEvent, reified M: ViewableFileModel> BrowserB
                     } else onEvent(OnBackPressed as T)
                 },
                 actions = actions,
-                showArrow = !isInRoot
+                showArrow = !isInRoot,
             )
             LazyColumn(
                 modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),

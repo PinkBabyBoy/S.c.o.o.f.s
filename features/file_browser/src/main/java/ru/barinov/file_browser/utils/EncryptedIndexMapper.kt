@@ -7,7 +7,7 @@ import ru.barinov.core.FileId
 import ru.barinov.core.FileIndex
 import ru.barinov.core.FileSize
 import ru.barinov.core.FileTypeInfo
-import ru.barinov.file_browser.utils.FileInfoExtractor
+import ru.barinov.file_prober.FileInfoExtractor
 import ru.barinov.file_browser.ViewableFileMapper
 import ru.barinov.file_browser.models.EncryptedFileIndexUiModel
 

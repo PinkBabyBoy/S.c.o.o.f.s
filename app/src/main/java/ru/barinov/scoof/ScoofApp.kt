@@ -19,6 +19,7 @@ import ru.barinov.component_initializer.PasswordManagerInitializer
 import ru.barinov.component_initializer.PermissionManagerInitializer
 import ru.barinov.component_initializer.PlainExplorerInitializer
 import ru.barinov.component_initializer.PreferencesInitializer
+import ru.barinov.component_initializer.ProberModuleInitializer
 import ru.barinov.component_initializer.ProtectedEnterInitializer
 import ru.barinov.component_initializer.TransactionManagerInitializer
 import ru.barinov.component_initializer.UsbConnectionInitializer
@@ -48,6 +49,7 @@ class ScoofApp: Application() {
             initializeComponent(UsbConnectionInitializer::class.java)
             initializeComponent(EnterScreenInitializer::class.java)
             initializeComponent(FileWorksInitializer::class.java)
+            initializeComponent(ProberModuleInitializer::class.java)
             initializeComponent(InternalStorageInitializer::class.java)
             initializeComponent(TransactionManagerInitializer::class.java)
             initializeComponent(FileObserverInitializer::class.java)

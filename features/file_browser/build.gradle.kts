@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.material)
     implementation(project(":data:plain_explorer"))
     implementation(project(":data:crypto_container_explorer"))
+    implementation(project(":data:file_prober"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

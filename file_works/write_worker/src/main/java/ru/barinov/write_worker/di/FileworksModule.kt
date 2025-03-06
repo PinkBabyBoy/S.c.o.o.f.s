@@ -2,6 +2,7 @@ package ru.barinov.write_worker.di
 
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import ru.barinov.file_prober.di.Qualifiers
 import ru.barinov.write_worker.WriteFileWorker
 import ru.barinov.write_worker.WriteFileWorkerImpl
 

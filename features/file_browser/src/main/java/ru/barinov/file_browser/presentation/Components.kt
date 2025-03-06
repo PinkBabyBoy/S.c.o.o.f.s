@@ -1,13 +1,18 @@
 package ru.barinov.file_browser.presentation
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
@@ -22,18 +27,45 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.toRect
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.layout.positionOnScreen
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import ru.barinov.core.SortType
 import ru.barinov.core.topBarHeader
+import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.models.Sort
 import ru.barinov.core.ui.mainGreen
+import ru.barinov.file_browser.events.DeleteSelected
+import ru.barinov.file_browser.events.FieObserverEvent
+import ru.barinov.file_browser.states.AppbarState
+import ru.barinov.onboarding.OnBoarding
 
 
 private val sortTypes = listOf(
@@ -59,15 +91,34 @@ private val sortTypes = listOf(
     )
 )
 
+internal typealias Action = @Composable RowScope.() -> Unit
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileBrowserAppBar(
     titleString: String,
     topAppBarScrollBehavior: TopAppBarScrollBehavior,
     onNavigateUpClicked: () -> Unit = {},
+    onEvent: (FieObserverEvent) -> Unit,
     showArrow: Boolean,
-    actions: Set<@Composable (RowScope) -> Unit> = emptySet(),
+    actions: Set<Action> = emptySet(),
+    isOnScreenNow: Boolean,
+    appbarState: AppbarState
+
 ) {
+    val deleteDialogVisible = remember { mutableStateOf(false) }
+    if (deleteDialogVisible.value) {
+        ScoofAlertDialog(
+            title = "Delete selected?",
+            message = "All selected files will be removed",
+            onDismissRequest = { deleteDialogVisible.value = false },
+            onConfirmed = {
+                onEvent(DeleteSelected)
+                deleteDialogVisible.value = false
+            }
+        )
+    }
     val title =
         @Composable {
             Text(
@@ -77,42 +128,77 @@ fun FileBrowserAppBar(
             )
         }
     val navigationIcon = @Composable {
-            AnimatedVisibility(showArrow, enter = scaleIn(), exit = scaleOut()) {
-                Icon(
-                    painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable { onNavigateUpClicked() }
-                        .padding(start = 12.dp)
-                )
-            }
-    }
-    TopAppBar(
-        title = { title() },
-        navigationIcon = { navigationIcon() },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent,
-            scrolledContainerColor = Color.Transparent
-        ),
-        windowInsets = WindowInsets(
-            top = 0.dp,
-            bottom = 0.dp
-        ),
-        scrollBehavior = topAppBarScrollBehavior,
-        actions = {
-            actions.forEach { action ->
-                action(this)
-            }
-        },
-        modifier = Modifier.drawBehind {
-            drawLine(
-                color = Color.Gray,
-                start = Offset(32f, size.height),
-                end = Offset(size.width - 32f, size.height),
-                strokeWidth = 0.5.dp.toPx()
+        AnimatedVisibility(showArrow, enter = scaleIn(), exit = scaleOut()) {
+            Icon(
+                painter = painterResource(id = ru.barinov.core.R.drawable.baseline_arrow_back_24),
+                contentDescription = null,
+                modifier = Modifier
+                    .clickable { onNavigateUpClicked() }
+                    .padding(start = 12.dp)
             )
         }
-    )
+    }
+    Box {
+        val spotLightOffsetState = remember { mutableStateOf<Offset?>(null) }
+        TopAppBar(
+            title = { title() },
+            navigationIcon = { navigationIcon() },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+                scrolledContainerColor = Color.Transparent
+            ),
+            windowInsets = WindowInsets(
+                top = 0.dp,
+                bottom = 0.dp
+            ),
+            scrollBehavior = topAppBarScrollBehavior,
+            actions = {
+                when (appbarState) {
+                    is AppbarState.Browser -> fileBrowserSet(appbarState, onEvent, isOnScreenNow, spotLightOffsetState)
+                    is AppbarState.Containers -> emptySet()
+                    is AppbarState.KeySelection -> keySelectorSet(appbarState, onEvent, isOnScreenNow, spotLightOffsetState)
+                    AppbarState.None -> emptySet()
+                }.forEach { action ->
+                    action()
+                }
+            },
+            modifier = Modifier.drawBehind {
+                drawLine(
+                    color = Color.Gray,
+                    start = Offset(32f, size.height),
+                    end = Offset(size.width - 32f, size.height),
+                    strokeWidth = 0.5.dp.toPx()
+                )
+            }
+        )
+        val spotLightOffset = spotLightOffsetState.value
+        AnimatedVisibility(spotLightOffset != null) {
+            val cornerRadiusPx = with(LocalDensity.current) { 18.dp.toPx() }
+            Canvas(
+                Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+            ) {
+                spotLightOffset?.also { offset ->
+                    val path = Path().apply {
+                        addOval(
+                            Rect(
+                                center = offset.copy(
+                                    x = offset.x + 14.dp.toPx(),
+                                    y = offset.y - 38.dp.toPx()
+                                ),
+                                radius = cornerRadiusPx
+                            )
+                        )
+                    }
+                    clipPath(path, clipOp = ClipOp.Difference) {
+                        drawRect(Color.Black.copy(alpha = 0.75f))
+                    }
+
+                } ?: drawRect(Color.Black.copy(alpha = 0.75f))
+            }
+        }
+    }
 }
 
 @Composable

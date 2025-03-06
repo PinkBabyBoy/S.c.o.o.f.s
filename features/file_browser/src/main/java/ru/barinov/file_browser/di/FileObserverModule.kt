@@ -24,12 +24,11 @@ import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
 import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.GetSerializableCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.OpenContainerUseCase
-import ru.barinov.file_browser.utils.EncryptedFileInfoExtractor
 import ru.barinov.file_browser.utils.EncryptedIndexMapper
-import ru.barinov.file_browser.utils.FileInfoExtractor
+import ru.barinov.file_prober.FileInfoExtractor
 import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.file_browser.utils.FileSingleShareBusImpl
-import ru.barinov.file_browser.utils.IndexTypeExtractor
+import ru.barinov.file_prober.IndexTypeExtractor
 import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
 import ru.barinov.onboarding.OnBoardingEngine
@@ -38,11 +37,11 @@ import ru.barinov.onboarding.OnBoardingEngine
 val fileObserverModule = module {
 
     factory(Qualifiers.fileEntityMapper) {
-        PlaintFileToUiModelMapper(get(Qualifiers.plaintFileInfoExtractor))
+        PlaintFileToUiModelMapper(get(ru.barinov.file_prober.di.Qualifiers.plaintFileInfoExtractor))
     } bind ViewableFileMapper::class
 
     factory(Qualifiers.fileIndexMapper) {
-        EncryptedIndexMapper(get(Qualifiers.encryptedFileInfoExtractor))
+        EncryptedIndexMapper(get(ru.barinov.file_prober.di.Qualifiers.encryptedFileInfoExtractor))
     } bind ViewableFileMapper::class
 
     factory {
@@ -100,15 +99,6 @@ val fileObserverModule = module {
         FileSingleShareBusImpl()
     } bind FileSingleShareBus::class
 
-
-    //TODO Separate to other module
-    factory(Qualifiers.plaintFileInfoExtractor) {
-        ru.barinov.file_browser.utils.PlainFileInfoExtractor(androidContext())
-    } binds arrayOf(IndexTypeExtractor::class, FileInfoExtractor::class)
-
-    factory(Qualifiers.encryptedFileInfoExtractor) {
-        EncryptedFileInfoExtractor(get())
-    } bind FileInfoExtractor::class
 
 
     viewModel { params ->

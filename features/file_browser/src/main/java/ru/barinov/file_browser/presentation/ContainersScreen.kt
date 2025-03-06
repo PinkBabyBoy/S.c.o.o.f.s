@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.isTraceInProgress
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -93,8 +94,9 @@ fun Containers(
                 isContainerCreateBsExpanded = isContainerCreateBsExpanded,
                 snackbarHostState = snackbarHostState,
                 coroutine = coroutineScope,
-                snackbarText = stringResource(id = ru.barinov.core.R.string.key_not_loaded_containers)
-            )
+                snackbarText = stringResource(id = ru.barinov.core.R.string.key_not_loaded_containers),
+            ),
+            inOnboarding = false
         )
         LazyColumn {
             items(page.itemCount) { index ->
@@ -159,7 +161,7 @@ private fun buildActions(
     snackbarHostState: SnackbarHostState,
     snackbarText: String,
     coroutine: CoroutineScope
-): Set<@Composable (RowScope) -> Unit> = buildSet {
+): Set<Action> = buildSet {
     add {
         Icon(
             painter = painterResource(id = ru.barinov.core.R.drawable.baseline_post_add_24),

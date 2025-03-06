@@ -4,7 +4,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import ru.barinov.core.InteractableFile
 
-internal class FileSingleShareBusImpl : FileSingleShareBus {
+internal class FileSingleShareBusImpl : FileSingleShareBus<InteractableFile> {
 
     private val mutex = Mutex()
 
@@ -17,5 +17,5 @@ internal class FileSingleShareBusImpl : FileSingleShareBus {
     }
 
 
-    override suspend fun share(file: InteractableFile) = mutex.withLock { this.file = file }
+    override suspend fun share(data: InteractableFile) = mutex.withLock { this.file = data }
 }

@@ -1,7 +1,6 @@
 package ru.barinov.file_browser.viewModels
 
 import android.util.Log
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
@@ -45,11 +44,9 @@ import ru.barinov.file_browser.sideEffects.OpenImageFile
 import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.file_browser.utils.FileSingleShareBus
-import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.OnBoardingEngine
 import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("OPT_IN_USAGE")
 class FileObserverViewModel(
     folderDataInteractor: FolderDataInteractor,
@@ -58,7 +55,7 @@ class FileObserverViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     keyManager: KeyManager,
     private val fileBrowserOnboarding: OnBoardingEngine,
-    private val singleShareBus: FileSingleShareBus
+    private val singleShareBus: FileSingleShareBus<Collection<InteractableFile>>,
 ) : FileWalkViewModel<FileBrowserSideEffect>(
     folderDataInteractor,
     getMSDAttachStateProvider,
@@ -136,17 +133,18 @@ class FileObserverViewModel(
             is OnFileClicked -> onFileClicked(event.fileId, event.selectionMode, event.fileInfo)
             is RemoveSelection -> selectedCache.removeAll()
             OnBackPressed -> goBack()
-            FileBrowserEvent.AddSelection -> askTransactionWithSelected()
+            FileBrowserEvent.AddSelectionClicked -> askTransactionWithSelected()
             SourceChanged -> changeSource()
             DeleteSelected -> deleteSelected()
             is FileBrowserEvent.SortSelected -> sortType.value = event.type
-            is OnboardingFinished -> onOnboadingFinished(event.onBoarding)
+            is OnboardingFinished -> onOnboadingFinished()
         }
     }
 
-    private fun onOnboadingFinished(onboarding: OnBoarding) {
+    private fun onOnboadingFinished() {
+        Log.e("@@@", "Fin")
         _uiState.value =
-            uiState.value.onboardingsStateChanged(fileBrowserOnboarding.next(onboarding))
+            uiState.value.onboardingsStateChanged(fileBrowserOnboarding.next())
     }
 
     private fun deleteSelected() {

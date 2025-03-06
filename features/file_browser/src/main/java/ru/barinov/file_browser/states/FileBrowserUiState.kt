@@ -13,10 +13,8 @@ import ru.barinov.core.Source
 import ru.barinov.core.folderName
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
-import ru.barinov.file_browser.models.Sort
-import ru.barinov.onboarding.OnboardingState
+import ru.barinov.onboarding.OnboardingInfo
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Stable
 data class FileBrowserUiState internal constructor(
     val type: Type,
@@ -27,12 +25,14 @@ data class FileBrowserUiState internal constructor(
     val isInRoot: Boolean,
     val isPageEmpty: Boolean,
     val selectedSortType: SortType,
-    val fileBrowserOnboarding: OnboardingState
+    val fileBrowserOnboarding: OnboardingInfo,
+    val appBarState: AppbarState
 ) {
     val isKeyLoaded = type == Type.LOADED
     val hasSelected: Boolean = selectedCount > 0
+    val isInOnboarding = fileBrowserOnboarding.first != null
 
-    fun onboardingsStateChanged(state: OnboardingState) = copy(
+    fun onboardingsStateChanged(state: OnboardingInfo) = copy(
         fileBrowserOnboarding = state
     )
 
@@ -41,7 +41,6 @@ data class FileBrowserUiState internal constructor(
     }
 
     companion object {
-        @OptIn(ExperimentalMaterial3Api::class)
         fun reconstruct(
             files: Flow<PagingData<FileUiModel>>,
             folderName: Filepath,
@@ -51,7 +50,7 @@ data class FileBrowserUiState internal constructor(
             isKeyLoaded: Boolean,
             isPageEmpty: Boolean,
             selectedSortType: SortType,
-            fileBrowserOnboarding: OnboardingState
+            fileBrowserOnboarding: OnboardingInfo
         ) = FileBrowserUiState(
             type = if(isKeyLoaded) Type.LOADED else Type.KEY_NOT_LOADED,
             files = files,
@@ -61,7 +60,8 @@ data class FileBrowserUiState internal constructor(
             isInRoot = isInRoot,
             isPageEmpty = isPageEmpty,
             selectedSortType = selectedSortType,
-            fileBrowserOnboarding = fileBrowserOnboarding
+            fileBrowserOnboarding = fileBrowserOnboarding,
+            appBarState = AppbarState.Browser(folderName.value, !isInRoot, fileBrowserOnboarding)
         )
 
         fun idle(): FileBrowserUiState =
@@ -74,7 +74,8 @@ data class FileBrowserUiState internal constructor(
                 isInRoot = true,
                 true,
                 selectedSortType =  SortType.AS_IS,
-                fileBrowserOnboarding =  emptyMap()
+                fileBrowserOnboarding =  null to false,
+                appBarState = AppbarState.None
             )
     }
 }

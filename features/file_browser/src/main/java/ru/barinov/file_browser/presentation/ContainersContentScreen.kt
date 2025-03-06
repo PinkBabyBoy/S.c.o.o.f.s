@@ -57,6 +57,7 @@ private fun Ready(
         actions = setOf(), //TODO fill with actions of topbar
         isPageEmpty = false, //Add to state
         isInRoot = true,
-        showLoading = true
+        showLoading = true,
+        isInOnBoarding = false
     )
 }
