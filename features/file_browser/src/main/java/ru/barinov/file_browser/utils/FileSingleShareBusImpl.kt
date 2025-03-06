@@ -1,10 +1,8 @@
 package ru.barinov.file_browser.utils
 
-import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import ru.barinov.core.InteractableFile
-import ru.barinov.file_browser.viewModels.FileObserverViewModel
 
 internal class FileSingleShareBusImpl : FileSingleShareBus<InteractableFile>() {
 

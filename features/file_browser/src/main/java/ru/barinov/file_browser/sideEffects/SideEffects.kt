@@ -15,7 +15,7 @@ sealed interface ImageFileDetailsSideEffects : SideEffect {
 }
 
 sealed interface FileBrowserSideEffect : SideEffect {
-    class ShowAddFilesDialog(val selectedFiles: Collection<InteractableFile>) : FileBrowserSideEffect
+    data object ShowAddFilesDialog : FileBrowserSideEffect
 }
 
 class OpenImageFile(val fileId: FileId) : FileBrowserSideEffect, OpenedContainerSideEffect

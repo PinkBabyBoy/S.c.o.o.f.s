@@ -1,7 +1,5 @@
 package ru.barinov.file_browser.utils
 
-import androidx.lifecycle.ViewModel
-import ru.barinov.core.InteractableFile
 
 abstract class FileSingleShareBus<T> {
 

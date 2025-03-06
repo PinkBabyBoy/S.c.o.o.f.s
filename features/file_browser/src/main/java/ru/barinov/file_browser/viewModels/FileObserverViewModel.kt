@@ -201,7 +201,7 @@ class FileObserverViewModel(
             is FileTypeInfo.Dir -> folderDataInteractor.open(fileId, sourceType.value)
             is FileTypeInfo.ImageFile -> {
                 viewModelScope.launch {
-                    singleShareBus.share(folderDataInteractor.getFileByID(fileId, sourceType.value))
+                    singleShareBus.share(FileSingleShareBus.Key.IMAGE_SHARE, listOf(folderDataInteractor.getFileByID(fileId, sourceType.value)))
                     _sideEffects.send(OpenImageFile(fileId))
                 }
             }
@@ -214,7 +214,8 @@ class FileObserverViewModel(
 
     private fun askTransactionWithSelected() {
         viewModelScope.launch {
-            _sideEffects.send(FileBrowserSideEffect.ShowAddFilesDialog(selectedCache.getCache().values.filterIsInstance<InteractableFile>()))
+            singleShareBus.share(FileSingleShareBus.Key.ENCRYPTION, selectedCache.getCache().values.filterIsInstance<InteractableFile>())
+            _sideEffects.send(FileBrowserSideEffect.ShowAddFilesDialog)
         }
     }
 
