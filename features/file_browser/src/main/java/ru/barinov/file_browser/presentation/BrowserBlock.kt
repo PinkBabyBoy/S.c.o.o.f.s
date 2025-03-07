@@ -36,6 +36,7 @@ import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.events.RemoveSelection
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.ViewableFileModel
+import ru.barinov.file_browser.states.AppbarState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,8 +48,8 @@ inline fun <reified T : FieObserverEvent, reified M: ViewableFileModel> BrowserB
     isPageEmpty: Boolean,
     isInRoot: Boolean,
     showLoading: Boolean,
+    appbarState: AppbarState,
     additionalInfoEnabled: Boolean = true,
-    actions: Set<Action> = emptySet()
 ) {
     val selectionMode = remember { mutableStateOf(false) }
     val pagedFFiles = files.collectAsLazyPagingItems(Dispatchers.IO)
@@ -78,7 +79,8 @@ inline fun <reified T : FieObserverEvent, reified M: ViewableFileModel> BrowserB
                         selectionMode.value = false
                     } else onEvent(OnBackPressed as T)
                 },
-                actions = actions,
+                appbarState = appbarState,
+                onEvent = { onEvent(it as T) },
                 showArrow = !isInRoot,
             )
             LazyColumn(

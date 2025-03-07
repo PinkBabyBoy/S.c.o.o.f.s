@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import ru.barinov.core.Filename
 import ru.barinov.core.hasNoSpecialSymbols
 import ru.barinov.core.headerDefault
@@ -34,16 +35,24 @@ import ru.barinov.core.ui.ProgressButton
 import ru.barinov.core.ui.ScoofButton
 import ru.barinov.core.ui.TextEnter
 import ru.barinov.core.ui.bsContainerColor
+import ru.barinov.file_browser.events.BottomSheetEvent
+import ru.barinov.file_browser.events.CreateContainerEvents
+import ru.barinov.file_browser.events.FileBrowserEvent
+import ru.barinov.file_browser.events.KeyStoreCreateEvents
+import ru.barinov.file_browser.events.LoadKeyStoreEvents
+import ru.barinov.file_browser.events.OnDismiss
+import ru.barinov.file_browser.sideEffects.BottomSheetSideEffects
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateContainerBottomSheet(
-    onDismissRequested: () -> Unit,
-    onConfirmed: (String) -> Unit
+    navController: NavController,
+    sideEffects: BottomSheetSideEffects,
+    onEvent: (CreateContainerEvents) -> Unit,
 ) {
     val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
-        onDismissRequest = { onDismissRequested() },
+        onDismissRequest = { onEvent(OnDismiss)},
         sheetState = bsState,
         containerColor = bsContainerColor
     ) {
@@ -79,7 +88,7 @@ fun CreateContainerBottomSheet(
                     setOf(InputErrors.HAS_SPECIAL_SYMBOLS)
                 else -> {
                     isInProgress.value = true
-                    onConfirmed(nameInput.value)
+                    onEvent(CreateContainerEvents.CreateContainer(nameInput.value))
                 }
             }
         }
@@ -90,13 +99,14 @@ fun CreateContainerBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyStoreLoadBottomSheet(
-    onDismissRequested: () -> Unit,
-    onConfirmed: (String) -> Unit,
+    navController: NavController,
+    sideEffects: BottomSheetSideEffects,
+    onEvent: (LoadKeyStoreEvents) -> Unit,
     filename: Filename
 ) {
     val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
-        onDismissRequest = { onDismissRequested() },
+        onDismissRequest = {  onEvent(OnDismiss) },
         modifier = Modifier.imePadding(),
         sheetState = bsState,
         containerColor = bsContainerColor
@@ -125,8 +135,7 @@ fun KeyStoreLoadBottomSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 64.dp),
             onClick = {
-                onConfirmed(enteredPassword.value)
-                onDismissRequested()
+                onEvent(LoadKeyStoreEvents.LoadKeyStore(enteredPassword.value.toCharArray()))
             },
             buttonText = ru.barinov.core.R.string.load
         )
@@ -138,8 +147,9 @@ fun KeyStoreLoadBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateKeyStoreBottomSheet(
-    onDismissRequested: () -> Unit,
-    onConfirmed: (String, CharArray, Boolean) -> Unit
+    navController: NavController,
+    sideEffects: BottomSheetSideEffects,
+    onEvent: (KeyStoreCreateEvents) -> Unit
 ) {
     val inputErrors = remember {
         mutableStateOf(emptySet<InputErrors>())
@@ -159,7 +169,7 @@ fun CreateKeyStoreBottomSheet(
     )
 
     ModalBottomSheet(
-        onDismissRequest = { if (!loadStarted.value) onDismissRequested() },
+        onDismissRequest = { if (!loadStarted.value) onEvent(OnDismiss) },
         sheetState = bsState,
         properties = ModalBottomSheetDefaults.properties(shouldDismissOnBackPress = false),
         containerColor = bsContainerColor
@@ -170,7 +180,7 @@ fun CreateKeyStoreBottomSheet(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Spacer(modifier = Modifier.height(32.dp))
-        //имя
+
         TextEnter(
             supportText = {
                 SupportText(
@@ -182,7 +192,7 @@ fun CreateKeyStoreBottomSheet(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Spacer(modifier = Modifier.height(32.dp))
-        //пароль
+
         PasswordTextField(
             onValueChanged = { passInput.value = it },
             supportText = {
@@ -217,7 +227,7 @@ fun CreateKeyStoreBottomSheet(
             if (enteredName.value.isNotEmpty() && passInput.value.isNotEmpty()) {
                 if (enteredName.value.hasNoSpecialSymbols()) {
                     loadStarted.value = true
-                    onConfirmed(enteredName.value, passInput.value.toCharArray(), checkState.value)
+                    onEvent(KeyStoreCreateEvents.OnConfirmed(enteredName.value, passInput.value.toCharArray(), checkState.value))
                 } else inputErrors.value = setOf(InputErrors.HAS_SPECIAL_SYMBOLS)
             } else {
                 inputErrors.value = buildSet {

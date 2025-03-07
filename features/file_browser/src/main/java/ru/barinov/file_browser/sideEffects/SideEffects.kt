@@ -11,7 +11,7 @@ sealed interface OpenedContainerSideEffect: SideEffect
 
 sealed interface ImageFileDetailsSideEffects : SideEffect {
 
-    class ShowAddFilesDialog(val file: InteractableFile) : ImageFileDetailsSideEffects
+    object ShowAddFilesDialog : ImageFileDetailsSideEffects
 }
 
 sealed interface FileBrowserSideEffect : SideEffect {
@@ -20,10 +20,7 @@ sealed interface FileBrowserSideEffect : SideEffect {
 
 class OpenImageFile(val fileId: FileId) : FileBrowserSideEffect, OpenedContainerSideEffect
 
-sealed interface FilesLoadInitializationSideEffects : SideEffect {
-    data object CloseOnShortTransaction: FilesLoadInitializationSideEffects
-    data object CloseOnLongTransaction: FilesLoadInitializationSideEffects
-}
+
 
 sealed interface ContainersSideEffect : SideEffect {
 
@@ -44,3 +41,4 @@ class ShowInfo(@StringRes val text: Int) : KeySelectorSideEffect, FileBrowserSid
 
 
 data object CanGoBack : FileBrowserSideEffect, KeySelectorSideEffect, OpenedContainerSideEffect
+

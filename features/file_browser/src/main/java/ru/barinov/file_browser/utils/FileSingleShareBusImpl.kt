@@ -9,8 +9,14 @@ internal class FileSingleShareBusImpl : FileSingleShareBus<InteractableFile>() {
     private val mutex = Mutex()
 
 
-    override suspend fun get(key: Key) = mutex.withLock {
-        holder.remove(key)
+    override suspend fun get(key: Key, keep: Boolean) = mutex.withLock {
+        if(keep) holder[key] else holder.remove(key)
+    }
+
+    override suspend fun clear() {
+        mutex.withLock {
+            holder.clear()
+        }
     }
 
 

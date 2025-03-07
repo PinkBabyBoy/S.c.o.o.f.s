@@ -108,9 +108,8 @@ val fileObserverModule = module {
         )
     }
 
-    viewModel { parameter ->
+    viewModel {
         FilesLoadInitializationViewModel(
-            initializationMode = parameter.get(),
             containersManager = get(),
             hashValidator = get(),
             keyMemoryCache = get(),

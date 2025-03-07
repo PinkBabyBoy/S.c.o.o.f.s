@@ -35,7 +35,8 @@ sealed interface KeySelectorEvent : FieObserverEvent {
 }
 
 sealed interface FileLoadInitializationEvent: FieObserverEvent {
-    data object StartProcess: FileLoadInitializationEvent
+    object StartProcess: FileLoadInitializationEvent
+    object Dismiss: FileLoadInitializationEvent
 }
 
 sealed interface ContainersEvent : FieObserverEvent {

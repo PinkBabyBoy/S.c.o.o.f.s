@@ -36,7 +36,6 @@ import ru.barinov.onboarding.Tooltip
 fun keySelectorSet(
     appbarState: AppbarState.KeySelection,
     onEvent: (KeySelectorEvent) -> Unit,
-    isPageOnScreen: Boolean,
     spotLightOffsetState: MutableState<Offset?>
 ): Set<Action> = buildSet {
     add {
@@ -59,7 +58,7 @@ fun keySelectorSet(
                         .size(26.dp),
                     tint = if (appbarState.sourceState.currentSource == Source.INTERNAL) Color.Black else LocalContentColor.current
                 )
-                androidx.compose.animation.AnimatedVisibility(expandedState.value && isPageOnScreen) {
+                androidx.compose.animation.AnimatedVisibility(expandedState.value) {
                     Tooltip(
                         onboardingInfo = appbarState.keySelectionOnboarding,
                         onDismiss = {
@@ -84,7 +83,7 @@ fun keySelectorSet(
                     onEvent(KeySelectorEvent.KeyStoreCreateClicked)
                 }
             )
-            androidx.compose.animation.AnimatedVisibility(expandedState.value && isPageOnScreen) {
+            androidx.compose.animation.AnimatedVisibility(expandedState.value) {
                 Tooltip(
                     onboardingInfo = appbarState.keySelectionOnboarding,
                     onDismiss = {
@@ -102,7 +101,6 @@ fun keySelectorSet(
 fun fileBrowserSet(
     appbarState: AppbarState.Browser,
     onEvent: (FileBrowserEvent) -> Unit,
-    isPageOnScreen: Boolean,
     spotLightOffsetState: MutableState<Offset?>
 ): Set<Action> = buildSet {
     Log.e("@@@", "${appbarState.fileBrowserOnboarding.first}")

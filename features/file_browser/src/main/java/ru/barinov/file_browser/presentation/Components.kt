@@ -102,8 +102,6 @@ fun FileBrowserAppBar(
     onNavigateUpClicked: () -> Unit = {},
     onEvent: (FieObserverEvent) -> Unit,
     showArrow: Boolean,
-    actions: Set<Action> = emptySet(),
-    isOnScreenNow: Boolean,
     appbarState: AppbarState
 
 ) {
@@ -154,9 +152,9 @@ fun FileBrowserAppBar(
             scrollBehavior = topAppBarScrollBehavior,
             actions = {
                 when (appbarState) {
-                    is AppbarState.Browser -> fileBrowserSet(appbarState, onEvent, isOnScreenNow, spotLightOffsetState)
+                    is AppbarState.Browser -> fileBrowserSet(appbarState, onEvent,  spotLightOffsetState)
                     is AppbarState.Containers -> emptySet()
-                    is AppbarState.KeySelection -> keySelectorSet(appbarState, onEvent, isOnScreenNow, spotLightOffsetState)
+                    is AppbarState.KeySelection -> keySelectorSet(appbarState, onEvent,  spotLightOffsetState)
                     AppbarState.None -> emptySet()
                 }.forEach { action ->
                     action()

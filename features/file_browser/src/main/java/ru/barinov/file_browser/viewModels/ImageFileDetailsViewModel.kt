@@ -19,7 +19,7 @@ import ru.barinov.file_browser.states.ImageFileScreenUiState
 import ru.barinov.file_browser.utils.FileSingleShareBus
 
 class ImageFileDetailsViewModel(
-    fileSingleShareBus: FileSingleShareBus<InteractableFile>,
+    private val fileSingleShareBus: FileSingleShareBus<InteractableFile>,
     private val fileId: FileId
 ) : SideEffectViewModel<ImageFileDetailsSideEffects>() {
 
@@ -28,8 +28,8 @@ class ImageFileDetailsViewModel(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val sharedFile = fileSingleShareBus.get() ?: return@launch
-            if((sharedFile as? FileEntity)?.fileId != fileId) return@launch // Double check
+            val sharedFile = fileSingleShareBus.get(FileSingleShareBus.Key.IMAGE_SHARE) ?: return@launch
+            if ((sharedFile as? FileEntity)?.fileId != fileId) return@launch // Double check
             val fileStream = sharedFile.inputStream()
             val bitmap = BitmapFactory.decodeStream(fileStream)
             fileStream.close()
@@ -38,13 +38,14 @@ class ImageFileDetailsViewModel(
     }
 
     fun handleEven(event: ImageDetailsEvent) {
-        when(event){
+        when (event) {
             ImageDetailsEvent.RotateLeft -> rotate90Left()
             ImageDetailsEvent.RotateRight -> rotate90Right()
             ImageDetailsEvent.SaveToContainer
             -> viewModelScope.launch {
-                 val shareFile = _uiState.value.imgFile ?: return@launch
-                _sideEffects.send(ImageFileDetailsSideEffects.ShowAddFilesDialog(shareFile))
+                val shareFile = _uiState.value.imgFile ?: return@launch
+                fileSingleShareBus.share(FileSingleShareBus.Key.ENCRYPTION, shareFile)
+                _sideEffects.send(ImageFileDetailsSideEffects.ShowAddFilesDialog)
             }
         }
     }
@@ -59,7 +60,15 @@ class ImageFileDetailsViewModel(
         val matrix = Matrix().also {
             it.postRotate(value)
         }
-        val rotatedBitmap = Bitmap.createBitmap(current, 0, 0, current.getWidth(), current.getHeight(), matrix, true)
+        val rotatedBitmap = Bitmap.createBitmap(
+            current,
+            0,
+            0,
+            current.getWidth(),
+            current.getHeight(),
+            matrix,
+            true
+        )
         _uiState.value = uiState.value.copy(bitmapToShow = rotatedBitmap)
     }
 }

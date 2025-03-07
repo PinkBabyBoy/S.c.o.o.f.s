@@ -17,7 +17,6 @@ import ru.barinov.cryptography.KeyMemoryCache
 import ru.barinov.cryptography.hash.HashValidator
 import ru.barinov.file_browser.ContainersManager
 import ru.barinov.file_browser.base.SideEffectViewModel
-import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
 import ru.barinov.file_browser.states.FilesLoadInitializationUiState
 import ru.barinov.cryptography.hash.utils.ContainerHashExtractor
 import ru.barinov.file_browser.SelectedCache
@@ -25,11 +24,13 @@ import ru.barinov.file_browser.ViewableFileMapper
 import ru.barinov.file_browser.events.FileLoadInitializationEvent
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.models.FileUiModel
+import ru.barinov.file_browser.sideEffects.DismissConfirmed
+import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
+import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.file_process_worker.WorkersManager
 import ru.barinov.transaction_manager.FileWriter
 
 class FilesLoadInitializationViewModel(
-    private val initializationMode: InitializationParams,
     private val containersManager: ContainersManager,
     private val hashValidator: HashValidator,
     private val keyMemoryCache: KeyMemoryCache,
@@ -37,6 +38,7 @@ class FilesLoadInitializationViewModel(
     private val fileToUiModelMapper: ViewableFileMapper<FileEntity, FileUiModel>,
     private val workersManager: WorkersManager,
     private val fileWriter: FileWriter,
+    private val singleShareBus: FileSingleShareBus<Collection<InteractableFile>>,
     private val selectedCache: SelectedCache //To Interface
 ) : SideEffectViewModel<FilesLoadInitializationSideEffects>() {
 
@@ -46,7 +48,9 @@ class FilesLoadInitializationViewModel(
 
     init {
         val selectedFilesFlow = flow {
-            emit(initializationMode.unwrap().map { fileToUiModelMapper.mapFile(it as FileEntity, true) })
+            emit(singleShareBus.get(FileSingleShareBus.Key.ENCRYPTION, true)?.map {
+                fileToUiModelMapper.mapFile(it as FileEntity, true)
+            }.orEmpty())
         }.flowOn(Dispatchers.IO)
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -85,32 +89,32 @@ class FilesLoadInitializationViewModel(
             }
 
             FileLoadInitializationEvent.StartProcess -> startProcessing()
+            FileLoadInitializationEvent.Dismiss -> viewModelScope.launch {
+                singleShareBus.clear()
+                _sideEffects.send(DismissConfirmed)
+            }
         }
     }
 
     private fun startProcessing() {
         val containerId = selectedContainerId ?: return
-        val selectedFiles = initializationMode.unwrap()
-        val container = containersManager.getContainer(containerId.value)
-        fileWriter.evaluateTransaction(
-            containersName = container.name,
-            files = selectedFiles,
-            onEvaluated = { data, isLong ->
-                workersManager.startEncryptWork(data.uuid.toString(), isLong, data.totalSize)
-                selectedCache.removeAll()
-                viewModelScope.launch { _sideEffects.send(FilesLoadInitializationSideEffects.CloseOnLongTransaction) }
-            }
-        )
-    }
-
-    private fun InitializationParams.unwrap(): List<InteractableFile> =
-        when (this) {
-            is InitializationParams.Direct -> listOf(file)
-            is InitializationParams.Selected -> selectedFiles.toList()
+        viewModelScope.launch {
+            val selectedFiles = singleShareBus.get(FileSingleShareBus.Key.ENCRYPTION, true) ?: return@launch
+            val container = containersManager.getContainer(containerId.value)
+            fileWriter.evaluateTransaction(
+                containersName = container.name,
+                files = selectedFiles.toList(),
+                onEvaluated = { data, isLong ->
+                    workersManager.startEncryptWork(data.uuid.toString(), isLong, data.totalSize)
+                    selectedCache.removeAll()
+                    viewModelScope.launch { _sideEffects.send(FilesLoadInitializationSideEffects.CloseOnLongTransaction) }
+                }
+            )
         }
+    }
 }
 
-sealed interface InitializationParams {
-    class Selected(val selectedFiles: Collection<InteractableFile>) : InitializationParams
-    class Direct(val file: InteractableFile) : InitializationParams
-}
+//sealed interface InitializationParams {
+//    class Selected(val selectedFiles: Collection<InteractableFile>) : InitializationParams
+//    class Direct(val file: InteractableFile) : InitializationParams
+//}

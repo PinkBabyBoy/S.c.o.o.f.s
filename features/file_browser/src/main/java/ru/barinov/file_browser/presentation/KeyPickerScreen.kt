@@ -60,15 +60,17 @@ fun KeySelector(
     openPage: (Int) -> Unit,
     pageState: MutableIntState
 ) {
-    val keyLoadBsState = remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
-    val localCoroutine = rememberCoroutineScope()
-    val context = LocalContext.current
-    val isKeystoreCreatorBsVisible = remember { mutableStateOf(false) }
     val isPageOnScreen = remember {
         derivedStateOf {
             pageState.intValue == Pages.KEY_PICKER.ordinal
         }
     }
+    if(!isPageOnScreen.value) return
+    val keyLoadBsState = remember { mutableStateOf<BottomSheetPolicy>(BottomSheetPolicy.Collapsed) }
+    val localCoroutine = rememberCoroutineScope()
+    val context = LocalContext.current
+    val isKeystoreCreatorBsVisible = remember { mutableStateOf(false) }
+
 
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {

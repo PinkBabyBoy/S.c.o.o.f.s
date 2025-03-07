@@ -17,39 +17,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import kotlinx.coroutines.Dispatchers
-import org.koin.androidx.compose.koinViewModel
-import org.koin.core.parameter.parametersOf
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import ru.barinov.core.headerBig
 import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.events.FileLoadInitializationEvent
-import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
-import ru.barinov.file_browser.viewModels.InitializationParams
 import ru.barinov.core.ui.InformationalBlock
 import ru.barinov.core.ui.InformationalBlockType
 import ru.barinov.core.ui.ScoofButton
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.bsContainerColor
+import ru.barinov.file_browser.sideEffects.DismissConfirmed
 import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
+import ru.barinov.file_browser.states.FilesLoadInitializationUiState
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun FilesLoadInitialization(
-    initializationMode: InitializationParams,
-    onDismissRequested: () -> Unit
+fun FileEncryptionStart(
+    sideEffects: Flow<FilesLoadInitializationSideEffects>,
+    uiState: StateFlow<FilesLoadInitializationUiState>,
+    navController: NavController,
+    onEvent: (FileLoadInitializationEvent) -> Unit
 ) {
-    val vm: FilesLoadInitializationViewModel = koinViewModel(parameters = { parametersOf(initializationMode)}, key = initializationMode.hashCode().toString())
-    val state = vm.uiState.collectAsStateWithLifecycle(context = Dispatchers.IO, minActiveState = Lifecycle.State.RESUMED)
+    val onDismissRequested = {
+        onEvent(FileLoadInitializationEvent.Dismiss)
+    }
+    val state = uiState.collectAsStateWithLifecycle(context = Dispatchers.IO, minActiveState = Lifecycle.State.RESUMED)
     val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    SingleEventEffect(vm.sideEffects) { sideEffect ->
+    SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
             FilesLoadInitializationSideEffects.CloseOnLongTransaction
             -> onDismissRequested()
             FilesLoadInitializationSideEffects.CloseOnShortTransaction
             -> onDismissRequested()
+
+            DismissConfirmed -> navController.navigateUp()
         }
     }
-    ModalBottomSheet(onDismissRequest = onDismissRequested, sheetState = bsState, containerColor = bsContainerColor) {
+    ModalBottomSheet(onDismissRequest = {onDismissRequested()}, sheetState = bsState, containerColor = bsContainerColor) {
         Column {
             if (state.value.containers.isEmpty()) {
                 Spacer(modifier = Modifier.height(32.dp))
@@ -88,14 +95,14 @@ fun FilesLoadInitialization(
                         FileGridItem<FileLoadInitializationEvent>(
                             file = state.value.containers[it],
                             selectionMode = true,
-                            onEvent = { vm.onEvent(it) },
+                            onEvent = { onEvent(it) },
                             additionalInfoEnabled = false
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(32.dp))
                 ScoofButton(buttonText = ru.barinov.core.R.string.start, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                    vm.onEvent(FileLoadInitializationEvent.StartProcess)
+                    onEvent(FileLoadInitializationEvent.StartProcess)
                 }
                 Spacer(modifier = Modifier.height(64.dp))
             }
