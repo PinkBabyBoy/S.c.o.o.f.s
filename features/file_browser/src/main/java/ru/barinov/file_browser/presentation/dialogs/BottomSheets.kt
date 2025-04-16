@@ -185,8 +185,12 @@ fun CreateKeyStoreBottomSheet(
             is ShowInfo -> {
                 //TODO SNACKBAR SHOW
             }
-            FilesLoadInitializationSideEffects.CloseOnLongTransaction -> TODO()
-            FilesLoadInitializationSideEffects.CloseOnShortTransaction -> TODO()
+            FilesLoadInitializationSideEffects.CloseOnLongTransaction -> {
+                navController.navigateUp()
+            }
+            FilesLoadInitializationSideEffects.CloseOnShortTransaction -> {
+                navController.navigateUp()
+            }
         }
 
     }
