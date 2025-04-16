@@ -23,8 +23,10 @@ class ImageDetails(val fileId: String)
 @kotlinx.serialization.Serializable
 class LoadKeyStore(val source: Source, val filename: String)
 
+@kotlinx.serialization.Serializable
+class CreateKeyStore(val source: Source)
+
 enum class NoArgsRouts{
     ENCRYPTION_START_BOTTOM_SHEET,
-    CREATE_KEYSTORE_BOTTOM_SHEET,
     CREATE_CONTAINER_BOTTOM_SHEET,
 }

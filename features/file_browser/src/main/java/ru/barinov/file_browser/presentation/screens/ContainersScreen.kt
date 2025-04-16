@@ -49,9 +49,10 @@ import ru.barinov.file_browser.presentation.FileBrowserAppBar
 import ru.barinov.file_browser.presentation.FileItem
 import ru.barinov.file_browser.presentation.Pages
 import ru.barinov.file_browser.presentation.dialogs.CreateContainerBottomSheet
+import ru.barinov.file_browser.sideEffects.CanGoBack
+import ru.barinov.file_browser.states.AppbarState
 import kotlin.system.exitProcess
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Containers(
     state: ContainersUiState,
@@ -76,7 +77,10 @@ fun Containers(
 
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
-            ContainersSideEffect.OpenContainerCreateBottomSheet -> navController.navigate(NoArgsRouts.CREATE_CONTAINER_BOTTOM_SHEET.name)
+            ContainersSideEffect.OpenContainerCreateBottomSheet -> navController.navigate(
+                NoArgsRouts.CREATE_CONTAINER_BOTTOM_SHEET.name
+            )
+
             ContainersSideEffect.ShowCantCreateMessage -> {
                 coroutineScope.launch {
                     val message = context.getString(R.string.key_not_loaded_containers)
@@ -84,11 +88,35 @@ fun Containers(
                 }
             }
 
-            is ContainersSideEffect.OpenContainerDetails -> TODO()
-            ContainersSideEffect.ShowCantOpenMessage -> TODO()
+            is ContainersSideEffect.OpenContainerDetails -> {
+                if (state.isKeyLoaded)
+                    navController.navigate(toContainerContent(sideEffect.fileId))
+                else coroutineScope.launch {
+                    val result = snackbarHostState.showSnackbar(
+                        "Can't open without key",
+                        withDismissAction = true,
+                        actionLabel = "Select key file"
+                    )
+                    when (result) {
+                        SnackbarResult.Dismissed -> {}
+                        SnackbarResult.ActionPerformed -> {
+                            openPage(Pages.KEY_PICKER.ordinal)
+                        }
+                    }
+                }
+            }
+
+            ContainersSideEffect.ShowCantOpenMessage -> {
+                //TODO SNACKBAR
+            }
+            ContainersSideEffect.ContainerCreated -> {
+                navController.navigate(NoArgsRouts.CREATE_CONTAINER_BOTTOM_SHEET.name)
+            }
+
+            CanGoBack -> exitConfirmDialogVisible.value = true
         }
     }
-    //TODO BrowserBlock
+
     BrowserBlock<ContainersEvent, FileUiModel>(
         files = state.containers,
         currentFolderName = String(),
@@ -100,64 +128,6 @@ fun Containers(
         appbarState = state.appbarState
 
     )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFCFFFD))
-    ) {
-
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-        FileBrowserAppBar(
-            titleString = "Containers",
-            topAppBarScrollBehavior = scrollBehavior,
-            onNavigateUpClicked = {},
-            showArrow = false,
-            appbarState = state.appBarState,
-            actions = buildActions(
-                state = state,
-                onEvent = {},
-                isContainerCreateBsExpanded = isContainerCreateBsExpanded,
-                snackbarHostState = snackbarHostState,
-                coroutine = coroutineScope,
-                snackbarText = ,
-            ),
-            inOnboarding = false
-        )
-        LazyColumn {
-            items(page.itemCount) { index ->
-                val fileModel = page[index]
-                if (fileModel != null) {
-                    FileItem<ContainersEvent>(
-                        file = fileModel,
-                        selectionMode = false,
-                        selectionAvailable = false,
-                        onEvent = {
-                            if (it is OnFileClicked) {
-                                if (state.isKeyLoaded)
-                                    navController.navigate(toContainerContent(it.fileId))
-                                else coroutineScope.launch {
-                                   val result = snackbarHostState.showSnackbar(
-                                        "Can't open without key",
-                                        withDismissAction = true,
-                                        actionLabel = "Select key file"
-                                    )
-                                    when(result){
-                                        SnackbarResult.Dismissed -> {}
-                                        SnackbarResult.ActionPerformed -> {
-                                            openPage(Pages.KEY_PICKER.ordinal)
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        showLoading = false,
-                        additionalInfoEnabled = true
-                    )
-                }
-            }
-        }
-    }
 
     if (exitConfirmDialogVisible.value) {
         ScoofAlertDialog(

@@ -12,6 +12,7 @@ import ru.barinov.file_browser.presentation.BrowserBlock
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.OpenImageFile
 import ru.barinov.file_browser.sideEffects.OpenedContainerSideEffect
+import ru.barinov.file_browser.states.AppbarState
 import ru.barinov.file_browser.viewModels.ContainerContentViewState
 
 @Composable
@@ -31,7 +32,7 @@ fun ContainerContent(
     }
 
     when(val state = uiState.value){
-        is ContainerContentViewState.ContainerLoaded -> Ready(state.pageDataFlow, eventReceiver)
+        is ContainerContentViewState.ContainerLoaded -> Ready(state.pageDataFlow, eventReceiver, )
         ContainerContentViewState.Error -> Error()
         ContainerContentViewState.Loading -> Loading()
     }
@@ -55,10 +56,9 @@ private fun Ready(
         currentFolderName = String(),
         isSelectionEnabled = true,
         onEvent = { event -> eventReceiver(event) },
-        actions = setOf(), //TODO fill with actions of topbar
         isPageEmpty = false, //Add to state
         isInRoot = true,
         showLoading = true,
-        isInOnBoarding = false
+        appbarState = AppbarState.Containers()
     )
 }

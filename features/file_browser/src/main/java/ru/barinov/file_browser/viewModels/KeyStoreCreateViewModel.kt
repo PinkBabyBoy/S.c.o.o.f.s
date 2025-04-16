@@ -23,7 +23,10 @@ class KeyStoreCreateViewModel(
 
     fun handleEvent(event: KeyStoreCreateEvents){
         when(event){
-            is KeyStoreCreateEvents.OnConfirmed -> createKeyStore(event)
+            is KeyStoreCreateEvents.OnConfirmed -> {
+                createKeyStore(event)
+                viewModelScope.launch { _sideEffects.send(DismissConfirmed) }
+            }
             OnDismiss -> viewModelScope.launch { _sideEffects.send(DismissConfirmed) }
         }
     }

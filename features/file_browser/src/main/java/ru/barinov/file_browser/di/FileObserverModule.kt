@@ -123,7 +123,7 @@ val fileObserverModule = module {
     }
 
     viewModel {
-        CreateContainerViewModel()
+        CreateContainerViewModel(get())
     }
 
     viewModel {

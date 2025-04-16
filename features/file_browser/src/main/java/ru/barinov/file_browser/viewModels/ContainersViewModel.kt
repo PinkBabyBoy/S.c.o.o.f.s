@@ -20,8 +20,10 @@ import ru.barinov.plain_explorer.interactor.FilesPagingSource
 import ru.barinov.plain_explorer.interactor.PAGE_SIZE
 import ru.barinov.file_browser.base.SideEffectViewModel
 import ru.barinov.file_browser.events.ContainersEvent
+import ru.barinov.file_browser.events.OnBackPressed
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.models.FileUiModel
+import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.ContainersSideEffect
 import ru.barinov.file_browser.states.ContainersUiState
 import ru.barinov.file_browser.usecases.CreateContainerUseCase
@@ -35,7 +37,8 @@ class ContainersViewModel(
     keyManager: KeyManager
 ) : SideEffectViewModel<ContainersSideEffect>() {
 
-    private val _uiState = MutableStateFlow(ContainersUiState.idle(workersManager.hasActiveWork.value))
+    private val _uiState =
+        MutableStateFlow(ContainersUiState.idle(workersManager.hasActiveWork.value))
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -50,9 +53,15 @@ class ContainersViewModel(
                     pagingSourceFactory = {
                         FilesPagingSource(it)
                     }
-                ).flow.cachedIn(viewModelScope).map { fileToUiModelMapper(it, hashSetOf(), true) } to it.isEmpty()
+                ).flow.cachedIn(viewModelScope)
+                    .map { fileToUiModelMapper(it, hashSetOf(), true) } to it.isEmpty()
             }
-            combine(containersPages, keyManager.isKeyLoaded, workersManager.hasActiveWork, ::Triple).catch {
+            combine(
+                containersPages,
+                keyManager.isKeyLoaded,
+                workersManager.hasActiveWork,
+                ::Triple
+            ).catch {
 
             }.collectLatest {
                 val (containersPageAndKey, isKeyLoaded, hasActiveWork) = it
@@ -70,12 +79,27 @@ class ContainersViewModel(
 
     fun handleEvent(event: ContainersEvent) {
         when (event) {
-            is OnFileClicked -> TODO()
+            is OnFileClicked -> {
+                viewModelScope.launch {
+                    _sideEffects.send(ContainersSideEffect.OpenContainerDetails(event.fileId))
+                }
+            }
+
             is ContainersEvent.ContainerCreateConfirmed ->
                 viewModelScope.launch(Dispatchers.IO) {
                     createContainerUseCase(event.name)
                     _sideEffects.send(ContainersSideEffect.ContainerCreated)
                 }
+
+            ContainersEvent.CreateContainerRequest -> viewModelScope.launch(Dispatchers.IO) {
+                _sideEffects.send(ContainersSideEffect.OpenContainerCreateBottomSheet)
+            }
+
+            OnBackPressed -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    _sideEffects.send(CanGoBack)
+                }
+            }
         }
     }
 }

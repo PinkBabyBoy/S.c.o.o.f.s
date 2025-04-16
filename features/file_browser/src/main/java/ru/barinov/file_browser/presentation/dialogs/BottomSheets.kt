@@ -40,6 +40,7 @@ import ru.barinov.file_browser.events.LoadKeyStoreEvents
 import ru.barinov.file_browser.events.OnDismiss
 import ru.barinov.file_browser.sideEffects.BottomSheetSideEffects
 import ru.barinov.file_browser.sideEffects.DismissConfirmed
+import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
 import ru.barinov.file_browser.sideEffects.ShowInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,16 +55,25 @@ fun CreateContainerBottomSheet(
         when (sideEffect) {
             DismissConfirmed -> navController.navigateUp()
             is ShowInfo -> TODO()
+            FilesLoadInitializationSideEffects.CloseOnLongTransaction -> TODO()
+            FilesLoadInitializationSideEffects.CloseOnShortTransaction -> TODO()
         }
     }
     ModalBottomSheet(
-        onDismissRequest = { onEvent(OnDismiss)},
+        onDismissRequest = {
+            onEvent(OnDismiss)
+            navController.navigateUp()
+        },
         sheetState = bsState,
         containerColor = bsContainerColor
     ) {
         val nameInput = remember { mutableStateOf("") }
         val inputErrors = remember { mutableStateOf(emptySet<InputErrors>()) }
-        Text(text = "Create container", style = headerDefault(), modifier = Modifier.align(Alignment.CenterHorizontally))
+        Text(
+            text = "Create container",
+            style = headerDefault(),
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
         Spacer(modifier = Modifier.height(32.dp))
         TextEnter(
             supportText = {
@@ -91,6 +101,7 @@ fun CreateContainerBottomSheet(
                 nameInput.value.isEmpty() -> inputErrors.value = setOf(InputErrors.NAME_EMPTY)
                 nameInput.value.contains('/') -> inputErrors.value =
                     setOf(InputErrors.HAS_SPECIAL_SYMBOLS)
+
                 else -> {
                     isInProgress.value = true
                     onEvent(CreateContainerEvents.CreateContainer(nameInput.value))
@@ -106,19 +117,24 @@ fun CreateContainerBottomSheet(
 fun KeyStoreLoadBottomSheet(
     fileName: String,
     navController: NavController,
-    sideEffectsFlow:Flow<BottomSheetSideEffects>,
+    sideEffectsFlow: Flow<BottomSheetSideEffects>,
     onEvent: (LoadKeyStoreEvents) -> Unit,
 ) {
     val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     SingleEventEffect(sideEffectsFlow) { sideEffect ->
         when (sideEffect) {
             DismissConfirmed -> navController.navigateUp()
-            is ShowInfo -> TODO()
+            is ShowInfo -> {
+                //TODO SNACKBAR SHOW
+            }
+
+            FilesLoadInitializationSideEffects.CloseOnLongTransaction -> TODO()
+            FilesLoadInitializationSideEffects.CloseOnShortTransaction -> TODO()
         }
 
     }
     ModalBottomSheet(
-        onDismissRequest = {  onEvent(OnDismiss) },
+        onDismissRequest = { onEvent(OnDismiss) },
         modifier = Modifier.imePadding(),
         sheetState = bsState,
         containerColor = bsContainerColor
@@ -166,7 +182,11 @@ fun CreateKeyStoreBottomSheet(
     SingleEventEffect(sideEffectsFlow) { sideEffect ->
         when (sideEffect) {
             DismissConfirmed -> navController.navigateUp()
-            is ShowInfo -> TODO()
+            is ShowInfo -> {
+                //TODO SNACKBAR SHOW
+            }
+            FilesLoadInitializationSideEffects.CloseOnLongTransaction -> TODO()
+            FilesLoadInitializationSideEffects.CloseOnShortTransaction -> TODO()
         }
 
     }
@@ -246,7 +266,13 @@ fun CreateKeyStoreBottomSheet(
             if (enteredName.value.isNotEmpty() && passInput.value.isNotEmpty()) {
                 if (enteredName.value.hasNoSpecialSymbols()) {
                     loadStarted.value = true
-                    onEvent(KeyStoreCreateEvents.OnConfirmed(enteredName.value, passInput.value.toCharArray(), checkState.value))
+                    onEvent(
+                        KeyStoreCreateEvents.OnConfirmed(
+                            enteredName.value,
+                            passInput.value.toCharArray(),
+                            checkState.value
+                        )
+                    )
                 } else inputErrors.value = setOf(InputErrors.HAS_SPECIAL_SYMBOLS)
             } else {
                 inputErrors.value = buildSet {

@@ -61,7 +61,15 @@ data class FileBrowserUiState internal constructor(
             isPageEmpty = isPageEmpty,
             selectedSortType = selectedSortType,
             fileBrowserOnboarding = fileBrowserOnboarding,
-            appBarState = AppbarState.Browser(folderName.value, !isInRoot, fileBrowserOnboarding)
+            appBarState = AppbarState.Browser(
+                title = folderName.value,
+                selectedCount = selectedCount,
+                showArrow = !isInRoot,
+                sourceState = sourceState,
+                isPageEmpty = isPageEmpty,
+                selectedSortType = selectedSortType,
+                fileBrowserOnboarding = fileBrowserOnboarding
+            )
         )
 
         fun idle(): FileBrowserUiState =

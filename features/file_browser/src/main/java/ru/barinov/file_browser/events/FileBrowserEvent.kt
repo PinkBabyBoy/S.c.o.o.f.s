@@ -38,7 +38,7 @@ sealed interface ContainersEvent : FieObserverEvent {
     object CreateContainerRequest: ContainersEvent
 }
 
-data object OnBackPressed : FileBrowserEvent, KeySelectorEvent, OpenedContainerEvent
+data object OnBackPressed : FileBrowserEvent, KeySelectorEvent, OpenedContainerEvent, ContainersEvent
 
 class OnFileClicked(
     val fileId: FileId, val selectionMode: Boolean, val fileInfo: FileTypeInfo, val isDir: Boolean

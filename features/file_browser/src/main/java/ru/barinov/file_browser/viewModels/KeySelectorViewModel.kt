@@ -121,7 +121,7 @@ class KeySelectorViewModel(
             KeySelectorEvent.UnbindKey -> unbindKey()
             is OnboardingFinished -> onOnboardingFinished()
             KeySelectorEvent.KeyStoreCreateClicked -> viewModelScope.launch {
-                _sideEffects.send(KeySelectorSideEffect.ShowKeyCreationDialog)
+                _sideEffects.send(KeySelectorSideEffect.ShowKeyCreationDialog(sourceType.value))
             }
         }
     }

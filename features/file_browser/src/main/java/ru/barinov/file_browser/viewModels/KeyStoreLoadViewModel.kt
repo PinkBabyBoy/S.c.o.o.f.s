@@ -42,6 +42,7 @@ class KeyStoreLoadViewModel(
                 onSuccess = {
                     viewModelScope.launch {
                         _sideEffects.send(ShowInfo(R.string.key_loaded))
+                        _sideEffects.send(DismissConfirmed)
                     }
                 },
                 onError = {

@@ -34,6 +34,7 @@ import ru.barinov.file_browser.sideEffects.ShowInfo
 import ru.barinov.file_browser.states.KeySelectorUiState
 import ru.barinov.core.ui.ScoofButton
 import ru.barinov.core.ui.SingleEventEffect
+import ru.barinov.file_browser.CreateKeyStore
 import ru.barinov.file_browser.NoArgsRouts
 import ru.barinov.file_browser.loadKeyStore
 import ru.barinov.file_browser.models.FileUiModel
@@ -71,7 +72,7 @@ fun KeySelector(
                 }
             }
 
-           is KeySelectorSideEffect.ShowKeyCreationDialog -> navController.navigate(NoArgsRouts.CREATE_KEYSTORE_BOTTOM_SHEET.name)
+           is KeySelectorSideEffect.ShowKeyCreationDialog -> navController.navigate(CreateKeyStore(sideEffect.source))
         }
     }
     if (state.isKeyLoaded) {

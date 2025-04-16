@@ -28,18 +28,19 @@ sealed interface ContainersSideEffect : SideEffect {
     data object ShowCantOpenMessage : ContainersSideEffect
     data object OpenContainerCreateBottomSheet : ContainersSideEffect
     class OpenContainerDetails(val fileId: FileId) : ContainersSideEffect
+    data object ContainerCreated: ContainersSideEffect
 }
 
 sealed interface KeySelectorSideEffect : SideEffect {
 
     class AskToLoadKey(val source: Source, val fileName: Filename) : KeySelectorSideEffect
 
-    object ShowKeyCreationDialog : KeySelectorSideEffect
+    class ShowKeyCreationDialog(val source: Source) : KeySelectorSideEffect
 }
 
 class ShowInfo(@StringRes val text: Int) : KeySelectorSideEffect, FileBrowserSideEffect,
     BottomSheetSideEffects
 
 
-data object CanGoBack : FileBrowserSideEffect, KeySelectorSideEffect, OpenedContainerSideEffect
+data object CanGoBack : FileBrowserSideEffect, KeySelectorSideEffect, OpenedContainerSideEffect, ContainersSideEffect
 

@@ -14,6 +14,7 @@ import org.koin.core.parameter.parametersOf
 import ru.barinov.core.FileId
 import ru.barinov.file_browser.NoArgsRouts
 import ru.barinov.file_browser.ContainersContent
+import ru.barinov.file_browser.CreateKeyStore
 import ru.barinov.file_browser.ImageDetails
 import ru.barinov.file_browser.LoadKeyStore
 import ru.barinov.file_browser.presentation.dialogs.CreateContainerBottomSheet
@@ -76,8 +77,9 @@ fun NavGraphBuilder.fileBrowserPager(
         FileEncryptionStart(vm.sideEffects, vm.uiState, navController, vm::onEvent)
     }
 
-    dialog(NoArgsRouts.CREATE_KEYSTORE_BOTTOM_SHEET.name) {
-        val vm: KeyStoreCreateViewModel = koinViewModel()
+    dialog<CreateKeyStore> {
+        val data: CreateKeyStore = it.toRoute()
+        val vm: KeyStoreCreateViewModel = koinViewModel(parameters = { parametersOf(data.source) })
         CreateKeyStoreBottomSheet(
             navController,
             vm.sideEffects,
