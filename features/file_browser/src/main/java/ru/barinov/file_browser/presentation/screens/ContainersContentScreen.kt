@@ -1,4 +1,4 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.file_browser.presentation.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.file_browser.events.OpenedContainerEvent
 import ru.barinov.file_browser.models.EncryptedFileIndexUiModel
+import ru.barinov.file_browser.presentation.BrowserBlock
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.OpenImageFile
 import ru.barinov.file_browser.sideEffects.OpenedContainerSideEffect

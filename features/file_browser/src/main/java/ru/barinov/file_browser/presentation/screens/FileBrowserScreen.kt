@@ -1,4 +1,4 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.file_browser.presentation.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutLinearInEasing
@@ -20,6 +20,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,9 +41,11 @@ import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.file_browser.toImageDetails
 import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
-import ru.barinov.file_browser.BrowserRout
+import ru.barinov.file_browser.NoArgsRouts
 import ru.barinov.file_browser.events.DeleteSelected
 import ru.barinov.file_browser.models.FileUiModel
+import ru.barinov.file_browser.presentation.BrowserBlock
+import ru.barinov.file_browser.presentation.Pages
 import ru.barinov.file_browser.sideEffects.OpenImageFile
 
 @Composable
@@ -56,6 +59,12 @@ fun FileBrowserScreen(
     openPage: (Int) -> Unit,
     pageState: MutableIntState
 ) {
+    val isPageOnScreen = remember {
+        derivedStateOf {
+            pageState.intValue == Pages.FILE_BROWSER.ordinal
+        }
+    }
+    if(!isPageOnScreen.value) return
     val deleteDialogVisible = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val localCoroutine = rememberCoroutineScope()
@@ -74,7 +83,7 @@ fun FileBrowserScreen(
                 -> navController.navigate(toImageDetails(sideEffect.fileId))
 
             is FileBrowserSideEffect.ShowAddFilesDialog -> {
-                navController.navigate(BrowserRout.ENCRYPTION_START_BOTTOM_SHEET.name)
+                navController.navigate(NoArgsRouts.ENCRYPTION_START_BOTTOM_SHEET.name)
             }
         }
     }

@@ -9,7 +9,8 @@ data class ContainersUiState(
     val isPageEmpty: Boolean,
     val hasActiveWork: Boolean,
     val containers: Flow<PagingData<FileUiModel>>,
-    val state: State
+    val state: State,
+    val appbarState: AppbarState
 ) {
 
     val isKeyLoaded = state == State.LOADED
@@ -24,7 +25,8 @@ data class ContainersUiState(
                 containers = flowOf(PagingData.empty()),
                 state = State.IDLE,
                 isPageEmpty = true,
-                hasActiveWork = hasActiveWork
+                hasActiveWork = hasActiveWork,
+                appbarState = AppbarState.Containers()
             )
     }
 }

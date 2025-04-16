@@ -1,6 +1,5 @@
 package ru.barinov.file_browser.states
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Stable
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
@@ -13,14 +12,15 @@ import ru.barinov.file_browser.models.SourceState
 import ru.barinov.onboarding.OnboardingInfo
 
 @Stable
-data class KeyPickerUiState(
+data class KeySelectorUiState(
     val type: Type,
     val files: Flow<PagingData<FileUiModel>>,
     val currentFolderName: String,
     val sourceState: SourceState,
     val isInRoot: Boolean,
     val isPageEmpty: Boolean,
-    val onboardings: OnboardingInfo
+    val onboardings: OnboardingInfo,
+    val appBarState: AppbarState
 ) {
 
     val isKeyLoaded = type == Type.LOADED
@@ -43,25 +43,27 @@ data class KeyPickerUiState(
             isInRoot: Boolean,
             isPageEmpty: Boolean,
             onboardings: OnboardingInfo
-        ) = KeyPickerUiState(
+        ) = KeySelectorUiState(
             type = if (isKeyLoaded) Type.LOADED else Type.UNLOADED,
             files = files,
             currentFolderName = folderName.value.folderName(),
             sourceState = sourceState,
             isInRoot = isInRoot,
             isPageEmpty = isPageEmpty,
-            onboardings = onboardings
+            onboardings = onboardings,
+            appBarState = AppbarState.KeySelection(folderName.value, !isInRoot, onboardings, sourceState)
         )
 
-        fun idle(): KeyPickerUiState =
-            KeyPickerUiState(
+        fun idle(): KeySelectorUiState =
+            KeySelectorUiState(
                 type = Type.IDLE,
                 files = flowOf(PagingData.empty()),
                 currentFolderName = String(),
                 sourceState = SourceState(false, Source.INTERNAL),
                 isInRoot = true,
                 isPageEmpty = true,
-                onboardings = null to false
+                onboardings = null to false,
+                appBarState = AppbarState.None
             )
     }
 }

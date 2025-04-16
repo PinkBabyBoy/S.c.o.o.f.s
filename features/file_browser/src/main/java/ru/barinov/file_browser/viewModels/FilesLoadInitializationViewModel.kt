@@ -99,7 +99,7 @@ class FilesLoadInitializationViewModel(
     private fun startProcessing() {
         val containerId = selectedContainerId ?: return
         viewModelScope.launch {
-            val selectedFiles = singleShareBus.get(FileSingleShareBus.Key.ENCRYPTION, true) ?: return@launch
+            val selectedFiles = singleShareBus.get(FileSingleShareBus.Key.ENCRYPTION) ?: return@launch
             val container = containersManager.getContainer(containerId.value)
             fileWriter.evaluateTransaction(
                 containersName = container.name,
@@ -113,8 +113,3 @@ class FilesLoadInitializationViewModel(
         }
     }
 }
-
-//sealed interface InitializationParams {
-//    class Selected(val selectedFiles: Collection<InteractableFile>) : InitializationParams
-//    class Direct(val file: InteractableFile) : InitializationParams
-//}

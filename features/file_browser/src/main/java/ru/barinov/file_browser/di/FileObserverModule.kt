@@ -1,9 +1,7 @@
 package ru.barinov.file_browser.di
 
-import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.bind
-import org.koin.dsl.binds
 import org.koin.dsl.module
 import ru.barinov.file_browser.viewModels.ContainerContentViewModel
 import ru.barinov.file_browser.ContainersManager
@@ -25,12 +23,13 @@ import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.GetSerializableCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.OpenContainerUseCase
 import ru.barinov.file_browser.utils.EncryptedIndexMapper
-import ru.barinov.file_prober.FileInfoExtractor
 import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.file_browser.utils.FileSingleShareBusImpl
-import ru.barinov.file_prober.IndexTypeExtractor
+import ru.barinov.file_browser.viewModels.CreateContainerViewModel
 import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
+import ru.barinov.file_browser.viewModels.KeyStoreCreateViewModel
+import ru.barinov.file_browser.viewModels.KeyStoreLoadViewModel
 import ru.barinov.onboarding.OnBoardingEngine
 
 
@@ -108,6 +107,25 @@ val fileObserverModule = module {
         )
     }
 
+    viewModel{ params ->
+        KeyStoreCreateViewModel(
+            source = params.get(),
+            folderDataInteractor = get(),
+            createKeyStoreUseCase = get()
+        )
+    }
+
+    viewModel{
+        KeyStoreLoadViewModel(
+            fileSingleShareBus = get(),
+            keyManager = get()
+        )
+    }
+
+    viewModel {
+        CreateContainerViewModel()
+    }
+
     viewModel {
         FilesLoadInitializationViewModel(
             containersManager = get(),
@@ -117,7 +135,8 @@ val fileObserverModule = module {
             fileToUiModelMapper = get(Qualifiers.fileEntityMapper),
             workersManager = get(),
             fileWriter = get(),
-            selectedCache = get()
+            selectedCache = get(),
+            singleShareBus = get()
         )
     }
 
@@ -146,8 +165,8 @@ val fileObserverModule = module {
             folderDataInteractor = get(),
             fileToUiModelMapper = get(Qualifiers.fileEntityMapper),
             keyManager = get(),
-            createKeyStoreUseCase = get(),
-            keyPickerOnBoarding =  get(Qualifiers.kpOnboardings)
+            keyPickerOnBoarding =  get(Qualifiers.kpOnboardings),
+            fileSingleShareBus = get()
         )
     }
 

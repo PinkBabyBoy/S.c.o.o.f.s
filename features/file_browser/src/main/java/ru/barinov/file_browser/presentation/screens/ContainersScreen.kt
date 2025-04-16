@@ -1,10 +1,9 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.file_browser.presentation.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -14,13 +13,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.isTraceInProgress
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -33,9 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import ru.barinov.core.R
 import ru.barinov.file_browser.events.ContainersEvent
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.sideEffects.ContainersSideEffect
@@ -44,6 +41,14 @@ import ru.barinov.file_browser.toContainerContent
 import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.getActivity
+import ru.barinov.file_browser.NoArgsRouts
+import ru.barinov.file_browser.models.FileUiModel
+import ru.barinov.file_browser.presentation.Action
+import ru.barinov.file_browser.presentation.BrowserBlock
+import ru.barinov.file_browser.presentation.FileBrowserAppBar
+import ru.barinov.file_browser.presentation.FileItem
+import ru.barinov.file_browser.presentation.Pages
+import ru.barinov.file_browser.presentation.dialogs.CreateContainerBottomSheet
 import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +64,6 @@ fun Containers(
 ) {
     val context = LocalContext.current
     val exitConfirmDialogVisible = remember { mutableStateOf(false) }
-    val isContainerCreateBsExpanded = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val isPageOnScreen = remember {
         derivedStateOf {
@@ -72,29 +76,51 @@ fun Containers(
 
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
-            ContainersSideEffect.ContainerCreated -> isContainerCreateBsExpanded.value = false
+            ContainersSideEffect.OpenContainerCreateBottomSheet -> navController.navigate(NoArgsRouts.CREATE_CONTAINER_BOTTOM_SHEET.name)
+            ContainersSideEffect.ShowCantCreateMessage -> {
+                coroutineScope.launch {
+                    val message = context.getString(R.string.key_not_loaded_containers)
+                    snackbarHostState.showSnackbar(message)
+                }
+            }
+
+            is ContainersSideEffect.OpenContainerDetails -> TODO()
+            ContainersSideEffect.ShowCantOpenMessage -> TODO()
         }
     }
+    //TODO BrowserBlock
+    BrowserBlock<ContainersEvent, FileUiModel>(
+        files = state.containers,
+        currentFolderName = String(),
+        isSelectionEnabled = false,
+        onEvent = onEvent,
+        isPageEmpty = state.isPageEmpty,
+        isInRoot = true,
+        showLoading = false,
+        appbarState = state.appbarState
+
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFCFFFD))
     ) {
-        val page = state.containers.collectAsLazyPagingItems()
+
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
         FileBrowserAppBar(
             titleString = "Containers",
             topAppBarScrollBehavior = scrollBehavior,
             onNavigateUpClicked = {},
             showArrow = false,
+            appbarState = state.appBarState,
             actions = buildActions(
                 state = state,
                 onEvent = {},
                 isContainerCreateBsExpanded = isContainerCreateBsExpanded,
                 snackbarHostState = snackbarHostState,
                 coroutine = coroutineScope,
-                snackbarText = stringResource(id = ru.barinov.core.R.string.key_not_loaded_containers),
+                snackbarText = ,
             ),
             inOnboarding = false
         )
@@ -144,37 +170,5 @@ fun Containers(
             },
             onDismissRequest = { exitConfirmDialogVisible.value = false }
         )
-    }
-
-    if (isContainerCreateBsExpanded.value) {
-        CreateContainerBottomSheet(
-            onDismissRequested = { isContainerCreateBsExpanded.value = false },
-            onConfirmed = { onEvent(ContainersEvent.ContainerCreateConfirmed(it)) }
-        )
-    }
-}
-
-private fun buildActions(
-    state: ContainersUiState,
-    onEvent: (ContainersEvent) -> Unit,
-    isContainerCreateBsExpanded: MutableState<Boolean>,
-    snackbarHostState: SnackbarHostState,
-    snackbarText: String,
-    coroutine: CoroutineScope
-): Set<Action> = buildSet {
-    add {
-        Icon(
-            painter = painterResource(id = ru.barinov.core.R.drawable.baseline_post_add_24),
-            contentDescription = null,
-            modifier = Modifier
-                .clickable {
-                    if (state.isKeyLoaded) {
-                        isContainerCreateBsExpanded.value = true
-                    } else coroutine.launch { snackbarHostState.showSnackbar(snackbarText) }
-                }
-                .size(26.dp),
-            tint = Color.Black
-        )
-        Spacer(modifier = Modifier.width(16.dp))
     }
 }

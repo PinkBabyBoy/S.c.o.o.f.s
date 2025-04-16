@@ -19,7 +19,7 @@ sealed interface AppbarState {
     }
     data class KeySelection(
         val title: String,
-        val showArrow: String,
+        val showArrow: Boolean,
         val keySelectionOnboarding: OnboardingInfo,
         val sourceState: SourceState,
     ) : AppbarState

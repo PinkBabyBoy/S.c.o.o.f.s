@@ -18,9 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import ru.barinov.core.R
 import ru.barinov.core.Source
+import ru.barinov.file_browser.events.ContainersEvent
 import ru.barinov.file_browser.events.DeleteSelected
 import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.KeySelectorEvent
@@ -28,12 +31,11 @@ import ru.barinov.file_browser.events.OnboardingFinished
 import ru.barinov.file_browser.events.RemoveSelection
 import ru.barinov.file_browser.events.SourceChanged
 import ru.barinov.file_browser.states.AppbarState
-import ru.barinov.file_browser.states.FileBrowserUiState
 import ru.barinov.onboarding.OnBoarding
 import ru.barinov.onboarding.Tooltip
 
 @Composable
-fun keySelectorSet(
+fun keySelectorActions(
     appbarState: AppbarState.KeySelection,
     onEvent: (KeySelectorEvent) -> Unit,
     spotLightOffsetState: MutableState<Offset?>
@@ -98,7 +100,7 @@ fun keySelectorSet(
 }
 
 @Composable
-fun fileBrowserSet(
+fun fileBrowserActions(
     appbarState: AppbarState.Browser,
     onEvent: (FileBrowserEvent) -> Unit,
     spotLightOffsetState: MutableState<Offset?>
@@ -243,4 +245,23 @@ fun fileBrowserSet(
         }
     }
     add { Spacer(modifier = Modifier.width(16.dp)) }
+}
+
+@Composable
+fun containersActions(
+    appBarState: AppbarState.Containers,
+    onEvent: (ContainersEvent) -> Unit,
+    spotLightOffsetState: MutableState<Offset?>,
+): Set<Action> = buildSet {
+    add {
+        Icon(
+            painter = painterResource(id = R.drawable.baseline_post_add_24),
+            contentDescription = null,
+            modifier = Modifier
+                .clickable { onEvent(ContainersEvent.CreateContainerRequest) }
+                .size(26.dp),
+            tint = Color.Black
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+    }
 }

@@ -23,13 +23,6 @@ sealed interface KeySelectorEvent : FieObserverEvent {
 
     data object KeyStoreCreateClicked: KeySelectorEvent
 
-    class KeyLoadConfirmed(val fileId: FileId, val password: CharArray) : KeySelectorEvent
-
-    class CreateKeyStoreConfirmed(
-        val password: CharArray,
-        val name: String,
-        val loadInstantly: Boolean
-    ) : KeySelectorEvent
 
     data object UnbindKey: KeySelectorEvent
 }
@@ -42,6 +35,7 @@ sealed interface FileLoadInitializationEvent: FieObserverEvent {
 sealed interface ContainersEvent : FieObserverEvent {
 
     class ContainerCreateConfirmed(val name: String): ContainersEvent
+    object CreateContainerRequest: ContainersEvent
 }
 
 data object OnBackPressed : FileBrowserEvent, KeySelectorEvent, OpenedContainerEvent

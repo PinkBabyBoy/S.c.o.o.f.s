@@ -1,4 +1,4 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.file_browser.presentation.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +29,7 @@ import ru.barinov.file_browser.states.ImageFileScreenUiState
 import ru.barinov.core.ui.RegisterLifecycleCallbacks
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.mainGreen
-import ru.barinov.file_browser.BrowserRout
+import ru.barinov.file_browser.NoArgsRouts
 
 @Composable
 fun ImageFileScreen(
@@ -48,7 +48,7 @@ fun ImageFileScreen(
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
             is ImageFileDetailsSideEffects.ShowAddFilesDialog ->
-                navController.navigate(BrowserRout.ENCRYPTION_START_BOTTOM_SHEET.name)
+                navController.navigate(NoArgsRouts.ENCRYPTION_START_BOTTOM_SHEET.name)
         }
     }
     Box(

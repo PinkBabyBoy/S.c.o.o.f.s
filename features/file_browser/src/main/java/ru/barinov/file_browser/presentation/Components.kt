@@ -1,6 +1,5 @@
 package ru.barinov.file_browser.presentation
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
@@ -27,34 +26,19 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.boundsInParent
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import ru.barinov.core.SortType
 import ru.barinov.core.topBarHeader
@@ -65,7 +49,6 @@ import ru.barinov.core.ui.mainGreen
 import ru.barinov.file_browser.events.DeleteSelected
 import ru.barinov.file_browser.events.FieObserverEvent
 import ru.barinov.file_browser.states.AppbarState
-import ru.barinov.onboarding.OnBoarding
 
 
 private val sortTypes = listOf(
@@ -119,11 +102,13 @@ fun FileBrowserAppBar(
     }
     val title =
         @Composable {
-            Text(
-                text = titleString,
-                modifier = Modifier.padding(start = 16.dp),
-                style = topBarHeader()
-            )
+            if(titleString.isNotEmpty()) {
+                Text(
+                    text = titleString,
+                    modifier = Modifier.padding(start = 16.dp),
+                    style = topBarHeader()
+                )
+            }
         }
     val navigationIcon = @Composable {
         AnimatedVisibility(showArrow, enter = scaleIn(), exit = scaleOut()) {
@@ -152,9 +137,9 @@ fun FileBrowserAppBar(
             scrollBehavior = topAppBarScrollBehavior,
             actions = {
                 when (appbarState) {
-                    is AppbarState.Browser -> fileBrowserSet(appbarState, onEvent,  spotLightOffsetState)
-                    is AppbarState.Containers -> emptySet()
-                    is AppbarState.KeySelection -> keySelectorSet(appbarState, onEvent,  spotLightOffsetState)
+                    is AppbarState.Browser -> fileBrowserActions(appbarState, onEvent,  spotLightOffsetState)
+                    is AppbarState.Containers -> containersActions(appbarState, onEvent, spotLightOffsetState)
+                    is AppbarState.KeySelection -> keySelectorActions(appbarState, onEvent,  spotLightOffsetState)
                     AppbarState.None -> emptySet()
                 }.forEach { action ->
                     action()

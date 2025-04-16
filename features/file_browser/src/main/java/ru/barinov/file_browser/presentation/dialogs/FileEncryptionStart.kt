@@ -1,4 +1,4 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.file_browser.presentation.dialogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +29,8 @@ import ru.barinov.core.ui.InformationalBlockType
 import ru.barinov.core.ui.ScoofButton
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.bsContainerColor
+import ru.barinov.file_browser.presentation.FileGridItem
+import ru.barinov.file_browser.presentation.FileItem
 import ru.barinov.file_browser.sideEffects.DismissConfirmed
 import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
 import ru.barinov.file_browser.states.FilesLoadInitializationUiState
@@ -41,22 +43,21 @@ fun FileEncryptionStart(
     navController: NavController,
     onEvent: (FileLoadInitializationEvent) -> Unit
 ) {
-    val onDismissRequested = {
-        onEvent(FileLoadInitializationEvent.Dismiss)
-    }
+
     val state = uiState.collectAsStateWithLifecycle(context = Dispatchers.IO, minActiveState = Lifecycle.State.RESUMED)
     val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
+            //todo refasctor
             FilesLoadInitializationSideEffects.CloseOnLongTransaction
-            -> onDismissRequested()
+            -> onEvent(FileLoadInitializationEvent.Dismiss)
             FilesLoadInitializationSideEffects.CloseOnShortTransaction
-            -> onDismissRequested()
+            -> onEvent(FileLoadInitializationEvent.Dismiss)
 
             DismissConfirmed -> navController.navigateUp()
         }
     }
-    ModalBottomSheet(onDismissRequest = {onDismissRequested()}, sheetState = bsState, containerColor = bsContainerColor) {
+    ModalBottomSheet(onDismissRequest = {onEvent(FileLoadInitializationEvent.Dismiss)}, sheetState = bsState, containerColor = bsContainerColor) {
         Column {
             if (state.value.containers.isEmpty()) {
                 Spacer(modifier = Modifier.height(32.dp))
@@ -64,7 +65,7 @@ fun FileEncryptionStart(
                     modifier = Modifier.padding(horizontal = 32.dp).align(Alignment.CenterHorizontally),
                     type = InformationalBlockType.WARNING,
                     text = "No container associated with key",
-                    onBlockClicked = { onDismissRequested() }) {
+                    onBlockClicked = { onEvent(FileLoadInitializationEvent.Dismiss) }) {
                 }
                 Spacer(modifier = Modifier.height(48.dp))
             } else {

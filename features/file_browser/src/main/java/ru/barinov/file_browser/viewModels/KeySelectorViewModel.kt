@@ -1,6 +1,5 @@
 package ru.barinov.file_browser.viewModels
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
@@ -18,7 +17,7 @@ import kotlinx.coroutines.launch
 import ru.barinov.core.FileEntity
 import ru.barinov.core.FileId
 import ru.barinov.core.Filepath
-import ru.barinov.core.R
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.Source
 import ru.barinov.cryptography.KeyManager
 import ru.barinov.external_data.MassStorageState
@@ -35,10 +34,8 @@ import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.models.SourceState
 import ru.barinov.file_browser.sideEffects.CanGoBack
 import ru.barinov.file_browser.sideEffects.KeySelectorSideEffect
-import ru.barinov.file_browser.sideEffects.ShowInfo
-import ru.barinov.file_browser.states.KeyPickerUiState
-import ru.barinov.file_browser.usecases.CreateKeyStoreUseCase
-import ru.barinov.onboarding.OnBoarding
+import ru.barinov.file_browser.states.KeySelectorUiState
+import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.onboarding.OnBoardingEngine
 import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 
@@ -46,9 +43,9 @@ import ru.barinov.plain_explorer.interactor.FolderDataInteractor
 class KeySelectorViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     folderDataInteractor: FolderDataInteractor,
+    private val fileSingleShareBus: FileSingleShareBus<InteractableFile>,
     private val fileToUiModelMapper: ViewableFileMapper<FileEntity, FileUiModel>,
     private val keyManager: KeyManager,
-    private val createKeyStoreUseCase: CreateKeyStoreUseCase,
     private val keyPickerOnBoarding: OnBoardingEngine
 ) : FileWalkViewModel<KeySelectorSideEffect>(
     folderDataInteractor = folderDataInteractor,
@@ -57,8 +54,8 @@ class KeySelectorViewModel(
 ) {
 
 
-    private val _uiState: MutableStateFlow<KeyPickerUiState> =
-        MutableStateFlow(KeyPickerUiState.idle())
+    private val _uiState: MutableStateFlow<KeySelectorUiState> =
+        MutableStateFlow(KeySelectorUiState.idle())
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -102,7 +99,7 @@ class KeySelectorViewModel(
                 .collectLatest {
                     val (isKeyLoaded, sourceData, folderName, isInRoot, folderFiles, isPageEmpty) = it
                     _uiState.value =
-                        KeyPickerUiState.reconstruct(
+                        KeySelectorUiState.reconstruct(
                             isKeyLoaded = isKeyLoaded,
                             files = folderFiles,
                             folderName = folderName,
@@ -120,41 +117,6 @@ class KeySelectorViewModel(
             OnBackPressed -> goBack()
             is OnFileClicked -> onFileClicked(event.fileId)
             SourceChanged -> sourceType.value = sourceType.value.change()
-            is KeySelectorEvent.KeyLoadConfirmed
-                -> keyManager.loadKey(
-                keyFile = folderDataInteractor.getFileByID(event.fileId, sourceType.value),
-                password = event.password,
-                onSuccess = {
-                    viewModelScope.launch {
-                        _sideEffects.send(ShowInfo(R.string.key_loaded))
-                    }
-                },
-                onError = {
-                    viewModelScope.launch {
-                        _sideEffects.send(ShowInfo(R.string.key_load_fail))
-                    }
-                }
-            )
-
-            is KeySelectorEvent.CreateKeyStoreConfirmed -> {
-                viewModelScope.launch(Dispatchers.Default) {
-                    val folder = folderDataInteractor.getCurrentFolder(sourceType.value)
-                    createKeyStoreUseCase(
-                        folder = folder,
-                        password = event.password,
-                        name = event.name,
-                        loadInstantly = event.loadInstantly
-                    ).fold(
-                        onSuccess = {
-                            folderDataInteractor.update(sourceType.value)
-                            _sideEffects.send(ShowInfo(R.string.keystore_create_success))
-                        },
-                        onFailure = {
-                            _sideEffects.send(ShowInfo(R.string.keystore_create_fail))
-                        }
-                    )
-                }
-            }
 
             KeySelectorEvent.UnbindKey -> unbindKey()
             is OnboardingFinished -> onOnboardingFinished()
@@ -169,25 +131,19 @@ class KeySelectorViewModel(
     }
 
     private fun onFileClicked(fileId: FileId) {
-        val file = folderDataInteractor.getFileByID(fileId, sourceType.value) as FileEntity
+        val file = folderDataInteractor.getFileByID(fileId, sourceType.value)
         if (file.isDir) {
             openFolder(fileId)
         } else {
             viewModelScope.launch {
-                _sideEffects.send(
-                    KeySelectorSideEffect.AskToLoadKey(
-                        name = file.name,
-                        fileId = file.fileId
-                    )
-                )
+                fileSingleShareBus.share(FileSingleShareBus.Key.ENCRYPTION, file)
+                _sideEffects.send(KeySelectorSideEffect.AskToLoadKey(sourceType.value, (file as FileEntity).name))
             }
         }
     }
 
     private fun goBack() {
-        goBack {
-            _sideEffects.send(CanGoBack)
-        }
+        goBack { _sideEffects.send(CanGoBack) }
     }
 
     private fun openFolder(fileId: FileId) {

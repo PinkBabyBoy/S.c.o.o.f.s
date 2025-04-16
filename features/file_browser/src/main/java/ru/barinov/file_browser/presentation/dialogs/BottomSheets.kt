@@ -1,6 +1,5 @@
-package ru.barinov.file_browser.presentation
+package ru.barinov.file_browser.presentation.dialogs
 
-import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,35 +21,41 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import ru.barinov.core.Filename
+import kotlinx.coroutines.flow.Flow
+import ru.barinov.core.R
 import ru.barinov.core.hasNoSpecialSymbols
 import ru.barinov.core.headerDefault
 import ru.barinov.core.ui.PasswordTextField
 import ru.barinov.core.ui.ProgressButton
 import ru.barinov.core.ui.ScoofButton
+import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.TextEnter
 import ru.barinov.core.ui.bsContainerColor
-import ru.barinov.file_browser.events.BottomSheetEvent
 import ru.barinov.file_browser.events.CreateContainerEvents
-import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.events.KeyStoreCreateEvents
 import ru.barinov.file_browser.events.LoadKeyStoreEvents
 import ru.barinov.file_browser.events.OnDismiss
 import ru.barinov.file_browser.sideEffects.BottomSheetSideEffects
+import ru.barinov.file_browser.sideEffects.DismissConfirmed
+import ru.barinov.file_browser.sideEffects.ShowInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateContainerBottomSheet(
     navController: NavController,
-    sideEffects: BottomSheetSideEffects,
+    sideEffectsFlow: Flow<BottomSheetSideEffects>,
     onEvent: (CreateContainerEvents) -> Unit,
 ) {
     val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    SingleEventEffect(sideEffectsFlow) { sideEffect ->
+        when (sideEffect) {
+            DismissConfirmed -> navController.navigateUp()
+            is ShowInfo -> TODO()
+        }
+    }
     ModalBottomSheet(
         onDismissRequest = { onEvent(OnDismiss)},
         sheetState = bsState,
@@ -64,7 +69,7 @@ fun CreateContainerBottomSheet(
             supportText = {
                 SupportText(
                     errors = inputErrors.value.filter { it == InputErrors.NAME_EMPTY },
-                    hint = ru.barinov.core.R.string.container_name_hint
+                    hint = R.string.container_name_hint
                 )
             },
             onValueChanged = { nameInput.value = it },
@@ -99,12 +104,19 @@ fun CreateContainerBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyStoreLoadBottomSheet(
+    fileName: String,
     navController: NavController,
-    sideEffects: BottomSheetSideEffects,
+    sideEffectsFlow:Flow<BottomSheetSideEffects>,
     onEvent: (LoadKeyStoreEvents) -> Unit,
-    filename: Filename
 ) {
     val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    SingleEventEffect(sideEffectsFlow) { sideEffect ->
+        when (sideEffect) {
+            DismissConfirmed -> navController.navigateUp()
+            is ShowInfo -> TODO()
+        }
+
+    }
     ModalBottomSheet(
         onDismissRequest = {  onEvent(OnDismiss) },
         modifier = Modifier.imePadding(),
@@ -116,7 +128,7 @@ fun KeyStoreLoadBottomSheet(
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             style = headerDefault(),
-            text = "Load keys from ${filename.value}",
+            text = "Load keys from $fileName",
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 16.dp)
@@ -143,14 +155,21 @@ fun KeyStoreLoadBottomSheet(
     }
 }
 
-@SuppressLint("CoroutineCreationDuringComposition")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateKeyStoreBottomSheet(
     navController: NavController,
-    sideEffects: BottomSheetSideEffects,
+    sideEffectsFlow: Flow<BottomSheetSideEffects>,
     onEvent: (KeyStoreCreateEvents) -> Unit
 ) {
+    SingleEventEffect(sideEffectsFlow) { sideEffect ->
+        when (sideEffect) {
+            DismissConfirmed -> navController.navigateUp()
+            is ShowInfo -> TODO()
+        }
+
+    }
     val inputErrors = remember {
         mutableStateOf(emptySet<InputErrors>())
     }
@@ -185,7 +204,7 @@ fun CreateKeyStoreBottomSheet(
             supportText = {
                 SupportText(
                     errors = inputErrors.value.filter { it == InputErrors.NAME_EMPTY },
-                    hint = ru.barinov.core.R.string.keystore_name_hint
+                    hint = R.string.keystore_name_hint
                 )
             },
             onValueChanged = { enteredName.value = it },
@@ -198,7 +217,7 @@ fun CreateKeyStoreBottomSheet(
             supportText = {
                 SupportText(
                     inputErrors.value.filter { it == InputErrors.PASSWORD_EMPTY },
-                    ru.barinov.core.R.string.password_enter_helper_text
+                    R.string.password_enter_helper_text
                 )
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
