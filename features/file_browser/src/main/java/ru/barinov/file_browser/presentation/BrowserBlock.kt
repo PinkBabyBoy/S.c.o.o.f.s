@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -50,16 +48,18 @@ inline fun <reified T : FieObserverEvent, reified M: ViewableFileModel> BrowserB
     showLoading: Boolean,
     appbarState: AppbarState,
     additionalInfoEnabled: Boolean = true,
+    hasSelected: Boolean = false
 ) {
     val selectionMode = remember { mutableStateOf(false) }
     val pagedFFiles = files.collectAsLazyPagingItems(Dispatchers.IO)
     val appBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(appBarState)
     BackHandler {
-        if (selectionMode.value) {
+        if (selectionMode.value && hasSelected) {
             selectionMode.value = false
             onEvent(RemoveSelection as T)
         } else {
+            if(!hasSelected) selectionMode.value = false
             onEvent(OnBackPressed as T)
             appBarState.heightOffset = 0f
             appBarState.contentOffset = 0f

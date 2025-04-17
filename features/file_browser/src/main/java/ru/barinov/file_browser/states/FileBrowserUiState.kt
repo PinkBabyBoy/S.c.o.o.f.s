@@ -2,7 +2,6 @@
 
 package ru.barinov.file_browser.states
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Stable
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow

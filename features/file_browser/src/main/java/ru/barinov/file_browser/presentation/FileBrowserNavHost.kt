@@ -12,11 +12,11 @@ import androidx.navigation.toRoute
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.barinov.core.FileId
-import ru.barinov.file_browser.NoArgsRouts
 import ru.barinov.file_browser.ContainersContent
 import ru.barinov.file_browser.CreateKeyStore
 import ru.barinov.file_browser.ImageDetails
 import ru.barinov.file_browser.LoadKeyStore
+import ru.barinov.file_browser.NoArgsRouts
 import ru.barinov.file_browser.presentation.dialogs.CreateContainerBottomSheet
 import ru.barinov.file_browser.presentation.dialogs.CreateKeyStoreBottomSheet
 import ru.barinov.file_browser.presentation.dialogs.FileEncryptionStart
@@ -25,7 +25,7 @@ import ru.barinov.file_browser.presentation.screens.ContainerContent
 import ru.barinov.file_browser.presentation.screens.ImageFileScreen
 import ru.barinov.file_browser.viewModels.ContainerContentViewModel
 import ru.barinov.file_browser.viewModels.CreateContainerViewModel
-import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
+import ru.barinov.file_browser.viewModels.FilesEncryptionInitializationViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
 import ru.barinov.file_browser.viewModels.KeyStoreCreateViewModel
 import ru.barinov.file_browser.viewModels.KeyStoreLoadViewModel
@@ -73,7 +73,7 @@ fun NavGraphBuilder.fileBrowserPager(
     }
 
     dialog(route = NoArgsRouts.ENCRYPTION_START_BOTTOM_SHEET.name) {
-        val vm: FilesLoadInitializationViewModel = koinViewModel()
+        val vm: FilesEncryptionInitializationViewModel = koinViewModel()
         FileEncryptionStart(vm.sideEffects, vm.uiState, navController, vm::onEvent)
     }
 

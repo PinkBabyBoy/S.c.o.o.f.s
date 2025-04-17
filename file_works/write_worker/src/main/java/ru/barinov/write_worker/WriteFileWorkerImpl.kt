@@ -2,13 +2,13 @@ package ru.barinov.write_worker
 
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
-import ru.barinov.file_prober.IndexTypeExtractor
 import ru.barinov.core.getBytes
 import ru.barinov.cryptography.Encryptor
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.factories.CipherStreamsFactory
 import ru.barinov.cryptography.keygens.SecretKeyGenerator
 import ru.barinov.external_data.GetMSDFileSystemUseCase
+import ru.barinov.file_prober.IndexTypeExtractor
 import ru.barinov.file_works.IndexCreator
 import java.io.File
 import java.io.FileOutputStream
@@ -37,15 +37,16 @@ internal class WriteFileWorkerImpl(
         val key = keygen.generateNewSecretKey()
         val envelopeCipher = cipherFactory.createEnvelopeWrapperCipher()
         val blockCipher = cipherFactory.createEncryptionInnerCipherBC(key)
+        val sizeCipher = cipherFactory.createEncryptionInnerCipherBC(key)
         val encKey = envelopeCipher.wrap(key)
         container.appendBytes(encKey.size.getBytes())
         container.appendBytes(encKey)
         when (targetFile) {
             is FileEntity.InternalFile ->
-                appendInternalFile(targetFile, container, progressCallback, blockCipher)
+                appendInternalFile(targetFile, container, progressCallback, blockCipher, sizeCipher)
 
             is FileEntity.MassStorageFile ->
-                appendMSDFile(targetFile, container, progressCallback, blockCipher)
+                appendMSDFile(targetFile, container, progressCallback, blockCipher, sizeCipher)
 
             is FileEntity.IndexStorage -> error("Container is not allowed here")
         }
@@ -66,7 +67,8 @@ internal class WriteFileWorkerImpl(
         targetFile: FileEntity.MassStorageFile,
         container: File,
         progressCallback: suspend (Long) -> Unit,
-        cipher: Cipher
+        cipher: Cipher,
+        sizeCipher: Cipher
     ) {
         UsbFileStreamFactory.createBufferedInputStream(
             targetFile.attachedOrigin,
@@ -83,11 +85,12 @@ internal class WriteFileWorkerImpl(
         targetFile: FileEntity.InternalFile,
         container: File,
         progressCallback: suspend (Long) -> Unit,
-        cipher: Cipher
+        mainCipher: Cipher,
+        sizeCipher: Cipher
     ) {
         val precalculatedSize = targetFile.attachedOrigin.length() + 16
-        container.appendBytes(cipher.doFinal(precalculatedSize.getBytes()))
-        cipherStreamsFactory.createOutputStream(FileOutputStream(container, true), cipher).use { output ->
+        container.appendBytes(sizeCipher.doFinal(precalculatedSize.getBytes()))
+        cipherStreamsFactory.createOutputStream(FileOutputStream(container, true), mainCipher).use { output ->
             targetFile.attachedOrigin.inputStream().use { input ->
                 input.copyWithProgress(output) { progressCallback.invoke(it) }
             }

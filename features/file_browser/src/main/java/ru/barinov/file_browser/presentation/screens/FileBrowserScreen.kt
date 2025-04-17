@@ -33,20 +33,20 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import ru.barinov.file_browser.events.FileBrowserEvent
-import ru.barinov.file_browser.sideEffects.CanGoBack
-import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
-import ru.barinov.file_browser.sideEffects.ShowInfo
-import ru.barinov.file_browser.states.FileBrowserUiState
-import ru.barinov.file_browser.toImageDetails
 import ru.barinov.core.ui.ScoofAlertDialog
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.file_browser.NoArgsRouts
 import ru.barinov.file_browser.events.DeleteSelected
+import ru.barinov.file_browser.events.FileBrowserEvent
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.presentation.BrowserBlock
 import ru.barinov.file_browser.presentation.Pages
+import ru.barinov.file_browser.sideEffects.CanGoBack
+import ru.barinov.file_browser.sideEffects.FileBrowserSideEffect
 import ru.barinov.file_browser.sideEffects.OpenImageFile
+import ru.barinov.file_browser.sideEffects.ShowInfo
+import ru.barinov.file_browser.states.FileBrowserUiState
+import ru.barinov.file_browser.toImageDetails
 
 @Composable
 fun FileBrowserScreen(
@@ -156,7 +156,8 @@ fun FileBrowserScreen(
             isPageEmpty = state.isPageEmpty,
             isInRoot = state.isInRoot,
             showLoading = true,
-            appbarState = state.appBarState
+            appbarState = state.appBarState,
+            hasSelected = state.hasSelected
         )
     }
 }

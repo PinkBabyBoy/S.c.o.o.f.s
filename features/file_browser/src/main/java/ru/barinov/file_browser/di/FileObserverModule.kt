@@ -3,17 +3,13 @@ package ru.barinov.file_browser.di
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import ru.barinov.file_browser.viewModels.ContainerContentViewModel
 import ru.barinov.file_browser.ContainersManager
 import ru.barinov.file_browser.ContainersManagerImpl
 import ru.barinov.file_browser.FileBrowserOnboarding
-import ru.barinov.file_browser.viewModels.ContainersViewModel
-import ru.barinov.file_browser.viewModels.FileObserverViewModel
-import ru.barinov.file_browser.PlaintFileToUiModelMapper
 import ru.barinov.file_browser.GetMSDAttachStateProvider
 import ru.barinov.file_browser.IsMSDAttachedUseCase
 import ru.barinov.file_browser.KeyPickerOnboarding
-import ru.barinov.file_browser.viewModels.KeySelectorViewModel
+import ru.barinov.file_browser.PlaintFileToUiModelMapper
 import ru.barinov.file_browser.RootProviderImpl
 import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.ViewableFileMapper
@@ -23,11 +19,16 @@ import ru.barinov.file_browser.usecases.GetCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.GetSerializableCurrentKeyHashUseCase
 import ru.barinov.file_browser.usecases.OpenContainerUseCase
 import ru.barinov.file_browser.utils.EncryptedIndexMapper
+import ru.barinov.file_browser.utils.FileBulkSingleShareBusImpl
 import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.file_browser.utils.FileSingleShareBusImpl
+import ru.barinov.file_browser.viewModels.ContainerContentViewModel
+import ru.barinov.file_browser.viewModels.ContainersViewModel
 import ru.barinov.file_browser.viewModels.CreateContainerViewModel
-import ru.barinov.file_browser.viewModels.FilesLoadInitializationViewModel
+import ru.barinov.file_browser.viewModels.FileObserverViewModel
+import ru.barinov.file_browser.viewModels.FilesEncryptionInitializationViewModel
 import ru.barinov.file_browser.viewModels.ImageFileDetailsViewModel
+import ru.barinov.file_browser.viewModels.KeySelectorViewModel
 import ru.barinov.file_browser.viewModels.KeyStoreCreateViewModel
 import ru.barinov.file_browser.viewModels.KeyStoreLoadViewModel
 import ru.barinov.onboarding.OnBoardingEngine
@@ -43,7 +44,7 @@ val fileObserverModule = module {
         EncryptedIndexMapper(get(ru.barinov.file_prober.di.Qualifiers.encryptedFileInfoExtractor))
     } bind ViewableFileMapper::class
 
-    factory {
+    single {
         SelectedCache()
     }
 
@@ -94,15 +95,19 @@ val fileObserverModule = module {
         KeyPickerOnboarding(appPreferences = get())
     } bind OnBoardingEngine::class
 
-    single {
+    single(Qualifiers.singleFileBus) {
         FileSingleShareBusImpl()
     } bind FileSingleShareBus::class
+
+    single(Qualifiers.bulkFileBus) {
+        FileBulkSingleShareBusImpl()
+    } bind  FileSingleShareBus::class
 
 
 
     viewModel { params ->
         ImageFileDetailsViewModel(
-            fileSingleShareBus = get(),
+            fileSingleShareBus = get(Qualifiers.singleFileBus),
             fileId = params.get()
         )
     }
@@ -117,7 +122,7 @@ val fileObserverModule = module {
 
     viewModel{
         KeyStoreLoadViewModel(
-            fileSingleShareBus = get(),
+            fileSingleShareBus = get(Qualifiers.singleFileBus),
             keyManager = get()
         )
     }
@@ -127,7 +132,7 @@ val fileObserverModule = module {
     }
 
     viewModel {
-        FilesLoadInitializationViewModel(
+        FilesEncryptionInitializationViewModel(
             containersManager = get(),
             hashValidator = get(),
             keyMemoryCache = get(),
@@ -136,7 +141,7 @@ val fileObserverModule = module {
             workersManager = get(),
             fileWriter = get(),
             selectedCache = get(),
-            singleShareBus = get()
+            singleShareBus = get(Qualifiers.bulkFileBus)
         )
     }
 
@@ -166,7 +171,7 @@ val fileObserverModule = module {
             fileToUiModelMapper = get(Qualifiers.fileEntityMapper),
             keyManager = get(),
             keyPickerOnBoarding =  get(Qualifiers.kpOnboardings),
-            fileSingleShareBus = get()
+            fileSingleShareBus = get(Qualifiers.singleFileBus)
         )
     }
 
@@ -178,7 +183,7 @@ val fileObserverModule = module {
             getMSDAttachStateProvider = get(),
             keyManager = get(),
             fileBrowserOnboarding = get(Qualifiers.fbOnboardings),
-            singleShareBus = get()
+            singleShareBus = get(Qualifiers.bulkFileBus)
         )
     }
 }

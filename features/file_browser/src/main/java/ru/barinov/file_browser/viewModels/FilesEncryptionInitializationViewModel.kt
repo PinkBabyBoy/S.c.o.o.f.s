@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.viewModels
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,22 +16,22 @@ import ru.barinov.core.FileId
 import ru.barinov.core.InteractableFile
 import ru.barinov.cryptography.KeyMemoryCache
 import ru.barinov.cryptography.hash.HashValidator
-import ru.barinov.file_browser.ContainersManager
-import ru.barinov.file_browser.base.SideEffectViewModel
-import ru.barinov.file_browser.states.FilesLoadInitializationUiState
 import ru.barinov.cryptography.hash.utils.ContainerHashExtractor
+import ru.barinov.file_browser.ContainersManager
 import ru.barinov.file_browser.SelectedCache
 import ru.barinov.file_browser.ViewableFileMapper
+import ru.barinov.file_browser.base.SideEffectViewModel
 import ru.barinov.file_browser.events.FileLoadInitializationEvent
 import ru.barinov.file_browser.events.OnFileClicked
 import ru.barinov.file_browser.models.FileUiModel
 import ru.barinov.file_browser.sideEffects.DismissConfirmed
 import ru.barinov.file_browser.sideEffects.FilesLoadInitializationSideEffects
+import ru.barinov.file_browser.states.FilesLoadInitializationUiState
 import ru.barinov.file_browser.utils.FileSingleShareBus
 import ru.barinov.file_process_worker.WorkersManager
 import ru.barinov.transaction_manager.FileWriter
 
-class FilesLoadInitializationViewModel(
+class FilesEncryptionInitializationViewModel(
     private val containersManager: ContainersManager,
     private val hashValidator: HashValidator,
     private val keyMemoryCache: KeyMemoryCache,
@@ -99,15 +100,19 @@ class FilesLoadInitializationViewModel(
     private fun startProcessing() {
         val containerId = selectedContainerId ?: return
         viewModelScope.launch {
-            val selectedFiles = singleShareBus.get(FileSingleShareBus.Key.ENCRYPTION) ?: return@launch
+            val selectedFiles =
+                singleShareBus.get(FileSingleShareBus.Key.ENCRYPTION) ?: return@launch
             val container = containersManager.getContainer(containerId.value)
             fileWriter.evaluateTransaction(
                 containersName = container.name,
                 files = selectedFiles.toList(),
                 onEvaluated = { data, isLong ->
+                    Log.e("@@@", "cb")
                     workersManager.startEncryptWork(data.uuid.toString(), isLong, data.totalSize)
                     selectedCache.removeAll()
-                    viewModelScope.launch { _sideEffects.send(FilesLoadInitializationSideEffects.CloseOnLongTransaction) }
+                    Log.e("@@@", "pre SEND SE")
+                    Log.e("@@@", "SEND SE")
+                    _sideEffects.send(FilesLoadInitializationSideEffects.CloseOnLongTransaction)
                 }
             )
         }

@@ -28,4 +28,16 @@ internal object Qualifiers {
             get() = "fileIndex"
 
     }
+
+    val singleFileBus = object : Qualifier {
+        override val value: QualifierValue
+            get() = "singleFileBus"
+
+    }
+
+    val bulkFileBus = object : Qualifier {
+        override val value: QualifierValue
+            get() = "bulkFileBus"
+
+    }
 }

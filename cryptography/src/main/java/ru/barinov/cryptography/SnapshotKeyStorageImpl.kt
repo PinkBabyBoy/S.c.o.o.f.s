@@ -1,5 +1,6 @@
 package ru.barinov.cryptography
 
+import android.util.Log
 import ru.barinov.core.getBytes
 import ru.barinov.cryptography.factories.CipherFactory
 import ru.barinov.cryptography.keygens.SecretKeyGenerator
@@ -30,6 +31,7 @@ internal class SnapshotKeyStorageImpl(
         val cipher = cipherFactory.createEncryptionInnerCipher(key)
         val encHash = cipher.doFinal(hash)
         //4(total)-4-iv-4-hash
+        Log.e("@@@", "SAVE IV ${cipher.iv.size}")
         return  (cipher.iv.size.getBytes() + cipher.iv + encHash.size.getBytes() + encHash)
     }
 

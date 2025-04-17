@@ -1,5 +1,6 @@
 package ru.barinov.file_browser.presentation.dialogs
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -22,13 +23,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import ru.barinov.core.headerBig
-import ru.barinov.file_browser.events.FieObserverEvent
-import ru.barinov.file_browser.events.FileLoadInitializationEvent
 import ru.barinov.core.ui.InformationalBlock
 import ru.barinov.core.ui.InformationalBlockType
 import ru.barinov.core.ui.ScoofButton
 import ru.barinov.core.ui.SingleEventEffect
 import ru.barinov.core.ui.bsContainerColor
+import ru.barinov.file_browser.events.FieObserverEvent
+import ru.barinov.file_browser.events.FileLoadInitializationEvent
 import ru.barinov.file_browser.presentation.FileGridItem
 import ru.barinov.file_browser.presentation.FileItem
 import ru.barinov.file_browser.sideEffects.DismissConfirmed
@@ -44,38 +45,55 @@ fun FileEncryptionStart(
     onEvent: (FileLoadInitializationEvent) -> Unit
 ) {
 
-    val state = uiState.collectAsStateWithLifecycle(context = Dispatchers.IO, minActiveState = Lifecycle.State.RESUMED)
+    val state = uiState.collectAsStateWithLifecycle(
+        context = Dispatchers.IO,
+        minActiveState = Lifecycle.State.RESUMED
+    )
     val bsState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     SingleEventEffect(sideEffects) { sideEffect ->
         when (sideEffect) {
-            //todo refasctor
+            //todo refactor
             FilesLoadInitializationSideEffects.CloseOnLongTransaction
-            -> onEvent(FileLoadInitializationEvent.Dismiss)
+            -> {
+                Log.e("@@@", "CLOSE BS")
+                navController.navigateUp()
+            }
+
             FilesLoadInitializationSideEffects.CloseOnShortTransaction
-            -> onEvent(FileLoadInitializationEvent.Dismiss)
+            -> navController.navigateUp()
 
             DismissConfirmed -> navController.navigateUp()
         }
     }
-    ModalBottomSheet(onDismissRequest = {onEvent(FileLoadInitializationEvent.Dismiss)}, sheetState = bsState, containerColor = bsContainerColor) {
+    ModalBottomSheet(
+        onDismissRequest = { onEvent(FileLoadInitializationEvent.Dismiss) },
+        sheetState = bsState,
+        containerColor = bsContainerColor
+    ) {
         Column {
             if (state.value.containers.isEmpty()) {
                 Spacer(modifier = Modifier.height(32.dp))
                 InformationalBlock(
-                    modifier = Modifier.padding(horizontal = 32.dp).align(Alignment.CenterHorizontally),
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp)
+                        .align(Alignment.CenterHorizontally),
                     type = InformationalBlockType.WARNING,
                     text = "No container associated with key",
                     onBlockClicked = { onEvent(FileLoadInitializationEvent.Dismiss) }) {
                 }
                 Spacer(modifier = Modifier.height(48.dp))
             } else {
-                Text(text = "Check files and select container", modifier = Modifier.align(Alignment.CenterHorizontally), style = headerBig )
+                Text(
+                    text = "Check files and select container",
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    style = headerBig
+                )
                 Spacer(modifier = Modifier.height(32.dp))
                 //Files (not selectable)
                 LazyColumn(
                     modifier = Modifier.heightIn(0.dp, 240.dp)
                 ) {
-                    items(state.value.selectedFiles.size){
+                    items(state.value.selectedFiles.size) {
                         FileItem<FieObserverEvent>(
                             file = state.value.selectedFiles[it],
                             selectionMode = false,
@@ -87,12 +105,16 @@ fun FileEncryptionStart(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-                Text(text = "Select container for save", style = headerBig,  modifier = Modifier.align(Alignment.CenterHorizontally))
+                Text(
+                    text = "Select container for save",
+                    style = headerBig,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
                 Spacer(modifier = Modifier.height(32.dp))
 
                 //Containers (selectable)
                 LazyRow(Modifier.padding(horizontal = 16.dp)) {
-                    items(state.value.containers.size){
+                    items(state.value.containers.size) {
                         FileGridItem<FileLoadInitializationEvent>(
                             file = state.value.containers[it],
                             selectionMode = true,
@@ -102,7 +124,10 @@ fun FileEncryptionStart(
                     }
                 }
                 Spacer(modifier = Modifier.height(32.dp))
-                ScoofButton(buttonText = ru.barinov.core.R.string.start, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                ScoofButton(
+                    buttonText = ru.barinov.core.R.string.start,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
                     onEvent(FileLoadInitializationEvent.StartProcess)
                 }
                 Spacer(modifier = Modifier.height(64.dp))

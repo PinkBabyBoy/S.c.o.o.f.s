@@ -7,12 +7,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import ru.barinov.core.InteractableFile
 import ru.barinov.core.FileEntity
+import ru.barinov.core.InteractableFile
 import ru.barinov.core.launchWithMutex
 import ru.barinov.core.truncate
 import ru.barinov.write_worker.WriteFileWorker
-import java.lang.Exception
 import java.util.UUID
 
 private const val SHORT_TRANSACTION_LIMIT = 7
@@ -46,7 +45,7 @@ internal class FileWriterImpl(
     override fun evaluateTransaction(
         containersName: String,
         files: List<InteractableFile>,
-        onEvaluated: (InitialTransactionData, Boolean) -> Unit
+        onEvaluated: suspend (InitialTransactionData, Boolean) -> Unit
     ) {
         serviceCoroutine.launchWithMutex(mutex) {
             val fileModels = files.filterIsInstance<FileEntity>()
@@ -97,6 +96,7 @@ internal class FileWriterImpl(
                 )
             }
         }.onFailure {
+            Log.e("@@@", "${it.stackTraceToString()}")
             val containerData = transaction.containerData
             containerData.container.truncate(containerData.initialSize)
             containerData.indexes.truncate(containerData.initialIndexesSize)
