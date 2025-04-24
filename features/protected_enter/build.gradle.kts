@@ -55,8 +55,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.test.manifest)
 
     implementation(project(":core"))
     implementation(project(":cryptography"))
