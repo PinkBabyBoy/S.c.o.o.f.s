@@ -22,6 +22,7 @@ firebaseCrashlyticsBuildtools = "3.0.2"
 appcompanist = "0.34.0"
 work_version = "2.10.0"
 biometricKtx = "1.4.0-alpha02"
+junitKtx = "1.2.1"
 
 [libraries]
 workers = {  group = "androidx.work", name = "work-runtime-ktx", version.ref = "work_version"}
@@ -52,6 +53,7 @@ compose-appcompanist = {group = "com.google.accompanist", name = "accompanist-pe
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric", version.ref = "biometricKtx" }
 androidx-biometric-ktx-ext = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "biometricKtx" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

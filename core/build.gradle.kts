@@ -54,4 +54,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.test.manifest)
+    testImplementation(kotlin("test"))
 }

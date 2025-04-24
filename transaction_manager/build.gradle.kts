@@ -48,4 +48,5 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":cryptography"))
     implementation(project(":file_works"))
+    testImplementation(kotlin("test"))
 }
