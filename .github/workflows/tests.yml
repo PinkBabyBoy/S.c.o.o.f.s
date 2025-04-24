@@ -1,0 +1,67 @@
+name: Android Tests
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Возможность запускать вручную из интерфейса GitHub
+
+jobs:
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Run Unit Tests
+        run: ./gradlew test
+      
+      - name: Upload Unit Test Results
+        if: always()  # Даже если тесты провалятся, мы хотим видеть результаты
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-results
+          path: app/build/reports/tests/
+
+  instrumented-tests:
+    name: Run Instrumented Tests
+    runs-on: macos-latest  # macOS обычно предоставляет лучший опыт для запуска инструментальных тестов
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Run Instrumented Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          script: ./gradlew connectedCheck
+      
+      - name: Upload Instrumented Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: instrumented-test-results
+          path: app/build/reports/androidTests/ 
