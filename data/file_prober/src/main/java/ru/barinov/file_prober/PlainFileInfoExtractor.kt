@@ -24,12 +24,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private const val BIG_FILE_SIZE_LIMIT = 1024 * 1024 * 20
-private const val THREAD_LIMIT = 8
 
 internal class PlainFileInfoExtractor(
     private val appContext: Context
-): IndexTypeExtractor, FileInfoExtractor<FileEntity> {
+): IndexTypeExtractor, FileInfoExtractor<FileEntity>() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val recognizerCoroutineScope = CoroutineScope(
@@ -116,14 +114,4 @@ internal class PlainFileInfoExtractor(
         }
         return state.asStateFlow()
     }
-
-    private suspend fun InputStream.getBitMapPreview(): Bitmap? = runCatching {
-        BitmapFactory.decodeStream(this)?.let { Bitmap.createScaledBitmap(it, 100, 100, true) }
-    }.getOrNull()
-
-    private suspend fun InputStream.isImage(): Boolean = runCatching {
-        val bitmapOptions = BitmapFactory.Options().also { it.inJustDecodeBounds = true }
-        BitmapFactory.decodeStream(this, null, bitmapOptions)
-        return (bitmapOptions.outWidth != -1 && bitmapOptions.outHeight != -1).also { close() }
-    }.getOrNull() ?: false
 }

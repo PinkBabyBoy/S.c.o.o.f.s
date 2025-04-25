@@ -96,7 +96,7 @@ internal class FileWriterImpl(
                 )
             }
         }.onFailure {
-            Log.e("@@@", "${it.stackTraceToString()}")
+            Log.e("@@@", it.stackTraceToString())
             val containerData = transaction.containerData
             containerData.container.truncate(containerData.initialSize)
             containerData.indexes.truncate(containerData.initialIndexesSize)

@@ -39,9 +39,7 @@ fun ContainerContent(
 }
 
 @Composable
-private fun Loading(){
-
-}
+private fun Loading(){}
 
 @Composable
 private fun Error(){}

@@ -5,7 +5,7 @@ import java.io.File
 
 private const val CONTAINERS_DIR_NAME = "containers"
 
-class ContainerProviderImpl(private val appContext: Context): ContainerProvider {
+internal class ContainerProviderImpl(private val appContext: Context): ContainerProvider {
 
     override fun getContainer(fileName: String): File =
         File(appContext.applicationInfo.dataDir, "$CONTAINERS_DIR_NAME${File.separator}$fileName").also {

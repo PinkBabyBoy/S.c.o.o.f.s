@@ -31,7 +31,7 @@ class LimitedInputStream(base: InputStream, private var limit: Long): FilterInpu
     override fun skip(n: Long): Long {
         val bytesToSkip = min(n, limit)
         val skipped = super.skip(bytesToSkip)
-        limit -= skipped
+//        limit -= skipped
         return skipped
     }
 

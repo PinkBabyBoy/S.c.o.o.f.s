@@ -55,7 +55,8 @@ class FileObserverViewModel(
     getMSDAttachStateProvider: GetMSDAttachStateProvider,
     keyManager: KeyManager,
     private val fileBrowserOnboarding: OnBoardingEngine,
-    private val singleShareBus: FileSingleShareBus<Collection<InteractableFile>>,
+    private val bulkSingleShareBus: FileSingleShareBus<Collection<InteractableFile>>,
+    private val fileSingleShareBus: FileSingleShareBus<InteractableFile>,
 ) : FileWalkViewModel<FileBrowserSideEffect>(
     folderDataInteractor,
     getMSDAttachStateProvider,
@@ -201,7 +202,7 @@ class FileObserverViewModel(
             is FileTypeInfo.Dir -> folderDataInteractor.open(fileId, sourceType.value)
             is FileTypeInfo.ImageFile -> {
                 viewModelScope.launch {
-                    singleShareBus.share(FileSingleShareBus.Key.IMAGE_SHARE, listOf(folderDataInteractor.getFileByID(fileId, sourceType.value)))
+                    fileSingleShareBus.share(FileSingleShareBus.Key.IMAGE_SHARE, folderDataInteractor.getFileByID(fileId, sourceType.value))
                     _sideEffects.send(OpenImageFile(fileId))
                 }
             }
@@ -214,7 +215,7 @@ class FileObserverViewModel(
 
     private fun askTransactionWithSelected() {
         viewModelScope.launch {
-            singleShareBus.share(FileSingleShareBus.Key.ENCRYPTION, selectedCache.getCache().values.filterIsInstance<InteractableFile>())
+            bulkSingleShareBus.share(FileSingleShareBus.Key.ENCRYPTION, selectedCache.getCache().values.filterIsInstance<InteractableFile>())
             _sideEffects.send(FileBrowserSideEffect.ShowAddFilesDialog)
         }
     }

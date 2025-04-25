@@ -1,6 +1,7 @@
 package ru.barinov.read_worker
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
@@ -27,18 +28,18 @@ internal class ReadFileWorkerImpl(
     private val cipherStreamsFactory: CipherStreamsFactory,
 ) : ReadFileWorker {
 
-    fun readFile(index: FileIndex): InputStream{
-        //File is stub for CONTAINER!!! not index
-        val container = File("")
-        RandomAccessFile(container, "r").use { ra ->
-            ra.seek(index.startPoint)
+    override suspend fun readFile(index: FileIndex): InputStream {
+        RandomAccessFile(index.container, "r").use { ra ->
+            Log.d("@@@", "C S ${index.container.length()} ${index.startPoint}")
+            if (index.startPoint > 0) ra.seek(index.startPoint)
             val keySize = ra.readSize()
             val wrappedKey = ByteArray(keySize).apply(ra::readFully)
+            Log.d("@@@", "wrappedKey ${keySize}")
             val decryptionInnerCipher = cipherFactory.createDecryptionInnerCipher(wrappedKey)
-            val sizeSectorLen = Long.SIZE_BYTES + 16
-            val fileSize = decryptionInnerCipher.doFinal(ByteArray(sizeSectorLen).apply(ra::readFully)).run { ByteBuffer.wrap(this).getLong()}
-            val containerIStream = LimitedInputStream(container.inputStream(), fileSize)
-            return  cipherStreamsFactory.createInputStream(containerIStream.also { it.skip( index.startPoint + Int.SIZE_BYTES + keySize  + sizeSectorLen) }, decryptionInnerCipher)
+            val pLoadSize = ra.readSize()
+            val fileSize = decryptionInnerCipher.doFinal(ByteArray(pLoadSize).apply(ra::readFully)).run { ByteBuffer.wrap(this).getLong() }
+            val containerIStream = LimitedInputStream(index.container.inputStream(), fileSize + 16).also { it.skip( index.startPoint + Int.SIZE_BYTES  + keySize + Int.SIZE_BYTES  + pLoadSize) }
+            return  cipherStreamsFactory.createInputStream(containerIStream, decryptionInnerCipher)
         }
     }
 
@@ -104,8 +105,8 @@ internal class ReadFileWorkerImpl(
     }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    override suspend fun getIndexesByOffsetAndLimit(container:  File, from: Long, limit: Int): List<FileIndex> =
-        RandomAccessFile(container, "r").use { ra ->
+    override suspend fun getIndexesByOffsetAndLimit(indexes: File, container: File, from: Long, limit: Int): List<FileIndex> =
+        RandomAccessFile(indexes, "r").use { ra ->
             val resolvedOffset = ra.resolvePointer(from)
             mutableListOf<FileIndex>().apply {
                 ra.readIndex(this, limit, resolvedOffset, container)
@@ -125,6 +126,11 @@ internal class ReadFileWorkerImpl(
     private fun RandomAccessFile.readSize(): Int {
         val buffer = ByteArray(Int.SIZE_BYTES).apply(::readFully)
         return ByteBuffer.wrap(buffer).getInt()
+    }
+
+    private fun RandomAccessFile.readLongSize(): Long {
+        val buffer = ByteArray(Long.SIZE_BYTES).apply(::readFully)
+        return ByteBuffer.wrap(buffer).getLong()
     }
 
     private fun InputStream.skipHash(): Int {

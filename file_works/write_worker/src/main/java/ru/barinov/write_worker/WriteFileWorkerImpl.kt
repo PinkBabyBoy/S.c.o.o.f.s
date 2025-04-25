@@ -1,5 +1,6 @@
 package ru.barinov.write_worker
 
+import android.util.Log
 import me.jahnen.libaums.core.fs.UsbFileStreamFactory
 import ru.barinov.core.FileEntity
 import ru.barinov.core.getBytes
@@ -14,6 +15,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import javax.crypto.Cipher
 
 internal class WriteFileWorkerImpl(
@@ -88,8 +90,10 @@ internal class WriteFileWorkerImpl(
         mainCipher: Cipher,
         sizeCipher: Cipher
     ) {
-        val precalculatedSize = targetFile.attachedOrigin.length() + 16
-        container.appendBytes(sizeCipher.doFinal(precalculatedSize.getBytes()))
+        val precalculatedSize = targetFile.attachedOrigin.length()
+        val pLoadSize = sizeCipher.doFinal(precalculatedSize.getBytes())
+        container.appendBytes(pLoadSize.size.getBytes())
+        container.appendBytes(pLoadSize)
         cipherStreamsFactory.createOutputStream(FileOutputStream(container, true), mainCipher).use { output ->
             targetFile.attachedOrigin.inputStream().use { input ->
                 input.copyWithProgress(output) { progressCallback.invoke(it) }

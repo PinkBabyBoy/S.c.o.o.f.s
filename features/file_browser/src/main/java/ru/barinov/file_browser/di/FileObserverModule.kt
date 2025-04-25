@@ -183,7 +183,8 @@ val fileObserverModule = module {
             getMSDAttachStateProvider = get(),
             keyManager = get(),
             fileBrowserOnboarding = get(Qualifiers.fbOnboardings),
-            singleShareBus = get(Qualifiers.bulkFileBus)
+            bulkSingleShareBus = get(Qualifiers.bulkFileBus),
+            fileSingleShareBus = get(Qualifiers.singleFileBus)
         )
     }
 }

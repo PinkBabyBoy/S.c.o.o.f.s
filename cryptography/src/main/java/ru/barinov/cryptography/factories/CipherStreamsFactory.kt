@@ -8,10 +8,17 @@ import javax.crypto.CipherOutputStream
 
 interface CipherStreamsFactory {
 
-    fun createInputStream(base: InputStream, cipher: Cipher): CipherInputStream
+    fun createInputStream(base: InputStream, cipher: Cipher): SafeCloseCipherInputStream
 
 //    fun createOutput(base: OutputStream, rawKey: ByteArray) =
 //       CipherOutputStream(base, cipherWorker.createFromWrappedKey(rawKey))
 
     fun createOutputStream(base: OutputStream, cipher: Cipher): CipherOutputStream
+}
+
+class SafeCloseCipherInputStream(base: InputStream, cipher: Cipher): CipherInputStream(base, cipher){
+
+    override fun close() {
+       runCatching {  super.close() }
+    }
 }

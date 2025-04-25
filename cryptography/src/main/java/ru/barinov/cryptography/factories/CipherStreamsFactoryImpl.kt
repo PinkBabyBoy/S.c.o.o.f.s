@@ -10,8 +10,8 @@ internal class CipherStreamsFactoryImpl(
     private val cipherWorker: CipherFactory
 ): CipherStreamsFactory {
 
-    override fun createInputStream(base: InputStream, cipher: Cipher) =
-        CipherInputStream(base, cipher)
+    override fun createInputStream(base: InputStream, cipher: Cipher): SafeCloseCipherInputStream =
+        SafeCloseCipherInputStream(base, cipher)
 
 //    fun createOutput(base: OutputStream, rawKey: ByteArray) =
 //       CipherOutputStream(base, cipherWorker.createFromWrappedKey(rawKey))
