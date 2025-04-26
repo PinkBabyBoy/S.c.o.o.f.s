@@ -68,6 +68,7 @@ internal class EncryptedFileInfoExtractor(
                 } else state.emit(FileTypeInfo.Other(false, fileEntity.fileSize.bytesToMbSting()))
             }
         }
+        savedInfos[fileEntity.id] = state
         return state.asStateFlow()
 
     }

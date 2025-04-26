@@ -167,7 +167,8 @@ inline fun <reified T : FieObserverEvent> FileItem(
                             fileId = file.fileId,
                             selectionMode = selectionMode,
                             fileInfo = file.info.value,
-                            isDir = (file as? FileUiModel)?.isDir ?: false
+                            isDir = (file as? FileUiModel)?.isDir ?: false,
+                            model = file
                         ) as T
                     )
                 }

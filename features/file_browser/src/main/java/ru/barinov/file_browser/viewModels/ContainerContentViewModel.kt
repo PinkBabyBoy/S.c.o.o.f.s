@@ -45,11 +45,13 @@ class ContainerContentViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             flow {
-                emit(openContainerUseCase(containerName).cachedIn(viewModelScope).flowOn(Dispatchers.IO)
+                emit(openContainerUseCase(containerName).cachedIn(viewModelScope)
+                    .flowOn(Dispatchers.IO)
                     .combine(selectedCache.cacheFlow, ::Pair)
-                    .map{ combinedData ->
+                    .map { combinedData ->
                         val (page, cache) = combinedData
-                        indexMapper(page, cache, true) }
+                        indexMapper(page, cache, true)
+                    }
                 )
             }
                 .catch {
@@ -63,10 +65,14 @@ class ContainerContentViewModel(
     }
 
     fun handleEvent(event: OpenedContainerEvent) {
-        when(event){
+        when (event) {
             DeleteSelected -> TODO()
             OnBackPressed -> viewModelScope.launch { _sideEffects.send(CanGoBack) }
-            is OnFileClicked -> if (event.selectionMode) selectedCache.add(event.fileId, event.model as EncryptedFileIndexUiModel)
+            is OnFileClicked -> if (event.selectionMode)
+                if (!selectedCache.hasSelected(event.fileId))
+                    selectedCache.add(event.fileId, event.model as EncryptedFileIndexUiModel)
+                else selectedCache.remove(event.fileId)
+
             RemoveSelection -> selectedCache.removeAll()
         }
     }
@@ -75,6 +81,10 @@ class ContainerContentViewModel(
 
 sealed interface ContainerContentViewState {
     data object Loading : ContainerContentViewState
-    data class ContainerLoaded(val containerName: String, val pageDataFlow: Flow<PagingData<EncryptedFileIndexUiModel>>) : ContainerContentViewState
+    data class ContainerLoaded(
+        val containerName: String,
+        val pageDataFlow: Flow<PagingData<EncryptedFileIndexUiModel>>
+    ) : ContainerContentViewState
+
     data object Error : ContainerContentViewState
 }
