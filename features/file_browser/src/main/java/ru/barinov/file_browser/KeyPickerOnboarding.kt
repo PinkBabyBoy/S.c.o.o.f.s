@@ -6,5 +6,6 @@ import ru.barinov.preferences.AppPreferences
 
 class KeyPickerOnboarding(appPreferences: AppPreferences): OnBoardingEngine(appPreferences) {
     override val onboardings: Set<OnBoarding>
-        get() = setOf(OnBoarding.KEY_CREATION, OnBoarding.CHANGE_SOURCE)
+//        get() = setOf(OnBoarding.KEY_CREATION, OnBoarding.CHANGE_SOURCE)
+        get() = setOf()
 }

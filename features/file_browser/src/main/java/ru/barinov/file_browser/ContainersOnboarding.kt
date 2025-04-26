@@ -6,5 +6,6 @@ import ru.barinov.preferences.AppPreferences
 
 class ContainersOnboarding(appPreferences: AppPreferences): OnBoardingEngine(appPreferences) {
     override val onboardings: Set<OnBoarding>
-        get() = setOf(OnBoarding.CREATE_CONTAINER)
+//        get() = setOf(OnBoarding.CREATE_CONTAINER)
+        get() = setOf()
 }

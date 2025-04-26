@@ -7,6 +7,7 @@ import ru.barinov.file_browser.ContainersManager
 import ru.barinov.file_browser.ContainersManagerImpl
 import ru.barinov.file_browser.FileBrowserOnboarding
 import ru.barinov.file_browser.GetMSDAttachStateProvider
+import ru.barinov.file_browser.IndexSelectedCache
 import ru.barinov.file_browser.IsMSDAttachedUseCase
 import ru.barinov.file_browser.KeyPickerOnboarding
 import ru.barinov.file_browser.PlaintFileToUiModelMapper
@@ -46,6 +47,10 @@ val fileObserverModule = module {
 
     single {
         SelectedCache()
+    }
+
+    single {
+        IndexSelectedCache()
     }
 
     factory {

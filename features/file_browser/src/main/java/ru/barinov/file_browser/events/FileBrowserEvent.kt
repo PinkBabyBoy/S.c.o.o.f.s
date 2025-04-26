@@ -3,6 +3,8 @@ package ru.barinov.file_browser.events
 import ru.barinov.core.FileId
 import ru.barinov.core.FileTypeInfo
 import ru.barinov.core.SortType
+import ru.barinov.file_browser.models.FileUiModel
+import ru.barinov.file_browser.models.ViewableFileModel
 
 interface FieObserverEvent //root and stub
 
@@ -13,37 +15,43 @@ sealed interface FileBrowserEvent : FieObserverEvent {
     class SortSelected(val type: SortType) : FileBrowserEvent
 }
 
-sealed interface OpenedContainerEvent: FieObserverEvent
+sealed interface OpenedContainerEvent : FieObserverEvent
 
 data object DeleteSelected : FileBrowserEvent, OpenedContainerEvent
 
-data object RemoveSelection: FileBrowserEvent, OpenedContainerEvent
+data object RemoveSelection : FileBrowserEvent, OpenedContainerEvent
 
 sealed interface KeySelectorEvent : FieObserverEvent {
 
-    data object KeyStoreCreateClicked: KeySelectorEvent
+    data object KeyStoreCreateClicked : KeySelectorEvent
 
 
-    data object UnbindKey: KeySelectorEvent
+    data object UnbindKey : KeySelectorEvent
 }
 
-sealed interface FileLoadInitializationEvent: FieObserverEvent {
-    object StartProcess: FileLoadInitializationEvent
-    object Dismiss: FileLoadInitializationEvent
+sealed interface FileLoadInitializationEvent : FieObserverEvent {
+    object StartProcess : FileLoadInitializationEvent
+    object Dismiss : FileLoadInitializationEvent
 }
 
 sealed interface ContainersEvent : FieObserverEvent {
 
-    class ContainerCreateConfirmed(val name: String): ContainersEvent
-    object CreateContainerRequest: ContainersEvent
+    class ContainerCreateConfirmed(val name: String) : ContainersEvent
+    object CreateContainerRequest : ContainersEvent
 }
 
-data object OnBackPressed : FileBrowserEvent, KeySelectorEvent, OpenedContainerEvent, ContainersEvent
+data object OnBackPressed : FileBrowserEvent, KeySelectorEvent, OpenedContainerEvent,
+    ContainersEvent
 
 class OnFileClicked(
-    val fileId: FileId, val selectionMode: Boolean, val fileInfo: FileTypeInfo, val isDir: Boolean
-) : FileBrowserEvent, KeySelectorEvent, ContainersEvent, FileLoadInitializationEvent, OpenedContainerEvent
+    val fileId: FileId,
+    val selectionMode: Boolean,
+    val fileInfo: FileTypeInfo,
+    val isDir: Boolean,
+    val model: ViewableFileModel? = null // костылина
+) : FileBrowserEvent, KeySelectorEvent, ContainersEvent, FileLoadInitializationEvent,
+    OpenedContainerEvent
 
 data object SourceChanged : FileBrowserEvent, KeySelectorEvent
 
-data object OnboardingFinished: FileBrowserEvent, KeySelectorEvent
+data object OnboardingFinished : FileBrowserEvent, KeySelectorEvent

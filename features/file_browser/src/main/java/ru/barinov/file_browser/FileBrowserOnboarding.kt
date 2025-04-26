@@ -7,5 +7,6 @@ import ru.barinov.preferences.AppPreferences
 class FileBrowserOnboarding(appPreferences: AppPreferences): OnBoardingEngine(appPreferences) {
 
     override val onboardings: Set<OnBoarding>
-        get() = setOf(OnBoarding.SORT_FILES, OnBoarding.ADD_SELECTED, OnBoarding.CHANGE_SOURCE, OnBoarding.SELECT_FILE)
+//        get() = setOf(OnBoarding.SORT_FILES, OnBoarding.ADD_SELECTED, OnBoarding.CHANGE_SOURCE, OnBoarding.SELECT_FILE)
+        get() = setOf()
 }

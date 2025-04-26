@@ -51,10 +51,12 @@ fun NavGraphBuilder.fileBrowserPager(
         val vm: ContainerContentViewModel =
             koinViewModel(parameters = { parametersOf(args.fileId) })
         ContainerContent(
+            scaffoldPaddings = scaffoldPaddings,
             uiState = vm.viewState.collectAsState(),
             eventReceiver = vm::handleEvent,
             sideEffects = vm.sideEffects,
-            navController = navController
+            navController = navController,
+            bottomNavBarVisibility = bottomNavBarVisibility
         )
     }
 

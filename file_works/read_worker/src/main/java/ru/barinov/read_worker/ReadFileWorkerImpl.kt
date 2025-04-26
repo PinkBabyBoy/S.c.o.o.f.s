@@ -34,11 +34,14 @@ internal class ReadFileWorkerImpl(
             if (index.startPoint > 0) ra.seek(index.startPoint)
             val keySize = ra.readSize()
             val wrappedKey = ByteArray(keySize).apply(ra::readFully)
-            Log.d("@@@", "wrappedKey ${keySize}")
             val decryptionInnerCipher = cipherFactory.createDecryptionInnerCipher(wrappedKey)
             val pLoadSize = ra.readSize()
-            val fileSize = decryptionInnerCipher.doFinal(ByteArray(pLoadSize).apply(ra::readFully)).run { ByteBuffer.wrap(this).getLong() }
-            val containerIStream = LimitedInputStream(index.container.inputStream(), fileSize + 16).also { it.skip( index.startPoint + Int.SIZE_BYTES  + keySize + Int.SIZE_BYTES  + pLoadSize) }
+            val fileSize = decryptionInnerCipher.doFinal(
+                ByteArray(pLoadSize).apply(ra::readFully)
+            ).run { ByteBuffer.wrap(this).getLong() }
+            val containerIStream = LimitedInputStream(index.container.inputStream().also {
+                it.skip(index.startPoint + Int.SIZE_BYTES  + keySize + Int.SIZE_BYTES  + pLoadSize)
+            }, fileSize + 16)
             return  cipherStreamsFactory.createInputStream(containerIStream, decryptionInnerCipher)
         }
     }
